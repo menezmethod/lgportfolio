@@ -25,12 +25,12 @@
   margin-top: -5vh;
 }
 .App-namehead {
-  color: #32C0F4;
-	font-size: calc(28px + 2vw);
+  color: #32c0f4;
+  font-size: calc(28px + 2vw);
 }
 .App-namehead2 {
-	color: #E97025;
-	font-size: calc(4px + 2vw);
+  color: #e97025;
+  font-size: calc(4px + 2vw);
 }
 
 .App-link {
@@ -46,36 +46,36 @@
   }
 }
 .App-head_desc {
-	line-height: calc(2px + 3vh);
-	word-wrap: break-word;
+  line-height: calc(2px + 3vh);
+  word-wrap: break-word;
   font-size: calc(4px + 2vh);
 }
 @media screen and (max-width: 1000px) {
-	.App-social_media {
-		display: none;
-	}
+  .App-social_media {
+    display: none;
+  }
 }
 .App-social_media {
-	bottom: 0;
-	left: 0px;
-	position: fixed;
+  bottom: 0;
+  left: 0px;
+  position: fixed;
 }
 .sm_ls {
-	list-style: none;
+  list-style: none;
 }
 .sm_ic {
-	margin-left: -2px;
-	width: 18px;
-	height: 18px;
-	padding: 2px;
+  margin-left: -2px;
+  width: 18px;
+  height: 18px;
+  padding: 2px;
 }
 .rotsm2 {
-	margin-top: -3px;
-	font-size: 22px;
-	transform: rotate(90deg);
+  margin-top: -3px;
+  font-size: 22px;
+  transform: rotate(90deg);
 }
 .rotsm1 {
-	font-size: 22px;
-	margin-bottom: -6px;
-	transform: rotatez(90deg);
+  font-size: 22px;
+  margin-bottom: -6px;
+  transform: rotatez(90deg);
 }

@@ -42,19 +42,29 @@ function App() {
                     <li className="rotsm1">
                         {"{"}</li>
                     <li>
-                        <a href="mailto:luisgimenezdev@gmail.com"><img className="sm_ic" src={EmailIcon} alt="Email"/></a>
+                        <a href="mailto:luisgimenezdev@gmail.com"><img className="sm_ic"
+                                src={EmailIcon}
+                                alt="Email"/></a>
                     </li>
                     <li>
-                        <a href="http://github.com/menezmethod" target="new"><img class="sm_ic" src={GitIcon} alt="GitHub"/></a>
+                        <a href="http://github.com/menezmethod" target="new"><img class="sm_ic"
+                                src={GitIcon}
+                                alt="GitHub"/></a>
                     </li>
                     <li>
-                        <a href="http://twitter.com"><img class="sm_ic" src={TwitterIcon} alt="Twitter"/></a>
+                        <a href="http://twitter.com"><img class="sm_ic"
+                                src={TwitterIcon}
+                                alt="Twitter"/></a>
                     </li>
                     <li>
-                        <a href="https://www.instagram.com/menezmethod/" target="new"><img class="sm_ic" src={InstaIcon} alt="Instagram"/></a>
+                        <a href="https://www.instagram.com/menezmethod/" target="new"><img class="sm_ic"
+                                src={InstaIcon}
+                                alt="Instagram"/></a>
                     </li>
                     <li>
-                        <a href="https://www.linkedin.com/in/gimenezdev/" target="new"><img class="sm_ic" src={LinkedInIcon} alt="LinkedIn"/></a>
+                        <a href="https://www.linkedin.com/in/gimenezdev/" target="new"><img class="sm_ic"
+                                src={LinkedInIcon}
+                                alt="LinkedIn"/></a>
                     </li>
                     <li className="rotsm2">
                         {"}"}</li>
