@@ -22,7 +22,7 @@ const ContactButton = styled("a")(({theme}) => ({
 
 export default function Contact() {
     return (
-        <Container maxWidth="md">
+        <Container id="contact" maxWidth="md">
             <Heading id="contact">[2]contact</Heading>
             <Content>I'm currently looking for work as a full-stack developer. Please do not hesitate to contact me if you have any questions about additional credentials or the design of this website. Please contact me if you are a recruiter looking for a hardworking individual.</Content>
             <Content align="center"><ContactButton href="mailto:luisgimenezdev@gmail.com">get in touch</ContactButton><br /><br/></Content>
