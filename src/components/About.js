@@ -13,7 +13,7 @@ const SkillLi = styled('li')({listStyleType:'square',flex: '1 0 25%'});
 
 export default function About() {
     return (
-        <Container id="aboutme">
+        <Container id="about">
             <Heading>[0]aboutMe</Heading>
             <MainContent>
                 <Content>
