@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {styled} from '@mui/system';
 import {orange} from '@mui/material/colors';
+import Resume from '../assets/Resume-Luis-Gimenez.pdf'
 
 export default function Header() {
     const Header = styled('div')({padding: 20});
@@ -34,7 +35,7 @@ export default function Header() {
                 <a href="#about">[0]about_me</a>&nbsp;
                 <a href="#mywork">[1]my_work</a>&nbsp;
                 <a href="#contact">[2]contact</a>&nbsp;
-                <ResumeButton href="assets/Resume-Luis-Gimenez.pdf">
+                <ResumeButton href={Resume}>
                     [resume]
                 </ResumeButton>
             </MainMenu>

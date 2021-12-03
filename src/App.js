@@ -9,6 +9,7 @@ import InstaIcon from './assets/instagram-1.svg'
 import LinkedInIcon from './assets/linkedin-3.svg'
 import TwitterIcon from './assets/twitter-1.svg'
 
+
 const ExploreButton = styled("a")(({theme}) => ({
     fontFamily: ['Source Code Pro'],
     fontSize: 18,
