@@ -48,12 +48,12 @@ function App() {
                                 alt="Email"/></a>
                     </li>
                     <li>
-                        <a href="http://github.com/menezmethod" target="new"><img class="sm_ic"
+                        <a href="https://github.com/menezmethod" target="new"><img class="sm_ic"
                                 src={GitIcon}
                                 alt="GitHub"/></a>
                     </li>
                     <li>
-                        <a href="http://twitter.com"><img class="sm_ic"
+                        <a href="https://twitter.com/menezmethod" target="new"><img class="sm_ic"
                                 src={TwitterIcon}
                                 alt="Twitter"/></a>
                     </li>
