@@ -5,21 +5,21 @@ import MePic from '../assets/me.png'
 
 const Heading = styled('h1')({borderBottom: '1px dashed #000'});
 const MainContent = styled('div')({padding: 20});
-const Content = styled('div')({padding: 5});
+const Content = styled('div')({padding: 5, display:'flex'});
 const AboutMe = styled('div')({padding: '1vh', paddingTop: '2vh', inlineSize: '68vh'});
 const ProfilePic = styled(Paper)({
-    margin: 0,
+    margin: 12,
     float: 'right',
-    clear: 'left',
     borderRadius: 0,
+    height:'33vh',
     padding: 6
 });
 const SkillList = styled('ul')({
-    paddingLeft: '6vh',
+    paddingLeft: '40px',
     flexDirection: 'column',
     flexWrap: 'wrap',
     display: 'flex',
-    height: '6vh'
+    height: '60px'
 });
 const SkillLi = styled('li')({listStyleType: 'square', flex: '1 0 25%'});
 
