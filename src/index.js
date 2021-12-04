@@ -10,6 +10,7 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import {Container} from '@mui/material';
 import MetaTags from 'react-meta-tags';
+import SMPic from './assets/smthumb.png';
 
 ReactDOM.render (
     <Container>
@@ -17,7 +18,7 @@ ReactDOM.render (
             <title>Luis Gimenez - Software Developer</title>
             <meta name="description" content="Portfolio website for Luis Gimenez, developer based out of Denver, CO."/>
             <meta property="og:title" content="Luis Gimenez - Software Developer"/>
-            <meta property="og:image" content="./assets/smthumb.png"/>
+            <meta property="og:image" content={SMPic}/>
         </MetaTags>
         <div><Header/></div>
         <div><App/></div>
