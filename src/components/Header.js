@@ -18,7 +18,7 @@ export default function Header() {
             '@media (max-width:500px)': {
                 fontSize: 'calc(20px + 3vw)',
                 marginLeft: '-4px',
-                paddingTop:'18px'
+                paddingTop:'16px'
 
             }
         }
@@ -33,8 +33,10 @@ export default function Header() {
         marginTop: '12px',
         marginBottom: '-10vh',
         '@media (max-width:780px)': {
-            fontSize: '2vmin)',
-            marginBottom: '-6vh'
+            wordSpacing: '0',
+            fontSize: '1vmin)',
+            marginBottom: '-6vh',
+            paddingLeft:'18px'
         }
     });
     const ResumeButton = styled("a")(({theme}) => ({
