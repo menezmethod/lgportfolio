@@ -4,19 +4,20 @@ import React from 'react'
 import MePic from '../assets/me.png'
 
 const Heading = styled('h1')({borderBottom: '1px dashed #000'});
-const MainContent = styled('div')({padding: 20});
+const MainContent = styled('div')({padding: 4});
 const Content = styled('div')({padding: 5});
 
-const AboutMe = styled('div')({padding: '1vh', paddingTop: '2vh', inlineSize: '68vh'});
+const AboutMe = styled('div')({padding: '.5vh', paddingTop: '2vh'});
 const MePict = styled('img')({
     margin: 12,
     float: 'right',
     borderRadius: 0,
     padding: 6,
-    ['@media (max-width:780px)']: { // eslint-disable-line no-useless-computed-key
-        width: '60vh',
+    paddingBottom:50,
+    ['@media (max-width:780px)']: { 
+        width:'80%',
         paddingBottom:50,
-        paddingLeft:'50px'}
+        padding:'45px'}
 });
 const SkillList = styled('ul')({
     paddingLeft: '40px',

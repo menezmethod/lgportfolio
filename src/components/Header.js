@@ -12,7 +12,8 @@ export default function Header() {
         position: 'absolute',
         padding: 8,
         ['@media (max-width:780px)']: {
-            marginLeft: '24vh'
+            fontSize: 'calc(54px + 3vw)'
+
         }
     });
     const MainMenu = styled('div')({
@@ -21,10 +22,9 @@ export default function Header() {
         wordSpacing: '1vh',
         padding: 24,
         marginTop: '2.5vh',
-        ['@media (max-width:780px)']: { // eslint-disable-line no-useless-computed-key
+        ['@media (max-width:780px)']: { 
             fontSize: '2vmin)',
             marginBottom: '-10vh',
-            marginRight:'6vh',
             paddingTop: '15vh'
         }
     });
