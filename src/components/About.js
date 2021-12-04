@@ -5,13 +5,13 @@ import MePic from '../assets/me.png'
 
 const Heading = styled('h1')({borderBottom: '1px dashed #000'});
 const MainContent = styled('div')({padding: 20});
-const Content = styled('div')({padding: 5, display:'flex'});
+const Content = styled('div')({padding: 5, display: 'flex'});
 const AboutMe = styled('div')({padding: '1vh', paddingTop: '2vh', inlineSize: '68vh'});
 const ProfilePic = styled(Paper)({
     margin: 12,
     float: 'right',
     borderRadius: 0,
-    height:'33vh',
+    height: '33vh',
     padding: 6
 });
 const SkillList = styled('ul')({
