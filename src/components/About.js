@@ -1,18 +1,22 @@
-import {Container, Paper} from '@mui/material';
+import {Container} from '@mui/material';
 import {styled} from '@mui/system';
 import React from 'react'
 import MePic from '../assets/me.png'
 
 const Heading = styled('h1')({borderBottom: '1px dashed #000'});
 const MainContent = styled('div')({padding: 20});
-const Content = styled('div')({padding: 5, display: 'flex'});
+const Content = styled('div')({padding: 5});
+
 const AboutMe = styled('div')({padding: '1vh', paddingTop: '2vh', inlineSize: '68vh'});
-const ProfilePic = styled(Paper)({
+const MePict = styled('img')({
     margin: 12,
     float: 'right',
     borderRadius: 0,
-    height: '33vh',
-    padding: 6
+    padding: 6,
+    ['@media (max-width:780px)']: { // eslint-disable-line no-useless-computed-key
+        width: '60vh',
+        paddingBottom:50,
+        paddingLeft:'50px'}
 });
 const SkillList = styled('ul')({
     paddingLeft: '40px',
@@ -29,8 +33,8 @@ export default function About() {
             <Heading>[0]aboutMe</Heading>
             <MainContent>
                 <Content>
-                    <ProfilePic><img src={MePic}
-                            alt="Luis Gimenez, Software Developer"/></ProfilePic>
+                    <p><MePict src={MePic}
+                            alt="Luis Gimenez, Software Developer"/></p>
                     <AboutMe>
                         Hi there! My name is Luis, and I enjoy creating content for the internet. My interest in web programming began when I was&nbsp;
                         <a href="https://web.archive.org/web/20010124075000/expage.com/dragonballn" targer="new">10 years old</a>

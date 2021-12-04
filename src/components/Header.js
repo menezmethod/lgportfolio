@@ -8,11 +8,26 @@ export default function Header() {
     const Logo = styled('div')({
         color: '#e97025',
         fontWeight: 1000,
-        fontSize: 'calc(32px + 3vw)',
+        fontSize: 'calc(34px + 3vw)',
         position: 'absolute',
-        padding: 8
+        padding: 8,
+        ['@media (max-width:780px)']: {
+            marginLeft: '24vh'
+        }
     });
-    const MainMenu = styled('div')({fontSize:'calc(2px + 2vmin)',textAlign: 'right', wordSpacing: '.5vh', padding: 24, marginTop:10});
+    const MainMenu = styled('div')({
+        fontSize: 'calc(2px + 2vmin)',
+        textAlign: 'right',
+        wordSpacing: '1vh',
+        padding: 24,
+        marginTop: '2.5vh',
+        ['@media (max-width:780px)']: { // eslint-disable-line no-useless-computed-key
+            fontSize: '2vmin)',
+            marginBottom: '-10vh',
+            marginRight:'6vh',
+            paddingTop: '15vh'
+        }
+    });
     const ResumeButton = styled("a")(({theme}) => ({
         color: 'black',
         fontWeight: 1000,
