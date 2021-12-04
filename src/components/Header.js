@@ -15,7 +15,12 @@ export default function Header() {
         '@media (max-width:780px)': {
             fontSize: 'calc(32px + 3vw)',
             marginLeft: '-4px',
+            '@media (max-width:500px)': {
+                fontSize: 'calc(20px + 3vw)',
+                marginLeft: '-4px',
+                paddingTop:'18px'
 
+            }
         }
     });
     const LogoPrint = styled('a')({textDecoration: 'none', color: orange[500]});
@@ -29,7 +34,7 @@ export default function Header() {
         marginBottom: '-10vh',
         '@media (max-width:780px)': {
             fontSize: '2vmin)',
-            marginBottom: '-8vh',
+            marginBottom: '-6vh'
         }
     });
     const ResumeButton = styled("a")(({theme}) => ({
