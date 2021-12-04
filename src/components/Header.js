@@ -7,6 +7,7 @@ export default function Header() {
     const Header = styled('div')({padding: 20});
     const Logo = styled('div')({
         textDecoration: 'none',
+        paddingBottom: '5vh',
         color: orange[500],
         fontWeight: 1000,
         fontSize: 'calc(30px + 2vw)',
@@ -18,7 +19,7 @@ export default function Header() {
             '@media (max-width:500px)': {
                 fontSize: 'calc(20px + 3vw)',
                 marginLeft: '-4px',
-                paddingTop:'16px'
+                paddingTop:'18px'
 
             }
         }
@@ -31,13 +32,19 @@ export default function Header() {
         wordSpacing: '1vh',
         padding: 24,
         marginTop: '12px',
-        marginBottom: '-10vh',
+        marginBottom: '-4vh',
         '@media (max-width:780px)': {
-            wordSpacing: '0',
+            wordSpacing: '1vh',
             fontSize: '1vmin)',
             marginBottom: '-6vh',
-            paddingLeft:'18px'
+            marginRight:'-18px',
+        '@media (max-width:500px)': {
+            wordSpacing: '0',
+            fontSize: '1vmin)',
+            marginBottom: '-2vh',
+            marginRight:'-18px'
         }
+    }
     });
     const ResumeButton = styled("a")(({theme}) => ({
         color: 'black',
