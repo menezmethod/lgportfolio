@@ -19,7 +19,7 @@ const SkillList = styled('ul')({
     flexDirection: 'column',
     flexWrap: 'wrap',
     display: 'flex',
-    height: '10vh'
+    height: '6vh'
 });
 const SkillLi = styled('li')({listStyleType: 'square', flex: '1 0 25%'});
 

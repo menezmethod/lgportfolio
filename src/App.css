@@ -22,7 +22,7 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: 000000;
-  margin-top: -5vh;
+  margin-top: -8vh;
 }
 .App-namehead {
   color: #32c0f4;
@@ -48,7 +48,7 @@
 .App-head_desc {
   line-height: calc(2px + 3vh);
   word-wrap: break-word;
-  font-size: calc(4px + 2vh);
+  font-size: calc(4px + 2vmin);
 }
 @media screen and (max-width: 1000px) {
   .App-social_media {
