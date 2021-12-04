@@ -6,26 +6,30 @@ import Resume from '../assets/Resume-Luis-Gimenez.pdf'
 export default function Header() {
     const Header = styled('div')({padding: 20});
     const Logo = styled('div')({
-        color: '#e97025',
+        textDecoration: 'none',
+        color: orange[500],
         fontWeight: 1000,
-        fontSize: 'calc(34px + 3vw)',
+        fontSize: 'calc(30px + 2vw)',
         position: 'absolute',
         padding: 8,
-        ['@media (max-width:780px)']: {
-            fontSize: 'calc(54px + 3vw)'
+        '@media (max-width:780px)': {
+            fontSize: 'calc(32px + 3vw)',
+            marginLeft: '-4px',
 
         }
     });
+    const LogoPrint = styled('a')({textDecoration: 'none', color: orange[500]});
+
     const MainMenu = styled('div')({
-        fontSize: 'calc(2px + 2vmin)',
+        fontSize: 'calc(2px + 1.5vmin)',
         textAlign: 'right',
         wordSpacing: '1vh',
         padding: 24,
-        marginTop: '2.5vh',
-        ['@media (max-width:780px)']: { 
+        marginTop: '12px',
+        marginBottom: '-10vh',
+        '@media (max-width:780px)': {
             fontSize: '2vmin)',
-            marginBottom: '-10vh',
-            paddingTop: '15vh'
+            marginBottom: '-8vh',
         }
     });
     const ResumeButton = styled("a")(({theme}) => ({
@@ -44,7 +48,7 @@ export default function Header() {
     return (
         <Header>
             <Logo>
-                [LG]
+                <LogoPrint href="https://gimenez.dev/">[LG]</LogoPrint>
             </Logo>
             <MainMenu>
                 <a href="#about">[0]about_me</a>&nbsp;

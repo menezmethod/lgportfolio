@@ -107,6 +107,17 @@ A simple student roster coded with C++ <br /><br />
           </MyWorkTypo>
         </AccordionDetails>
       </Accordion>
+      <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
+        <AccordionSummary aria-controls="panel5d-content" id="panel5d-header">
+          <MyWorkTypo>Gimenez.Dev Portfolio Website</MyWorkTypo>
+        </AccordionSummary>
+        <AccordionDetails>
+          <MyWorkTypo>
+This portfolio page created using React. <br /><br />
+<div align="center"><a href="https://github.com/menezmethod/lgportfolio" target="new">[View On GitHub]</a></div>
+          </MyWorkTypo>
+        </AccordionDetails>
+      </Accordion>
 </Content>
             </MainContent>
         </Container>

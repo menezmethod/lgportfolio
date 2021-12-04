@@ -4,8 +4,8 @@ import React from 'react'
 import MePic from '../assets/me.png'
 
 const Heading = styled('h1')({borderBottom: '1px dashed #000'});
-const MainContent = styled('div')({padding: 4});
-const Content = styled('div')({padding: 5});
+const MainContent = styled('div')({padding: 2});
+const Content = styled('div')({padding: 2});
 
 const AboutMe = styled('div')({padding: '.5vh', paddingTop: '2vh'});
 const MePict = styled('img')({
@@ -14,7 +14,7 @@ const MePict = styled('img')({
     borderRadius: 0,
     padding: 6,
     paddingBottom:50,
-    ['@media (max-width:780px)']: { 
+    '@media (max-width:780px)': { 
         width:'80%',
         paddingBottom:50,
         padding:'45px'}
@@ -24,7 +24,7 @@ const SkillList = styled('ul')({
     flexDirection: 'column',
     flexWrap: 'wrap',
     display: 'flex',
-    height: '60px'
+    height: '70px'
 });
 const SkillLi = styled('li')({listStyleType: 'square', flex: '1 0 25%'});
 
