@@ -9,6 +9,7 @@ import InstaIcon from './assets/instagram-1.svg'
 import LinkedInIcon from './assets/linkedin-3.svg'
 import TwitterIcon from './assets/twitter-1.svg'
 
+
 const Heading3 = styled("h3")(({theme}) => ({
     color: orange[500]
 }));
