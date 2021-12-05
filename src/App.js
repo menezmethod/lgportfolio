@@ -9,7 +9,9 @@ import InstaIcon from './assets/instagram-1.svg'
 import LinkedInIcon from './assets/linkedin-3.svg'
 import TwitterIcon from './assets/twitter-1.svg'
 
-
+const Heading3 = styled("h3")(({theme}) => ({
+    color: orange[500]
+}));
 const ExploreButton = styled("a")(({theme}) => ({
     fontFamily: ['Source Code Pro'],
     fontSize: 18,
@@ -18,6 +20,7 @@ const ExploreButton = styled("a")(({theme}) => ({
     borderRadius: 0,
     padding: 12,
     textDecoration: 'none',
+    boxShadow:'2px 4px',
     '&:hover': {
         backgroundColor: orange[700]
     }
@@ -31,8 +34,8 @@ function App() {
                 <Container maxWidth="md">
                     Hi, my name is
                     <h2 className="App-namehead">Luis Gimenez.</h2>
-                    <h3 className="App-namehead2">I build&nbsp;
-                        <u>digital experiences</u>.</h3>
+                    <Heading3>I build&nbsp;
+                        <u>digital experiences</u>.</Heading3>
                     <span className="App-head_desc">I'm a software developer located in Denver who focuses in creating (and occasionally designing) amazing applications for the web. Currently, I'm searching for exciting work opportunities with a forward-thinking organization.</span><br/>
                     <br/>
                     <ExploreButton href="#mywork">explore my work</ExploreButton>

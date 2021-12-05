@@ -12,6 +12,7 @@ const ContactButton = styled("a")(({theme}) => ({
     fontFamily: ['Source Code Pro'],
     backgroundColor: orange[500],
     textDecoration: 'none',
+    boxShadow:'2px 4px',
     '&:hover': {
         backgroundColor: orange[700]
     },

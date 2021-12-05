@@ -56,6 +56,7 @@ export default function Header() {
         },
         padding: 8,
         borderRadius: 0,
+        boxShadow:'1px 2px',
         display: 'inline'
     }));
 
