@@ -9,7 +9,9 @@ import MyWork from './components/MyWork';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import {Container} from '@mui/material';
-
+import ReactGA from 'react-ga';
+ReactGA.initialize('UA-214428047-1');
+ReactGA.pageview(window.location.pathname + window.location.search);
 
 ReactDOM.render (
     <Container>
