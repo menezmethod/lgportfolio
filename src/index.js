@@ -9,17 +9,12 @@ import MyWork from './components/MyWork';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import {Container} from '@mui/material';
-import MetaTags from 'react-meta-tags';
-import SMPic from './assets/smthumb.png';
+import ReactGA from 'react-ga';
+ReactGA.initialize('G-9DWRMN3CSE');
+ReactGA.pageview(window.location.pathname + window.location.search);
 
 ReactDOM.render (
     <Container>
-        <MetaTags>
-            <title>Luis Gimenez - Software Developer</title>
-            <meta name="description" content="Portfolio website for Luis Gimenez, developer based out of Denver, CO."/>
-            <meta property="og:title" content="Luis Gimenez - Software Developer"/>
-            <meta property="og:image" content={SMPic}/>
-        </MetaTags>
         <div><Header/></div>
         <div><App/></div>
         <div><About/></div>
@@ -29,8 +24,4 @@ ReactDOM.render (
     </Container>,
     document.getElementById('root')
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
