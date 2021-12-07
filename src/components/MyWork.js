@@ -70,7 +70,7 @@ export default function MyWork() {
         <AccordionDetails>
           <MyWorkTypo>
             Inventory management system designed to replace spreadsheets. Works with Spring Boot for the back-end and React for the front-end. <br /><br/>
-            <div align="center"><a href="https://github.com/menezmethod/inventorysystemreact" target="new">[View On GitHub]</a></div>
+            <div align="center"><a href="https://github.com/menezmethod/inventoryreact" target="new">[View On GitHub]</a></div>
           </MyWorkTypo>
         </AccordionDetails>
       </Accordion>
