@@ -65,6 +65,17 @@ export default function MyWork() {
                 <Content>
                 <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
         <AccordionSummary aria-controls="panel1d-content" >
+          <MyWorkTypo>Issue Tracking System using Spring Boot / Security and React / TypeScript. </MyWorkTypo>
+        </AccordionSummary>
+        <AccordionDetails>
+          <MyWorkTypo>
+            An issue tracking system using Spring Boot / Security for the back-end and React with TypeScript for the front end.<br /><br/>
+            <div align="center"><a href="https://github.com/menezmethod/kiwibug_frontend" target="new">[View On GitHub]</a></div>
+          </MyWorkTypo>
+        </AccordionDetails>
+      </Accordion>
+      <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
+        <AccordionSummary aria-controls="panel2d-content" >
           <MyWorkTypo>Inventory System created developed using Java (Spring Boot) and React</MyWorkTypo>
         </AccordionSummary>
         <AccordionDetails>
@@ -74,8 +85,8 @@ export default function MyWork() {
           </MyWorkTypo>
         </AccordionDetails>
       </Accordion>
-      <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
-        <AccordionSummary aria-controls="panel2d-content" id="panel2d-header">
+      <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
+        <AccordionSummary aria-controls="panel3d-content" id="panel3d-header">
           <MyWorkTypo>Multi time-zone Scheduling Application developed using Java and JavaFX</MyWorkTypo>
         </AccordionSummary>
         <AccordionDetails>
@@ -85,8 +96,8 @@ export default function MyWork() {
           </MyWorkTypo>
         </AccordionDetails>
       </Accordion>
-      <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
-        <AccordionSummary aria-controls="panel3d-content" id="panel3d-header">
+      <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
+        <AccordionSummary aria-controls="panel4d-content" id="panel4d-header">
           <MyWorkTypo>Mobile Semester Scheduling application developed using Java &amp; Android Studio</MyWorkTypo>
         </AccordionSummary>
         <AccordionDetails>
@@ -96,8 +107,8 @@ export default function MyWork() {
           </MyWorkTypo>
         </AccordionDetails>
       </Accordion>
-      <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
-        <AccordionSummary aria-controls="panel4d-content" id="panel4d-header">
+      <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
+        <AccordionSummary aria-controls="panel5d-content" id="panel5d-header">
           <MyWorkTypo>Student Roster developed using C++</MyWorkTypo>
         </AccordionSummary>
         <AccordionDetails>
@@ -107,8 +118,8 @@ A simple student roster coded with C++ <br /><br />
           </MyWorkTypo>
         </AccordionDetails>
       </Accordion>
-      <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
-        <AccordionSummary aria-controls="panel5d-content" id="panel5d-header">
+      <Accordion expanded={expanded === 'panel6'} onChange={handleChange('panel6')}>
+        <AccordionSummary aria-controls="panel6d-content" id="panel6d-header">
           <MyWorkTypo>Gimenez.Dev Portfolio Website</MyWorkTypo>
         </AccordionSummary>
         <AccordionDetails>
