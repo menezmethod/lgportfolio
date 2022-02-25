@@ -10,7 +10,7 @@ import Footer from './components/Footer';
 import {Container} from '@mui/material';
 
 
-ReactDOM.render (
+ReactDOM.render(
     <Container>
         <div><Header/></div>
         <div><App/></div>

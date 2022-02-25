@@ -1,25 +1,27 @@
 @import url("https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap");
 
 body {
-  margin: 0;
-  font-family: "Source Code Pro";
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #fafafa;
+    margin: 0;
+    font-family: "Source Code Pro";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #fafafa;
 }
 
 a {
-  color: black;
+    color: black;
 }
+
 a:hover {
-  color: black;
-  font-weight: 600;
+    color: black;
+    font-weight: 600;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
 .mePic {
-  width: 450;
+    width: 450;
 }

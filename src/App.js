@@ -21,11 +21,12 @@ const ExploreButton = styled("a")(({theme}) => ({
     borderRadius: 0,
     padding: 12,
     textDecoration: 'none',
-    boxShadow:'2px 4px',
+    boxShadow: '2px 4px',
     '&:hover': {
         backgroundColor: orange[700]
     }
 }));
+
 function App() {
 
     return (
@@ -48,28 +49,28 @@ function App() {
                         {"{"}</li>
                     <li>
                         <a href="mailto:luisgimenezdev@gmail.com"><img className="sm_ic"
-                                src={EmailIcon}
-                                alt="Email"/></a>
+                                                                       src={EmailIcon}
+                                                                       alt="Email"/></a>
                     </li>
                     <li>
                         <a href="https://github.com/menezmethod" target="new"><img class="sm_ic"
-                                src={GitIcon}
-                                alt="GitHub"/></a>
+                                                                                   src={GitIcon}
+                                                                                   alt="GitHub"/></a>
                     </li>
                     <li>
                         <a href="https://twitter.com/menezmethod" target="new"><img class="sm_ic"
-                                src={TwitterIcon}
-                                alt="Twitter"/></a>
+                                                                                    src={TwitterIcon}
+                                                                                    alt="Twitter"/></a>
                     </li>
                     <li>
                         <a href="https://www.instagram.com/menezmethod/" target="new"><img class="sm_ic"
-                                src={InstaIcon}
-                                alt="Instagram"/></a>
+                                                                                           src={InstaIcon}
+                                                                                           alt="Instagram"/></a>
                     </li>
                     <li>
                         <a href="https://www.linkedin.com/in/gimenezdev/" target="new"><img class="sm_ic"
-                                src={LinkedInIcon}
-                                alt="LinkedIn"/></a>
+                                                                                            src={LinkedInIcon}
+                                                                                            alt="LinkedIn"/></a>
                     </li>
                     <li className="rotsm2">
                         {"}"}</li>

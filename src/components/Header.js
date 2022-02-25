@@ -19,7 +19,7 @@ export default function Header() {
             '@media (max-width:500px)': {
                 fontSize: 'calc(20px + 3vw)',
                 marginLeft: '-4px',
-                paddingTop:'18px'
+                paddingTop: '18px'
 
             }
         }
@@ -37,14 +37,14 @@ export default function Header() {
             wordSpacing: '1vh',
             fontSize: '1vmin)',
             marginBottom: '-6vh',
-            marginRight:'-18px',
-        '@media (max-width:500px)': {
-            wordSpacing: '0',
-            fontSize: '1vmin)',
-            marginBottom: '-2vh',
-            marginRight:'-18px'
+            marginRight: '-18px',
+            '@media (max-width:500px)': {
+                wordSpacing: '0',
+                fontSize: '1vmin)',
+                marginBottom: '-2vh',
+                marginRight: '-18px'
+            }
         }
-    }
     });
     const ResumeButton = styled("a")(({theme}) => ({
         color: 'black',
@@ -56,7 +56,7 @@ export default function Header() {
         },
         padding: 8,
         borderRadius: 0,
-        boxShadow:'1px 2px',
+        boxShadow: '1px 2px',
         display: 'inline'
     }));
 
