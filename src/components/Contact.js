@@ -6,7 +6,7 @@ import {orange} from '@mui/material/colors';
 
 const Heading = styled('h1')({borderBottom: '1px dashed #000'});
 const Content = styled('div')({padding: 20});
-const ContactButton = styled("a")(({theme}) => ({
+const ContactButton = styled("a")(() => ({
     color: 'black',
     fontWeight: 1000,
     fontFamily: ['Source Code Pro'],

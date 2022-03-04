@@ -46,7 +46,7 @@ export default function Header() {
             }
         }
     });
-    const ResumeButton = styled("a")(({theme}) => ({
+    const ResumeButton = styled("a")(() => ({
         color: 'black',
         fontWeight: 1000,
         fontFamily: ['Source Code Pro'],
