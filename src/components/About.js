@@ -1,7 +1,7 @@
 import {Container} from '@mui/material';
 import {styled} from '@mui/system';
 import React from 'react'
-import MePic from '../assets/me.png'
+import MePic from '../assets/me.webp'
 
 const Heading = styled('h1')({borderBottom: '1px dashed #000'});
 const MainContent = styled('div')({padding: 2});
