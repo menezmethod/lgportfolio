@@ -35,7 +35,7 @@ export default function About() {
             <Heading>[0]aboutMe</Heading>
             <MainContent>
                 <Content>
-                    <p><MePict width={356} height={312} src={MePic}
+                    <p><MePict width={300} height={300} src={MePic}
                                alt="Luis Gimenez, Software Developer"/></p>
                     <AboutMe>
                         Hi there! My name is Luis, and I enjoy creating content for the internet. My interest in web
