@@ -48,15 +48,15 @@ export default function About() {
                         for a diverse clientele. Here are a few technologies with which I've recently worked:
                         <br/>
                         <SkillList>
+                            <SkillLi>Go</SkillLi>
                             <SkillLi>Java</SkillLi>
                             <SkillLi>C++</SkillLi>
-                            <SkillLi>C#</SkillLi>
-                            <SkillLi>JavaScript</SkillLi>
+                            <SkillLi>Python</SkillLi>
+                            <SkillLi>TypeScript</SkillLi>
                             <SkillLi>React</SkillLi>
                             <SkillLi>Node.js</SkillLi>
-                            <SkillLi>Python</SkillLi>
-                            <SkillLi>Angular</SkillLi>
-                            <SkillLi>.NET</SkillLi>
+                            <SkillLi>Jenkins</SkillLi>
+                            <SkillLi>Docker</SkillLi>
                         </SkillList>
                     </AboutMe>
                 </Content>
