@@ -10,9 +10,6 @@ import Typography from '@mui/material/Typography';
 const Heading = styled('h1')({borderBottom: '1px dashed #000'});
 const MainContent = styled('div')({padding: 20});
 const Content = styled('div')({padding: 5});
-// const MyWorkContent = styled('div')({padding: '1vh', paddingTop: '2vh', inlineSize: '68vh'});
-// const PortfolioList = styled('PortfolioList')({marginTop: -10});
-// const PortfolioLi = styled('PortfolioLi')({listStyleType: 'square', flex: '1 0 25%'});
 const MyWorkTypo = styled(Typography)({fontFamily: 'Source Code Pro'});
 
 const Accordion = styled((props) => (
@@ -112,7 +109,7 @@ export default function MyWork() {
                         <AccordionSummary aria-controls="panel4d-content" id="panel4d-header">
                             <MyWorkTypo>Multi time-zone Scheduling Application developed using Java and
                                 JavaFX</MyWorkTypo>
-                        </AccordionSummary aria-controls="panel4d-content" id="panel4d-header">
+                        </AccordionSummary>
                         <AccordionDetails>
                             <MyWorkTypo>
                                 A multi time-zone scheduling system developed using Java and JavaFX framework. Designed
