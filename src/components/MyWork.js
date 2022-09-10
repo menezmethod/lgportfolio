@@ -64,7 +64,24 @@ export default function MyWork() {
             <MainContent>
                 <Content>
                     <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
-                        <AccordionSummary aria-controls="panel1d-content">
+                        <AccordionSummary aria-controls="panel1d-content" id="panel1d-header">
+                            <MyWorkTypo>Trading Journal using React TypeScript and various gRPC microservices written in
+                                Go </MyWorkTypo>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <MyWorkTypo>
+                                A Trading Journal written in React (TypeScript) for the front-end & Go for the back-end
+                                microservices.
+                                <br/><br/>
+                                <div align="center"><a href="https://github.com/menezmethod/st-client"
+                                                       target="new">[View Client]</a> | <a
+                                    href="https://github.com/menezmethod/st-server"
+                                    target="new">[View Server]</a></div>
+                            </MyWorkTypo>
+                        </AccordionDetails>
+                    </Accordion>
+                    <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
+                        <AccordionSummary aria-controls="panel2d-content" id="panel2d-header">
                             <MyWorkTypo>Issue Tracking System using Spring Boot / Security and React /
                                 TypeScript. </MyWorkTypo>
                         </AccordionSummary>
@@ -77,8 +94,8 @@ export default function MyWork() {
                             </MyWorkTypo>
                         </AccordionDetails>
                     </Accordion>
-                    <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
-                        <AccordionSummary aria-controls="panel2d-content">
+                    <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
+                        <AccordionSummary aria-controls="panel3d-content" id="panel3d-header">
                             <MyWorkTypo>Inventory System created developed using Java (Spring Boot) and
                                 React</MyWorkTypo>
                         </AccordionSummary>
@@ -91,11 +108,11 @@ export default function MyWork() {
                             </MyWorkTypo>
                         </AccordionDetails>
                     </Accordion>
-                    <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
-                        <AccordionSummary aria-controls="panel3d-content" id="panel3d-header">
+                    <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
+                        <AccordionSummary aria-controls="panel4d-content" id="panel4d-header">
                             <MyWorkTypo>Multi time-zone Scheduling Application developed using Java and
                                 JavaFX</MyWorkTypo>
-                        </AccordionSummary>
+                        </AccordionSummary aria-controls="panel4d-content" id="panel4d-header">
                         <AccordionDetails>
                             <MyWorkTypo>
                                 A multi time-zone scheduling system developed using Java and JavaFX framework. Designed
@@ -105,8 +122,8 @@ export default function MyWork() {
                             </MyWorkTypo>
                         </AccordionDetails>
                     </Accordion>
-                    <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
-                        <AccordionSummary aria-controls="panel4d-content" id="panel4d-header">
+                    <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
+                        <AccordionSummary aria-controls="panel5d-content" id="panel5d-header">
                             <MyWorkTypo>Mobile Semester Scheduling application developed using Java &amp; Android
                                 Studio</MyWorkTypo>
                         </AccordionSummary>
@@ -119,8 +136,8 @@ export default function MyWork() {
                             </MyWorkTypo>
                         </AccordionDetails>
                     </Accordion>
-                    <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
-                        <AccordionSummary aria-controls="panel5d-content" id="panel5d-header">
+                    <Accordion expanded={expanded === 'panel6'} onChange={handleChange('panel6')}>
+                        <AccordionSummary aria-controls="panel6d-content" id="panel6d-header">
                             <MyWorkTypo>Student Roster developed using C++</MyWorkTypo>
                         </AccordionSummary>
                         <AccordionDetails>
@@ -131,8 +148,8 @@ export default function MyWork() {
                             </MyWorkTypo>
                         </AccordionDetails>
                     </Accordion>
-                    <Accordion expanded={expanded === 'panel6'} onChange={handleChange('panel6')}>
-                        <AccordionSummary aria-controls="panel6d-content" id="panel6d-header">
+                    <Accordion expanded={expanded === 'panel7'} onChange={handleChange('panel7')}>
+                        <AccordionSummary aria-controls="panel7d-content" id="panel7d-header">
                             <MyWorkTypo>Gimenez.Dev Portfolio Website</MyWorkTypo>
                         </AccordionSummary>
                         <AccordionDetails>
