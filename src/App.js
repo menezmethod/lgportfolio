@@ -38,7 +38,7 @@ function App() {
                     <h2 className="name_head">Luis Gimenez.</h2>
                     <Heading3>I build&nbsp;
                         <u>digital experiences</u>.</Heading3>
-                    <span className="head_desc">I'm a software developer located in Orlando who focuses in creating (and occasionally designing) amazing applications for the web. Currently, I'm searching for exciting work opportunities with a forward-thinking organization.</span><br/>
+                    <span className="head_desc">I'm a software developer located in Orlando who focuses in creating (and occasionally designing) amazing applications for the web.</span><br/>
                     <br/>
                     <ExploreButton href="#mywork">explore my work</ExploreButton>
                 </Container>
