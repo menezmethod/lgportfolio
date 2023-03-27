@@ -27,7 +27,7 @@ export default function Header() {
     const LogoPrint = styled('a')({textDecoration: 'none', color: orange[500]});
 
     const MainMenu = styled('div')({
-        fontSize: 'calc(2px + 1.5vmin)',
+        fontSize: 'calc(2px + 1vmin)',
         textAlign: 'right',
         wordSpacing: '1vh',
         padding: 24,
