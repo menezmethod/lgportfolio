@@ -1,20 +1,29 @@
-import {Container} from '@mui/material';
+import React, {useState} from 'react';
+import {
+    Container,
+    Typography,
+    Accordion as MuiAccordion,
+    AccordionSummary as MuiAccordionSummary,
+    AccordionDetails as MuiAccordionDetails
+} from '@mui/material';
 import {styled} from '@mui/system';
-import React from 'react'
-import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
-import MuiAccordion from '@mui/material/Accordion';
-import MuiAccordionSummary from '@mui/material/AccordionSummary';
-import MuiAccordionDetails from '@mui/material/AccordionDetails';
-import Typography from '@mui/material/Typography';
 
-const Heading = styled('h1')({borderBottom: '1px dashed #000'});
-const MainContent = styled('div')({padding: 20});
-const Content = styled('div')({padding: 5});
-const MyWorkTypo = styled(Typography)({fontFamily: 'Source Code Pro'});
+const Heading = styled(Typography)({
+    borderBottom: '1px dashed #000',
+    fontSize: '1.5rem',
+    fontFamily: 'Source Code Pro, sans-serif',
+    fontWeight: 'bold'
+});
 
-const Accordion = styled((props) => (
-    <MuiAccordion disableGutters elevation={0} square {...props} />
-))(({theme}) => ({
+const MainContent = styled('div')({
+    padding: 20,
+});
+
+const MyWorkTypo = styled(Typography)({
+    fontFamily: 'Source Code Pro',
+});
+
+const Accordion = styled(MuiAccordion)(({theme}) => ({
     fontFamily: 'Source Code Pro',
     borderBottom: `1px solid ${theme.palette.divider}`,
     '&:not(:last-child)': {
@@ -25,12 +34,7 @@ const Accordion = styled((props) => (
     },
 }));
 
-const AccordionSummary = styled((props) => (
-    <MuiAccordionSummary
-        expandIcon={<ArrowForwardIosSharpIcon sx={{fontSize: '0.9rem'}}/>}
-        {...props}
-    />
-))(({theme}) => ({
+const AccordionSummary = styled(MuiAccordionSummary)(({theme}) => ({
     backgroundColor:
         theme.palette.mode === 'dark'
             ? 'rgba(255, 255, 255, .05)'
@@ -49,116 +53,93 @@ const AccordionDetails = styled(MuiAccordionDetails)(({theme}) => ({
     borderTop: '1px solid rgba(0, 0, 0, .125)',
 }));
 
+const AccordionLink = styled('a')({
+    textDecoration: 'none',
+    '&:hover': {
+        textDecoration: 'underline',
+    },
+    target: "_blank",
+    rel: "noopener noreferrer"
+});
+
+const projects = [
+    {
+        title: "Rekordbox Control Client using Python",
+        description: "The Rekordbox Link Client is a Python script that automates the selection of similar tracks in Rekordbox using OCR to read track information. It interacts directly with the Rekordbox database to find tracks based on BPM, key, and genre compatibility. The script enhances DJ performances by ensuring seamless track transitions.",
+        clientLink: "https://github.com/menezmethod/rekordbox_link_client"
+    },
+    {
+        title: "Trading Journal using React TypeScript and various gRPC microservices written in Go",
+        description: "A Trading Journal written in React (TypeScript) for the front-end & Go for the back-end microservices.",
+        clientLink: "https://github.com/menezmethod/st-client",
+        serverLink: "https://github.com/menezmethod/st-server"
+    },
+    {
+        title: "Issue Tracking System using Spring Boot / Security and React / TypeScript",
+        description: "An issue tracking system using Spring Boot / Security for the back-end and React with TypeScript for the front end.",
+        clientLink: "https://github.com/menezmethod/kiwibug_frontend"
+    },
+    {
+        title: "Inventory System created developed using Java (Spring Boot) and React",
+        description: "Inventory management system designed to replace spreadsheets. Works with Spring Boot for the back-end and React for the front-end.",
+        clientLink: "https://github.com/menezmethod/inventoryreact"
+    },
+    {
+        title: "Multi time-zone Scheduling Application developed using Java and JavaFX",
+        description: "A multi time-zone scheduling system developed using Java and JavaFX framework. Designed to work for multiple locations.",
+        clientLink: "https://github.com/menezmethod/JSScheduleLG_java"
+    },
+    {
+        title: "Mobile Semester Scheduling application developed using Java & Android Studio",
+        description: "Mobile application developed using Java and Android Studio. Students are able to schedule their classes for future semesters.",
+        clientLink: "https://github.com/menezmethod/WGUSchedulerMobile"
+    },
+    {
+        title: "Student Roster developed using C++",
+        description: "A simple student roster coded with C++. Efficient and practical for academic use.",
+        clientLink: "https://github.com/menezmethod/StudentRosterLG_CPP"
+    },
+    {
+        title: "Gimenez.Dev Portfolio Website",
+        description: "This portfolio page created using React. Showcases projects and skills in a modern and interactive design.",
+        clientLink: "https://github.com/menezmethod/lgportfolio"
+    }
+];
+
 export default function MyWork() {
-    const [expanded, setExpanded] = React.useState('panel1');
+    const [expanded, setExpanded] = useState(false);
 
     const handleChange = (panel) => (event, newExpanded) => {
         setExpanded(newExpanded ? panel : false);
-    }
+    };
+
     return (
         <Container id="mywork">
-            <Heading>[1]myWork</Heading>
+            <Heading variant="h1">[1] My Work</Heading>
             <MainContent>
-                <Content>
-                    <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
-                        <AccordionSummary aria-controls="panel1d-content" id="panel1d-header">
-                            <MyWorkTypo>Trading Journal using React TypeScript and various gRPC microservices written in
-                                Go </MyWorkTypo>
+                {projects.map((project, index) => (
+                    <Accordion key={index} expanded={expanded === `panel${index}`}
+                               onChange={handleChange(`panel${index}`)}>
+                        <AccordionSummary aria-controls={`panel${index}d-content`} id={`panel${index}d-header`}>
+                            <MyWorkTypo>{project.title}</MyWorkTypo>
                         </AccordionSummary>
                         <AccordionDetails>
                             <MyWorkTypo>
-                                A Trading Journal written in React (TypeScript) for the front-end & Go for the back-end
-                                microservices.
+                                {project.description}
                                 <br/><br/>
-                                <div align="center"><a href="https://github.com/menezmethod/st-client"
-                                                       target="new">[View Client]</a> | <a
-                                    href="https://github.com/menezmethod/st-server"
-                                    target="new">[View Server]</a></div>
+                                <div align="center">
+                                    {project.clientLink && <AccordionLink href={project.clientLink} target="_blank"
+                                                                          rel="noopener noreferrer">[View
+                                        Client]</AccordionLink>}
+                                    {project.serverLink && <AccordionLink href={project.serverLink} target="_blank"
+                                                                          rel="noopener noreferrer"> | [View
+                                        Server]</AccordionLink>}
+                                </div>
                             </MyWorkTypo>
                         </AccordionDetails>
                     </Accordion>
-                    <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
-                        <AccordionSummary aria-controls="panel2d-content" id="panel2d-header">
-                            <MyWorkTypo>Issue Tracking System using Spring Boot / Security and React /
-                                TypeScript. </MyWorkTypo>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <MyWorkTypo>
-                                An issue tracking system using Spring Boot / Security for the back-end and React with
-                                TypeScript for the front end.<br/><br/>
-                                <div align="center"><a href="https://github.com/menezmethod/kiwibug_frontend"
-                                                       target="new">[View On GitHub]</a></div>
-                            </MyWorkTypo>
-                        </AccordionDetails>
-                    </Accordion>
-                    <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
-                        <AccordionSummary aria-controls="panel3d-content" id="panel3d-header">
-                            <MyWorkTypo>Inventory System created developed using Java (Spring Boot) and
-                                React</MyWorkTypo>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <MyWorkTypo>
-                                Inventory management system designed to replace spreadsheets. Works with Spring Boot for
-                                the back-end and React for the front-end. <br/><br/>
-                                <div align="center"><a href="https://github.com/menezmethod/inventoryreact"
-                                                       target="new">[View On GitHub]</a></div>
-                            </MyWorkTypo>
-                        </AccordionDetails>
-                    </Accordion>
-                    <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
-                        <AccordionSummary aria-controls="panel4d-content" id="panel4d-header">
-                            <MyWorkTypo>Multi time-zone Scheduling Application developed using Java and
-                                JavaFX</MyWorkTypo>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <MyWorkTypo>
-                                A multi time-zone scheduling system developed using Java and JavaFX framework. Designed
-                                to work for multiple locations. <br/><br/>
-                                <div align="center"><a href="https://github.com/menezmethod/JSScheduleLG_java"
-                                                       target="new">[View On GitHub]</a></div>
-                            </MyWorkTypo>
-                        </AccordionDetails>
-                    </Accordion>
-                    <Accordion expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
-                        <AccordionSummary aria-controls="panel5d-content" id="panel5d-header">
-                            <MyWorkTypo>Mobile Semester Scheduling application developed using Java &amp; Android
-                                Studio</MyWorkTypo>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <MyWorkTypo>
-                                Mobile application developed using Java and Android Studio. Students are able to
-                                schedule their classes for future semesters. <br/><br/>
-                                <div align="center"><a href="https://github.com/menezmethod/WGUSchedulerMobile"
-                                                       target="new">[View On GitHub]</a></div>
-                            </MyWorkTypo>
-                        </AccordionDetails>
-                    </Accordion>
-                    <Accordion expanded={expanded === 'panel6'} onChange={handleChange('panel6')}>
-                        <AccordionSummary aria-controls="panel6d-content" id="panel6d-header">
-                            <MyWorkTypo>Student Roster developed using C++</MyWorkTypo>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <MyWorkTypo>
-                                A simple student roster coded with C++ <br/><br/>
-                                <div align="center"><a href="https://github.com/menezmethod/StudentRosterLG_CPP"
-                                                       target="new">[View On GitHub]</a></div>
-                            </MyWorkTypo>
-                        </AccordionDetails>
-                    </Accordion>
-                    <Accordion expanded={expanded === 'panel7'} onChange={handleChange('panel7')}>
-                        <AccordionSummary aria-controls="panel7d-content" id="panel7d-header">
-                            <MyWorkTypo>Gimenez.Dev Portfolio Website</MyWorkTypo>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <MyWorkTypo>
-                                This portfolio page created using React. <br/><br/>
-                                <div align="center"><a href="https://github.com/menezmethod/lgportfolio" target="new">[View
-                                    On GitHub]</a></div>
-                            </MyWorkTypo>
-                        </AccordionDetails>
-                    </Accordion>
-                </Content>
+                ))}
             </MainContent>
         </Container>
-    )
+    );
 }

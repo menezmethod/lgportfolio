@@ -9,15 +9,24 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import {Container} from '@mui/material';
 
+function MainContainer() {
+    return (
+        <Container>
+            <Header/>
+            <main>
+                <App/>
+                <About/>
+                <MyWork/>
+                <Contact/>
+            </main>
+            <Footer/>
+        </Container>
+    );
+}
 
 ReactDOM.render(
-    <Container>
-        <div><Header/></div>
-        <div><App/></div>
-        <div><About/></div>
-        <div><MyWork/></div>
-        <div><Contact/></div>
-        <div><Footer/></div>
-    </Container>,
+    <React.StrictMode>
+        <MainContainer/>
+    </React.StrictMode>,
     document.getElementById('root')
 );

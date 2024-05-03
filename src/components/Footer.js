@@ -1,12 +1,21 @@
-import React from 'react'
+import React from 'react';
 import {styled} from '@mui/system';
 
-const FooterTxt = styled('div')({fontSize: 12, textDecoration: 'none', textAlign: 'center'});
+const FooterLink = styled('a')({
+    fontSize: 12,
+    textDecoration: 'none',
+    textAlign: 'center',
+    display: 'block',
+    color: 'inherit',
+    '&:hover': {
+        textDecoration: 'underline'
+    }
+});
 
 export default function Footer() {
     return (
-        <FooterTxt id="footer">
-            <a href="http://github.com/menezmethod" target="new">Designed &amp; Built by Luis Gimenez</a>
-        </FooterTxt>
-    )
+        <FooterLink href="http://github.com/menezmethod" target="_blank" rel="noopener noreferrer">
+            Designed & Built by Luis Gimenez
+        </FooterLink>
+    );
 }

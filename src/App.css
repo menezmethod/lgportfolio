@@ -1,3 +1,12 @@
+:root {
+    --primary-text-color: #000000;
+    --header-font-size: calc(10px + 2vmin);
+    --name-head-color: #32c0f4;
+    --sub-name-head-color: #e97124;
+    --link-color: #280a00;
+    --animation-duration: 20s;
+}
+
 .App {
     text-align: center;
 }
@@ -5,11 +14,12 @@
 .App-logo {
     height: 40vmin;
     pointer-events: none;
+    animation: App-logo-spin infinite var(--animation-duration) linear;
 }
 
-@media (prefers-reduced-motion: no-preference) {
+@media (prefers-reduced-motion: reduce) {
     .App-logo {
-        animation: App-logo-spin infinite 20s linear;
+        animation: none;
     }
 }
 
@@ -19,32 +29,23 @@
     flex-direction: column;
     text-align: left;
     justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: #000000;
+    font-size: var(--header-font-size);
+    color: var(--primary-text-color);
     margin-top: -8vh;
 }
 
 .name_head {
-    color: #32c0f4;
+    color: var(--name-head-color);
     font-size: calc(28px + 2vw);
 }
 
 .sub_name_head {
-    color: #e97124;
+    color: var(--sub-name-head-color);
     font-size: calc(4px + 2vw);
 }
 
 .link {
-    color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+    color: var(--link-color);
 }
 
 .head_desc {
@@ -76,14 +77,25 @@
     padding: 2px;
 }
 
-.rotate_second_icons {
-    margin-top: -3px;
+.rotate_icons {
     font-size: 22px;
-    transform: rotate(90deg);
 }
 
 .rotate_first_icons {
-    font-size: 22px;
     margin-bottom: -6px;
     transform: rotate(90deg);
+}
+
+.rotate_second_icons {
+    margin-top: -3px;
+    transform: rotate(90deg);
+}
+
+@keyframes App-logo-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
