@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App';
 import Header from './components/Header';
@@ -24,9 +24,11 @@ function MainContainer() {
     );
 }
 
-ReactDOM.render(
+const container = document.getElementById('root');
+const root = createRoot(container);
+
+root.render(
     <React.StrictMode>
         <MainContainer/>
-    </React.StrictMode>,
-    document.getElementById('root')
+    </React.StrictMode>
 );

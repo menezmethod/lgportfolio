@@ -48,9 +48,9 @@ function App() {
                 <Container maxWidth="md">
                     Hi, my name is
                     <h2 className="name_head">Luis Gimenez.</h2>
-                    <Heading3>I build <u>digital experiences</u>.</Heading3>
-                    <span className="head_desc">I'm a software developer located in Orlando who focuses in creating (and occasionally designing) amazing applications for the web.</span><br/>
-                    <ExploreButton href="#mywork">explore my work</ExploreButton>
+                    <Heading3>I architect <u>enterprise payment systems that process millions daily</u>.</Heading3>
+                    <span className="head_desc">Software Engineer II at The Home Depot building mission-critical payment infrastructures using Go and Java on Google Cloud Platform. GCP Professional Architect certified, specializing in both legacy system modernization and new payment solutions at enterprise scale. I also explore cutting-edge technologies like TypeScript, Rust, and AI/ML in personal innovation projects.</span><br/>
+                    <ExploreButton href="#mywork">view my work</ExploreButton>
                 </Container>
             </header>
             <div className="social_media">

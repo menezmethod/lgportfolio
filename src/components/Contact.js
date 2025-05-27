@@ -1,16 +1,33 @@
-import {Container} from '@mui/material';
+import {Container, Box} from '@mui/material';
 import React from 'react';
 import {styled} from '@mui/system';
 import {orange} from '@mui/material/colors';
 
 const Heading = styled('h1')({
     borderBottom: '1px dashed #000',
+    marginBottom: '30px',
+    paddingBottom: '10px'
 });
 
 const Content = styled('div')(({theme, align}) => ({
-    padding: theme.spacing(2.5),
+    padding: '20px',
     textAlign: align,
+    lineHeight: 1.7,
+    fontSize: '1.1rem',
+    maxWidth: '800px',
+    margin: '0 auto'
 }));
+
+const ValueProp = styled(Box)({
+    backgroundColor: 'rgba(255, 152, 0, 0.1)',
+    padding: '25px',
+    margin: '0 auto 30px auto',
+    borderLeft: '4px solid #ff9800',
+    fontSize: '1.15rem',
+    fontWeight: 'bold',
+    maxWidth: '800px',
+    borderRadius: '0 8px 8px 0'
+});
 
 const ContactButton = styled('a')(({theme}) => ({
     color: 'black',
@@ -19,25 +36,51 @@ const ContactButton = styled('a')(({theme}) => ({
     backgroundColor: orange[500],
     textDecoration: 'none',
     boxShadow: '2px 4px',
-    padding: theme.spacing(1.5),
+    padding: '15px 30px',
     borderRadius: 0,
     display: 'inline-block',
+    transition: 'all 0.3s ease',
+    fontSize: '1.1rem',
     '&:hover': {
-        backgroundColor: orange[700]
+        backgroundColor: orange[700],
+        transform: 'translateY(-2px)',
+        boxShadow: '4px 6px'
     },
+    '@media (max-width: 768px)': {
+        padding: '12px 24px',
+        fontSize: '1rem'
+    }
 }));
 
 export default function Contact() {
     return (
-        <Container id="contact" maxWidth="md">
+        <Container id="contact" maxWidth="lg">
             <Heading>[2]contact</Heading>
+            <ValueProp>
+                💡 Ready to deliver immediate impact: Payment systems architecture • Go/Java enterprise development • 
+                GCP cloud solutions • Legacy modernization • Personal innovation in emerging technologies
+            </ValueProp>
             <Content>
-                I am currently employed and enjoy my role; however, I remain open to discussing innovative projects and
-                potential opportunities. Should you have any questions regarding my qualifications or need insights into
-                my professional portfolio, please feel free to reach out. I am always eager to connect with industry
-                professionals and explore collaborative possibilities. </Content>
+                I'm a proven payment systems engineer who delivers critical infrastructure solutions at enterprise scale. 
+                At The Home Depot, I architect and maintain payment processing systems handling millions in daily transactions 
+                using Go, Java, and Google Cloud Platform. I bring both deep expertise in enterprise payment systems and 
+                passion for exploring cutting-edge technologies in my personal projects.
+                <br/><br/>
+                <strong>What I bring to your team:</strong>
+                <br/>
+                • <strong>Payment Systems Expertise:</strong> Enterprise-scale transaction processing and compliance
+                <br/>
+                • <strong>Cloud Architecture:</strong> GCP Professional Architect certified with hands-on experience
+                <br/>
+                • <strong>Legacy Modernization:</strong> Experience transitioning from legacy to modern architectures
+                <br/>
+                • <strong>Innovation Mindset:</strong> Personal projects exploring TypeScript, Rust, AI/ML, and emerging tech
+                <br/><br/>
+                Currently excelling at The Home Depot building critical payment infrastructure, but always open to 
+                discussing exceptional opportunities in fintech, payment systems, or innovative technology companies.
+            </Content>
             <Content align="center">
-                <ContactButton href="mailto:luisgimenezdev@gmail.com">Get in Touch</ContactButton><br/><br/>
+                <ContactButton href="mailto:luisgimenezdev@gmail.com">Let's Discuss Payment Systems & Innovation</ContactButton>
             </Content>
         </Container>
     );

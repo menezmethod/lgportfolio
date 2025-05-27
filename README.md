@@ -1,32 +1,112 @@
-# Luis Gimenez's Portfolio
+# Luis Gimenez - Software Engineer II, Payment Systems
 
-Welcome to my professional portfolio site. Here, you can find detailed information about my software development projects, technical skills, and professional background. This portfolio showcases a range of applications and systems I have developed, reflecting my ability to create scalable and efficient software solutions.
+## 🏦 **Payment Systems Engineer & Technology Innovator**
 
-## About Me
+Welcome to my professional portfolio showcasing enterprise payment system solutions and personal innovation projects. As a Software Engineer II at The Home Depot, I architect and maintain mission-critical payment processing infrastructures handling millions in daily transactions using Go, Java, and Google Cloud Platform.
 
-I am a Software Engineer II at The Home Depot with extensive experience in full-stack development, specializing in technologies such as Java, React, and Go. My expertise includes developing high-performance applications and leading cloud-based payment processing infrastructures. I am committed to continuous learning and applying best practices in a real-world setting.
+---
 
-## Portfolio
+## 💼 **Professional Experience @ The Home Depot**
 
-The portfolio is divided into the following sections:
+**Current Role:** Software Engineer II - Payment Systems  
+**Tech Stack:** Go, Java, Google Cloud Platform  
+**Certification:** GCP Professional Architect (renewing)  
+**Focus:** Legacy modernization, new payment solutions, enterprise compliance  
 
-- **Projects**: Demonstrates a variety of my projects, including:
-    - **Trading Journal**: A React application for tracking and analyzing trading activities.
-    - **Rekordbox Link**: A system managing DJ software and lighting, integrating various sensors and real-time data.
-    - Other notable projects that highlight my full-stack development skills.
-- **Skills**: Details my programming languages, tools, databases, and design skills.
-- **Experience**: Outlines my professional experience and significant contributions in past roles.
+### **Professional Responsibilities:**
+- 🏗️ **Payment Infrastructure:** Architecting and maintaining systems processing millions in daily transactions
+- 🔧 **Legacy Modernization:** Transitioning critical payment systems to modern architectures
+- ☁️ **Cloud Solutions:** Building scalable payment services on Google Cloud Platform
+- 🔒 **Compliance & Security:** Ensuring enterprise-grade security and regulatory compliance
+- 🚀 **Performance:** Optimizing payment processing for high-volume, low-latency requirements
 
-## Featured Projects
+---
 
-Here you can find some of the projects I'm most proud of. Each project includes a brief description, the technologies used, and links to live demos or GitHub repositories where you can view the code and learn more about the development process.
+## 🛠️ **Technical Expertise**
 
-## Contact
+| **Category** | **Professional** | **Personal Innovation** |
+|--------------|-----------------|-------------------------|
+| **Languages** | Go, Java | TypeScript, Rust, Python |
+| **Cloud** | Google Cloud Platform | Firebase, AWS |
+| **Systems** | Payment Processing, Legacy Modernization | AI/ML, WebGL, Audio Processing |
+| **Architecture** | Microservices, Enterprise Scale | Full-Stack, Emerging Tech |
 
-I am currently happily employed but remain open to discussing innovative projects and potential collaborative opportunities. Feel free to reach out if you have any questions about my work or if you're interested in professional collaboration.
+---
 
-- **Email**: [luisgimenezdev@gmail.com](mailto:luisgimenezdev@gmail.com)
-- **LinkedIn**: [linkedin.com/in/gimenezdev](https://www.linkedin.com/in/gimenezdev)
-- **GitHub**: [github.com/menezmethod](https://github.com/menezmethod)
+## 🎯 **Featured Personal Project: Churnistic (2024)**
 
-Thank you for visiting my portfolio, and I look forward to connecting!
+**AI-powered fintech platform** built with TypeScript, demonstrating innovation outside work:
+
+### **Technical Highlights:**
+- ✅ **TypeScript 98.2%** type coverage for production reliability
+- 🤖 **AI/ML Integration** for intelligent recommendations
+- 🧪 **95% test coverage** with comprehensive testing
+- 🚀 **Modern architecture** with Firebase backend
+- 📊 **Real-time analytics** and data visualization
+
+### **Personal Innovation Focus:**
+- Exploring cutting-edge technologies beyond day-to-day work
+- Experimenting with AI/ML integration patterns
+- Building full-stack solutions with modern frameworks
+- Learning emerging technologies for future application
+
+---
+
+## 📈 **Other Personal Projects**
+
+### **Enterprise Trading Journal** - Full-Stack Application
+**Tech:** React TypeScript, Go gRPC, WebSockets  
+**Focus:** Real-time data processing, microservices architecture
+
+### **Rythmae Audio Engine** - Systems Programming
+**Tech:** Rust, Audio DSP, Cross-Platform  
+**Focus:** High-performance computing, memory safety
+
+### **Go URL Shortener** - Backend Service
+**Tech:** Go, Redis, Kubernetes  
+**Focus:** High-throughput service design
+
+### **Various Exploration Projects**
+**Tech:** Python data processing, WebGL gaming, Computer vision  
+**Focus:** Staying current with emerging technologies
+
+---
+
+## 🎖️ **Professional Value Proposition**
+
+### **Payment Systems Expertise**
+- Deep experience with enterprise-scale transaction processing
+- Understanding of payment compliance, security, and regulatory requirements
+- Proven track record maintaining mission-critical financial infrastructure
+
+### **Cloud Architecture (GCP)**
+- Professional Architect certified with hands-on enterprise experience
+- Expertise in scalable, secure cloud solutions
+- Experience with both greenfield and migration projects
+
+### **Innovation Mindset**
+- Continuous learning through personal projects and emerging tech exploration
+- Bridge between enterprise reliability and cutting-edge innovation
+- Passion for applying new technologies to solve business problems
+
+---
+
+## 🤝 **Open to Opportunities**
+
+I'm currently excelling at The Home Depot building critical payment infrastructure, but always interested in discussing exceptional opportunities, particularly in:
+
+### **Ideal Roles:**
+- 🏦 **Payment Systems** - Fintech, financial services, e-commerce platforms
+- ☁️ **Cloud Architecture** - GCP-focused roles, system modernization
+- 🚀 **Innovation-Driven Companies** - Places where personal tech exploration adds value
+- 🏢 **Enterprise Solutions** - Large-scale, mission-critical system development
+
+---
+
+## 📞 **Let's Connect**
+
+**Email:** [luisgimenezdev@gmail.com](mailto:luisgimenezdev@gmail.com)  
+**LinkedIn:** [linkedin.com/in/gimenezdev](https://www.linkedin.com/in/gimenezdev)  
+**GitHub:** [github.com/menezmethod](https://github.com/menezmethod)  
+
+*"Delivering enterprise payment solutions by day, exploring tomorrow's technologies by night."*
