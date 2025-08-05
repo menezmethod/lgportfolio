@@ -2,6 +2,7 @@ import {Container, Box} from '@mui/material';
 import React from 'react';
 import {styled} from '@mui/system';
 import {orange} from '@mui/material/colors';
+import { trackContactInteraction } from '../utils/analytics';
 
 const Heading = styled('h1')({
     borderBottom: '1px dashed #000',
@@ -80,7 +81,12 @@ export default function Contact() {
                 discussing exceptional opportunities in fintech, payment systems, or innovative technology companies.
             </Content>
             <Content align="center">
-                <ContactButton href="mailto:luisgimenezdev@gmail.com">Let's Discuss Payment Systems & Innovation</ContactButton>
+                <ContactButton 
+                    href="mailto:luisgimenezdev@gmail.com"
+                    onClick={() => trackContactInteraction('email_click')}
+                >
+                    Let's Discuss Payment Systems & Innovation
+                </ContactButton>
             </Content>
         </Container>
     );

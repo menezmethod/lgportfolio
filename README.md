@@ -10,7 +10,7 @@ Welcome to my professional portfolio showcasing enterprise payment system soluti
 
 **Current Role:** Software Engineer II - Payment Systems  
 **Tech Stack:** Go, Java, Google Cloud Platform  
-**Certification:** GCP Professional Architect (renewing)  
+**Certification:** GCP Professional Architect
 **Focus:** Legacy modernization, new payment solutions, enterprise compliance  
 
 ### **Professional Responsibilities:**
@@ -110,3 +110,17 @@ I'm currently excelling at The Home Depot building critical payment infrastructu
 **GitHub:** [github.com/menezmethod](https://github.com/menezmethod)  
 
 *"Delivering enterprise payment solutions by day, exploring tomorrow's technologies by night."*
+
+---
+
+## 📊 **Analytics & Tracking**
+
+This portfolio includes Google Tag Manager implementation for tracking user interactions and portfolio performance. See [GOOGLE_ANALYTICS_SETUP.md](./GOOGLE_ANALYTICS_SETUP.md) for detailed setup instructions.
+
+**Features:**
+- ✅ Page view tracking
+- ✅ User interaction events
+- ✅ External link tracking
+- ✅ Contact form analytics
+- ✅ GTM dataLayer integration
+- ✅ GDPR-compliant implementation

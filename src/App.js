@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './App.css';
 import Container from '@mui/material/Container';
 import {styled, useTheme} from '@mui/material/styles';
@@ -8,6 +8,7 @@ import GitIcon from './assets/github-1.svg';
 import InstaIcon from './assets/instagram-1.svg';
 import LinkedInIcon from './assets/linkedin-3.svg';
 import TwitterIcon from './assets/twitter-1.svg';
+import { initGA, trackExternalLink } from './utils/analytics';
 
 const Heading3 = styled("h3")(() => ({
     color: orange[500]
@@ -42,6 +43,12 @@ const socialLinks = [
 
 function App() {
     useTheme();
+    
+    // Initialize Google Analytics on component mount
+    useEffect(() => {
+        initGA();
+    }, []);
+    
     return (
         <div className="App">
             <header className="header">
@@ -57,7 +64,12 @@ function App() {
                 <ul className="small_list">
                     {socialLinks.map(link => (
                         <li key={link.alt}>
-                            <a href={link.url} target="_blank" rel="noopener noreferrer">
+                            <a 
+                                href={link.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                onClick={() => trackExternalLink(link.url, link.alt)}
+                            >
                                 <SocialMediaIcon src={link.icon} alt={link.alt}/>
                             </a>
                         </li>
