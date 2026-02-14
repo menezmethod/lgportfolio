@@ -61,7 +61,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          IMAGE_TAG=${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/portfolio/app:${{ github.sha }}
+          IMAGE_TAG=${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/portfolio/app:${{ github.sha }}
           docker build -t $IMAGE_TAG .
           docker push $IMAGE_TAG
 
@@ -70,5 +70,5 @@ jobs:
         with:
           service: gimenez-portfolio
           region: ${{ secrets.REGION }}
-          image: ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/portfolio/app:${{ github.sha }}
+          image: ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/portfolio/app:${{ github.sha }}
           flags: '--allow-unauthenticated'
