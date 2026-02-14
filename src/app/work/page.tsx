@@ -48,14 +48,14 @@ const projects = [
 
 export default function Work() {
   return (
-    <div className="min-h-screen bg-black text-white pt-32 px-6">
+    <div className="min-h-screen bg-black text-white pt-20 md:pt-32 px-4 md:px-6 pb-16">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-5xl font-bold mb-16">
+        <h1 className="text-3xl md:text-5xl font-bold mb-10 md:mb-16">
           <span className="text-[#32c0f4] font-mono">[1]</span> Projects
         </h1>
 
         {/* Featured Projects */}
-        <div className="space-y-24">
+        <div className="space-y-16 md:space-y-24">
           {projects.filter(p => p.featured).map((project, idx) => (
             <div key={project.title} className="group">
               <div className={`grid md:grid-cols-2 gap-12 ${idx % 2 === 1 ? 'md:flex-row-reverse' : ''}`}>

@@ -12,14 +12,14 @@ const skills = {
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-black text-white pt-24 px-6">
+    <div className="min-h-screen bg-black text-white pt-20 md:pt-24 px-4 md:px-6 pb-16">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold mb-12">
+        <h1 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12">
           <span className="text-[#32c0f4] font-mono">[0]</span> About Me
         </h1>
 
-        <div className="grid md:grid-cols-3 gap-12">
-          <div className="md:col-span-2 space-y-10 text-gray-300">
+        <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+          <div className="md:col-span-2 space-y-8 text-gray-300">
             <p>
               I am a results-driven Software Engineer II at <span className="text-[#32c0f4]">The Home Depot</span>, 
               where I architect and maintain mission-critical payment processing infrastructures handling 

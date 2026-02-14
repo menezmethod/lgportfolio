@@ -23,16 +23,16 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-black text-white pt-16 pb-20">
       {/* Hero Section */}
-      <section className="min-h-[85vh] flex items-center justify-center px-6 py-20">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <p className="text-[#32c0f4] font-mono text-lg mb-6">Hi, my name is</p>
-          <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+      <section className="min-h-[90vh] flex items-center justify-center px-4 md:px-6 py-16 md:py-24">
+        <div className="max-w-5xl mx-auto text-center space-y-6 md:space-y-8">
+          <p className="text-base md:text-lg text-[#32c0f4] font-mono mb-4">Hi, my name is</p>
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
             Luis Gimenez.
           </h1>
           
           {/* Animated subtitle */}
-          <div className="h-[60px] md:h-[72px] mb-8">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-400">
+          <div className="h-[50px] md:h-[60px] lg:h-[72px] mb-6">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-400">
               I{' '}
               <span className="text-[#32c0f4] transition-all duration-500">
                 {titles[currentTitle]}
@@ -40,7 +40,7 @@ export default function Home() {
             </h2>
           </div>
 
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed">
+          <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed px-4">
             I build production-grade cloud architectures at enterprise scale. 
             Software Engineer II at The Home Depot building mission-critical payment 
             infrastructures using Go and Java on Google Cloud Platform.

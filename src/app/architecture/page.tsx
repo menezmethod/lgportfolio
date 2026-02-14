@@ -4,17 +4,17 @@ import { Cloud, Database, Cpu, GitBranch, Box, Activity, Shield, Zap } from 'luc
 
 export default function Architecture() {
   return (
-    <div className="min-h-screen bg-black text-white pt-24 px-6">
+    <div className="min-h-screen bg-black text-white pt-20 md:pt-24 px-4 md:px-6 pb-16">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-4xl font-bold mb-4">
+        <h1 className="text-3xl md:text-4xl font-bold mb-4">
           <span className="text-[#32c0f4] font-mono">[0]</span> Architecture
         </h1>
-        <p className="text-xl text-gray-400 mb-12">
+        <p className="text-lg md:text-xl text-gray-400 mb-10 md:mb-12">
           This portfolio itself is a case study in cloud architecture.
         </p>
 
         {/* Architecture Overview */}
-        <section className="mb-16">
+        <section className="mb-12 md:mb-16">
           <h2 className="text-2xl font-semibold mb-6">System Architecture</h2>
           
           {/* Main Architecture Diagram */}
