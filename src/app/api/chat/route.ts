@@ -15,6 +15,7 @@ type ModelConfig = {
   model: string;
   baseURL?: string; // For custom endpoints like local LLMs
   apiKey?: string;  // For local LLMs (can be "dummy" if no auth needed)
+  headers?: Record<string, string>; // e.g. ngrok-skip-browser-warning for tunnel
 };
 
 const CHAT_MODELS: ModelConfig[] = [
@@ -22,11 +23,19 @@ const CHAT_MODELS: ModelConfig[] = [
   { provider: "google", model: "gemini-1.5-flash" },
   { provider: "anthropic", model: "claude-3-haiku-20240307" },
   // Local LLM fallback (MLX server) when main AI returns 429 — OpenAI-compatible /v1/chat/completions
-  { 
-    provider: "openai", 
+  {
+    provider: "openai",
     model: "gpt-oss-20b-MXFP4-Q8",
     baseURL: process.env.LOCAL_LLM_URL || "http://localhost:11973/v1",
-    apiKey: process.env.LOCAL_LLM_API_KEY || "dummy"
+    apiKey: process.env.LOCAL_LLM_API_KEY || "dummy",
+  },
+  // Tunnel fallback (ngrok) — same local MLX server, reachable from deployed app or other machines
+  {
+    provider: "openai",
+    model: "gpt-oss-20b-MXFP4-Q8",
+    baseURL: process.env.LOCAL_LLM_TUNNEL_URL || "https://63d4-47-203-87-233.ngrok-free.app/v1",
+    apiKey: process.env.LOCAL_LLM_API_KEY || "dummy",
+    headers: { "ngrok-skip-browser-warning": "true" },
   },
 ];
 
@@ -161,6 +170,7 @@ ${context}`;
             const customOpenAI = createOpenAI({
               baseURL: config.baseURL,
               apiKey: config.apiKey ?? "dummy",
+              ...(config.headers && { headers: config.headers }),
             });
             result = await streamText({
               model: customOpenAI.chat(config.model),
