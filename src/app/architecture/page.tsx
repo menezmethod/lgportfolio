@@ -135,14 +135,14 @@ export default function Architecture() {
                   </tr>
                   <tr className="hover:bg-muted/10 transition-colors">
                     <td className="p-4 md:p-6 font-medium">LLM Inference</td>
-                    <td className="p-4 md:p-6 text-muted-foreground text-sm">Self-hosted quantization on spot instances.</td>
-                    <td className="p-4 md:p-6 text-primary font-mono font-medium">$4.00 - $8.00</td>
+                    <td className="p-4 md:p-6 text-muted-foreground text-sm">Quantized model hosted on local Apple Silicon (M4 Max 128GB).</td>
+                    <td className="p-4 md:p-6 text-primary font-mono font-medium">$0.00</td>
                   </tr>
                 </tbody>
                 <tfoot className="bg-primary/5">
                     <tr>
                         <td colSpan={2} className="p-4 md:p-6 font-semibold text-right text-foreground">Total Operational Cost</td>
-                        <td className="p-4 md:p-6 font-mono font-bold text-primary text-lg">~$10.00 / mo</td>
+                        <td className="p-4 md:p-6 font-mono font-bold text-primary text-lg">~$2.00 / mo</td>
                     </tr>
                 </tfoot>
               </table>
@@ -159,11 +159,19 @@ export default function Architecture() {
                     Infrastructure as Code
                   </h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    Zero manual provisioning. The entire stack is defined in Terraform and automated via GitHub Actions, ensuring reproducibility and drift detection.
+                    Zero manual provisioning. The entire stack is defined in Terraform, ensuring reproducibility and drift detection.
                   </p>
-                  <div className="flex flex-wrap gap-2 mt-4">
-                     {['Terraform', 'Docker', 'GCP Artifact Registry', 'GitHub Actions'].map(tag => (
-                         <span key={tag} className="px-3 py-1 bg-secondary/10 text-secondary text-xs rounded-full border border-secondary/20">
+                  <div className="bg-secondary/5 border border-secondary/20 rounded-lg p-4 mt-4">
+                    <h4 className="font-semibold text-secondary flex items-center gap-2 mb-2">
+                        <Shield className="size-4" /> Defense in Depth
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                        Production readiness means assuming attack vectors. We implement <strong>Cloud Armor</strong> policies to mitigate DDoS attacks at the edge, before traffic ever hits the container.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                     {['Terraform', 'Adaptive Protection', 'Cloud Armor', 'Global Load Balancing'].map(tag => (
+                         <span key={tag} className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full border border-primary/20">
                             {tag}
                          </span>
                      ))}
@@ -175,21 +183,46 @@ export default function Architecture() {
                         <div className="size-3 rounded-full bg-red-500/80" />
                         <div className="size-3 rounded-full bg-yellow-500/80" />
                         <div className="size-3 rounded-full bg-green-500/80" />
-                        <span className="ml-2 text-xs text-muted-foreground font-mono">main.tf</span>
+                        <span className="ml-2 text-xs text-muted-foreground font-mono">security.tf</span>
                     </div>
                     <pre className="text-xs sm:text-sm font-mono text-muted-foreground overflow-x-auto">
                         <code className="block">
-{`resource "google_cloud_run_v2_service" "portfolio" {
+{`# 🛡️ WAF & DDoS Protection Strategy
+resource "google_compute_security_policy" "edge_sec" {
+  name        = "portfolio-edge-policy"
+  description = "Block OWASP Top 10 & Rate Limit"
+
+  adaptive_protection_config {
+    layer_7_ddos_defense_config {
+      enable = true 
+      rule_visibility = "STANDARD"
+    }
+  }
+
+  rule {
+    action   = "deny(429)"
+    priority = "1000"
+    match {
+      expr {
+        expression = "rate(ip.src) > 500"
+      }
+    }
+  }
+}
+
+resource "google_cloud_run_v2_service" "app" {
   name     = "gimenez-portfolio"
   location = var.region
   
   template {
+    scaling {
+      max_instance_count = 100 # 🚀 Auto-scale for traffic spikes
+    }
     containers {
-      image = var.container_image
+      image = var.image
       resources {
-        limits = {
-          cpu    = "1000m"
-          memory = "512Mi"
+        limits = { 
+          cpu = "2000m", memory = "1Gi" 
         }
       }
     }
