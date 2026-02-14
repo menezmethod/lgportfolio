@@ -55,12 +55,16 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SA }}
+          create_credentials_file: true
 
-      - name: Configure Docker
-        run: gcloud auth configure-docker ${{ secrets.REGION }}-docker.pkg.dev
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Build and Push Docker Image
         run: |
+          gcloud auth configure-docker ${{ secrets.REGION }}-docker.pkg.dev --quiet
           IMAGE_TAG=${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/portfolio/app:${{ github.sha }}
           docker build -t $IMAGE_TAG .
           docker push $IMAGE_TAG
