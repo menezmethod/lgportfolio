@@ -1,5 +1,4 @@
 import { google } from "@ai-sdk/google";
-import { anthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
 import { streamText } from "ai";
 import { checkRateLimit, incrementDailyCount, getCachedResponse, isDailyBudgetExhausted } from "@/lib/rate-limit";
@@ -9,9 +8,11 @@ import { retrieveContext } from "@/lib/rag";
 export const runtime = "edge";
 export const maxDuration = 30;
 
-// Model configurations with provider info
+// Model configurations with provider info.
+// Rate limits (RPM, TPM, RPD) are per project and per model — see https://ai.google.dev/gemini-api/docs/rate-limits
+// We spread load by trying multiple Gemini models in order; each has its own quota. On 429 we retry with backoff, then fall to next model.
 type ModelConfig = {
-  provider: "google" | "anthropic" | "openai";
+  provider: "google" | "openai";
   model: string;
   baseURL?: string; // For custom endpoints like local LLMs
   apiKey?: string;  // For local LLMs (can be "dummy" if no auth needed)
@@ -19,17 +20,12 @@ type ModelConfig = {
 };
 
 const CHAT_MODELS: ModelConfig[] = [
+  // Gemini: limits vary by model; order by preference, then fallbacks with separate quotas
   { provider: "google", model: "gemini-2.0-flash" },
+  { provider: "google", model: "gemini-2.0-flash-lite" },
   { provider: "google", model: "gemini-1.5-flash" },
-  { provider: "anthropic", model: "claude-3-haiku-20240307" },
-  // Local LLM fallback (MLX server) when main AI returns 429 — OpenAI-compatible /v1/chat/completions
-  {
-    provider: "openai",
-    model: "gpt-oss-20b-MXFP4-Q8",
-    baseURL: process.env.LOCAL_LLM_URL || "http://localhost:11973/v1",
-    apiKey: process.env.LOCAL_LLM_API_KEY || "dummy",
-  },
-  // Tunnel fallback (ngrok) — same local MLX server, reachable from deployed app or other machines
+  { provider: "google", model: "gemini-1.5-flash-8b" },
+  // 5. Tunnel (ngrok) — reachable from Vercel when Gemini is exhausted
   {
     provider: "openai",
     model: "gpt-oss-20b-MXFP4-Q8",
@@ -37,8 +33,16 @@ const CHAT_MODELS: ModelConfig[] = [
     apiKey: process.env.LOCAL_LLM_API_KEY || "dummy",
     headers: { "ngrok-skip-browser-warning": "true" },
   },
+  // 6. Local MLX (localhost) — only when running locally; not reachable from Vercel
+  {
+    provider: "openai",
+    model: "gpt-oss-20b-MXFP4-Q8",
+    baseURL: process.env.LOCAL_LLM_URL || "http://localhost:11973/v1",
+    apiKey: process.env.LOCAL_LLM_API_KEY || "dummy",
+  },
 ];
 
+// Retry with exponential backoff when we hit 429 (rate limit); aligns with API RetryInfo.
 const MAX_RETRIES_PER_MODEL = 3;
 const INITIAL_BACKOFF_MS = 1000;
 const MAX_BACKOFF_MS = 10000;
@@ -152,18 +156,6 @@ ${context}`;
               model: google(config.model),
               system: systemPrompt,
               messages,
-            });
-          } else if (config.provider === "anthropic") {
-            // Convert messages format for Anthropic
-            const anthropicMessages = messages.map((m: { role: string; content: string }) => ({
-              role: m.role === "model" ? "assistant" : m.role,
-              content: m.content,
-            }));
-            
-            result = await streamText({
-              model: anthropic(config.model),
-              system: systemPrompt,
-              messages: anthropicMessages,
             });
           } else if (config.provider === "openai" && config.baseURL) {
             // For local LLM fallback - using OpenAI-compatible /v1/chat/completions
