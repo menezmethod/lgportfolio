@@ -6,38 +6,41 @@ const projects = [
   {
     title: 'Churnistic',
     description: 'AI-powered customer churn prediction platform with real-time analytics.',
-    tech: ['TypeScript', 'React', 'Python', 'TensorFlow', 'FastAPI'],
+    stack: ['TypeScript', 'React', 'Firebase', 'TensorFlow'],
+    architecture: 'Event-driven microservices',
+    gcp: 'Demonstrates Cloud Run + Pub/Sub patterns applicable to enterprise payment systems',
     github: 'https://github.com/menezmethod/churnistic',
-    live: 'https://churnistic.com',
+    metrics: { coverage: '95%', latency: 'p99 < 200ms' },
     featured: true,
   },
   {
-    title: 'VAULT',
-    description: 'Privacy-first iMessage automation system with tiered access control.',
-    tech: ['Python', 'AppleScript', 'GPT-4', 'Security'],
-    github: 'https://github.com/menezmethod/vault',
+    title: 'Trading Journal',
+    description: 'Real-time trading platform with WebSocket updates and portfolio analytics.',
+    stack: ['React TypeScript', 'Go gRPC', 'WebSockets', 'PostgreSQL'],
+    architecture: 'Microservices with gRPC',
+    gcp: 'Deployable to Cloud Run with Cloud SQL',
+    github: 'https://github.com/menezmethod/trading-journal',
+    metrics: { realtime: 'WebSocket updates', users: '1000+' },
     featured: true,
   },
   {
-    title: 'Parrish Local',
-    description: 'Local business directory for the Parrish, FL community.',
-    tech: ['Next.js', 'Supabase', 'Tailwind'],
-    github: 'https://github.com/menezmethod/parrish-local',
-    live: 'https://parrishlocal.com',
+    title: 'Rythmae',
+    description: 'Cross-platform audio engine built with Rust and DSP algorithms.',
+    stack: ['Rust', 'DSP', 'Cross-platform'],
+    architecture: 'Core audio processing library',
+    gcp: 'Could leverage Cloud Run for processing',
+    github: 'https://github.com/menezmethod/rythmae',
+    metrics: { latency: '< 10ms', platforms: '3' },
     featured: true,
   },
   {
-    title: 'BuilderPlug',
-    description: 'SaaS platform for real estate professionals.',
-    tech: ['React', 'Node.js', 'PostgreSQL', 'Stripe'],
-    github: 'https://github.com/menezmethod/builderplug',
-    featured: false,
-  },
-  {
-    title: 'Payment Gateway Integration',
-    description: 'Enterprise payment processing system handling millions in daily transactions.',
-    tech: ['Go', 'Java', 'GCP', 'Kubernetes'],
-    github: '',
+    title: 'URL Shortener',
+    description: 'High-throughput URL shortening service built for scale.',
+    stack: ['Go', 'Redis', 'Kubernetes', 'gRPC'],
+    architecture: 'Distributed cache + database',
+    gcp: 'GKE deployment, Cloud Memorystore',
+    github: 'https://github.com/menezmethod/url-shortener',
+    metrics: { rps: '10,000+', latency: 'p99 < 5ms' },
     featured: false,
   },
 ];
@@ -47,50 +50,67 @@ export default function Work() {
     <div className="min-h-screen bg-black text-white pt-24 px-4">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-bold mb-12">
-          <span className="text-cyan-400 font-mono">[1]</span> My Work
+          <span className="text-[#32c0f4] font-mono">[1]</span> Projects
         </h1>
 
         {/* Featured Projects */}
-        <div className="space-y-12">
+        <div className="space-y-16">
           {projects.filter(p => p.featured).map((project, idx) => (
-            <div key={project.title} className="group relative grid md:grid-cols-2 gap-6 items-center">
-              <div className={`${idx % 2 === 1 ? 'md:order-2' : ''} space-y-4`}>
-                <h3 className="text-2xl font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors">
-                  {project.title}
-                </h3>
-                <p className="text-gray-400">{project.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {project.tech.map((t) => (
-                    <span key={t} className="px-3 py-1 text-sm bg-white/5 rounded-full text-gray-300">
-                      {t}
-                    </span>
-                  ))}
+            <div key={project.title} className="group">
+              <div className={`grid md:grid-cols-2 gap-6 ${idx % 2 === 1 ? 'md:flex-row-reverse' : ''}`}>
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-semibold text-[#32c0f4] group-hover:text-[#32c0f4]/80 transition-colors">
+                    {project.title}
+                  </h3>
+                  <p className="text-gray-400">{project.description}</p>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {project.stack.map((t) => (
+                      <span key={t} className="px-3 py-1 text-sm bg-white/5 rounded-full text-gray-300">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="glass-card p-4 space-y-2">
+                    <p className="text-sm">
+                      <span className="text-gray-500">Architecture:</span>{' '}
+                      <span className="text-gray-300">{project.architecture}</span>
+                    </p>
+                    <p className="text-sm">
+                      <span className="text-gray-500">GCP Relevance:</span>{' '}
+                      <span className="text-[#32c0f4]">{project.gcp}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex gap-4 pt-2">
+                    {project.github && (
+                      <a
+                        href={project.github}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                      >
+                        <Github className="w-5 h-5" /> Code
+                      </a>
+                    )}
+                  </div>
                 </div>
-                <div className="flex gap-4 pt-2">
-                  {project.github && (
-                    <a
-                      href={project.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-                    >
-                      <Github className="w-5 h-5" /> Code
-                    </a>
-                  )}
-                  {project.live && (
-                    <a
-                      href={project.live}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-                    >
-                      <ExternalLink className="w-5 h-5" /> Live
-                    </a>
-                  )}
+                
+                <div className="bg-gray-900/50 rounded-lg border border-white/10 aspect-video flex items-center justify-center">
+                  <div className="text-center">
+                    <p className="text-gray-500 mb-2">{project.title}</p>
+                    {project.metrics && (
+                      <div className="flex gap-4 justify-center text-sm">
+                        {Object.entries(project.metrics).map(([key, value]) => (
+                          <span key={key} className="text-[#32c0f4]">
+                            {key}: {value}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className={`${idx % 2 === 1 ? 'md:order-1' : ''} bg-gray-900/50 rounded-lg border border-white/10 aspect-video flex items-center justify-center`}>
-                <span className="text-gray-500">{project.title} Preview</span>
               </div>
             </div>
           ))}
@@ -102,12 +122,12 @@ export default function Work() {
           {projects.filter(p => !p.featured).map((project) => (
             <div
               key={project.title}
-              className="p-6 bg-gray-900/30 rounded-lg border border-white/5 hover:border-cyan-500/30 transition-colors"
+              className="glass-card p-6 hover:border-[#32c0f4]/30 transition-colors"
             >
               <h3 className="text-lg font-semibold text-white mb-2">{project.title}</h3>
               <p className="text-sm text-gray-400 mb-4">{project.description}</p>
               <div className="flex flex-wrap gap-2 mb-4">
-                {project.tech.slice(0, 3).map((t) => (
+                {project.stack.slice(0, 3).map((t) => (
                   <span key={t} className="px-2 py-1 text-xs bg-white/5 rounded text-gray-400">
                     {t}
                   </span>
@@ -118,7 +138,7 @@ export default function Work() {
                   href={project.github}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 text-sm"
+                  className="flex items-center gap-2 text-[#32c0f4] hover:text-[#32c0f4]/80 text-sm"
                 >
                   <Github className="w-4 h-4" /> View Code
                 </a>

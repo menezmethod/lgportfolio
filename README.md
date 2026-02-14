@@ -1,43 +1,50 @@
 # Luis Gimenez Portfolio
 
-A next-generation, AI-powered portfolio website built with Next.js 15, TypeScript, and Google Cloud Platform. Features an AI chat interface powered by Gemini and a RAG (Retrieval-Augmented Generation) pipeline for accurate responses about my work.
+A next-generation, AI-powered portfolio website built with Next.js 15 and Google Cloud Platform. Features an AI chat interface powered by Gemini with RAG pipeline, demonstrating production-grade cloud architecture skills.
+
+## 🎯 Target Roles
+
+- GCP Cloud Architect
+- GCP AI/ML Architect  
+- GenAI Architect
+- Cloud Solutions Architect
+
+## ✨ Features
+
+- **Modern Stack:** Next.js 15 App Router, TypeScript, Tailwind CSS
+- **AI Chat:** Interactive chat powered by Google Gemini 2.0 Flash
+- **RAG Pipeline:** Vector search using Supabase pgvector (optional)
+- **Rate Limiting:** Free tier protection (10 RPM, 1000 RPD)
+- **Response Caching:** Pre-seeded cache for common questions
+- **Architecture Showcase:** Full system architecture page
+- **Responsive Design:** Mobile-first, dark theme
+- **Infrastructure as Code:** Terraform for GCP Cloud Run
+- **CI/CD:** GitHub Actions → Cloud Run deployment
+- **Containerized:** Multi-stage Dockerfile
 
 ## 🚀 Live Site
 
 **URL:** https://gimenez.dev
 
-## ✨ Features
-
-- **Modern Stack:** Next.js 15 App Router, TypeScript, Tailwind CSS
-- **AI Chat:** Interactive chat powered by Google's Gemini API
-- **RAG Pipeline:** Context-aware responses using Supabase pgvector (optional)
-- **Responsive Design:** Mobile-first, accessible UI
-- **SEO Optimized:** Meta tags, Open Graph, semantic HTML
-- **Infrastructure as Code:** Terraform for GCP Cloud Run deployment
-- **CI/CD:** GitHub Actions for automated deployment
-- **Containerized:** Docker for consistent environments
-
 ## 🛠️ Tech Stack
 
-| Category | Technology |
-|----------|-----------|
-| Framework | Next.js 15 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS 4 |
-| AI | Google Gemini API |
-| Vector DB | Supabase pgvector (optional) |
-| Icons | Lucide React |
-| Animation | Framer Motion |
-| Deployment | GCP Cloud Run |
-| IaC | Terraform |
-| CI/CD | GitHub Actions |
+| Component | Technology | Justification |
+|-----------|------------|---------------|
+| Framework | Next.js 15 (App Router) | SSR/SSG, API routes, RSC |
+| Language | TypeScript | Type safety, professional standard |
+| Styling | Tailwind CSS | Clean, fast, professional |
+| AI Chat | Vercel AI SDK + Google Gemini 2.0 Flash | GCP-aligned, free tier |
+| Vector DB | Supabase (pgvector) | Free tier, PostgreSQL-based |
+| Embeddings | text-embedding-004 (Gemini API) | Free tier available |
+| Hosting | GCP Cloud Run | Proves GCP deployment skills |
+| IaC | Terraform | #1 requested skill in job listings |
+| CI/CD | GitHub Actions → Cloud Build | Industry standard |
 
 ## 📋 Prerequisites
 
 - Node.js 20+
-- npm or yarn
 - Google Cloud Platform account
-- Gemini API key (get at https://aistudio.google.com/app/apikey)
+- Gemini API key (free at https://aistudio.google.com/apikey)
 - (Optional) Supabase account for RAG features
 
 ## 🚀 Quick Start
@@ -52,188 +59,136 @@ npm install
 
 # Set up environment variables
 cp .env.example .env.local
-# Edit .env.local and add your GEMINI_API_KEY
+# Edit .env.local and add your GOOGLE_API_KEY
 
 # Run development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the site.
+Open [http://localhost:3000](http://localhost:3000)
 
-## 🔧 Configuration
-
-### Environment Variables
-
-Create a `.env.local` file:
+## 🔧 Environment Variables
 
 ```env
-# Required for AI chat
-GEMINI_API_KEY=your_gemini_api_key_here
+# Required - Get from https://aistudio.google.com/apikey
+GOOGLE_API_KEY=your-api-key
 
-# Optional - for RAG vector search
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-
-# GCP Configuration (for deployment)
-GCP_PROJECT_ID=your_gcp_project_id
-GCP_REGION=us-central1
-
-# Analytics (optional)
-NEXT_PUBLIC_GA_MEASUREMENT_ID=your_ga_id
+# Optional - For RAG vector search
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-key
 ```
 
-### Supabase RAG Setup (Optional)
+See `.env.example` for all options.
 
-To enable vector search for the AI chat:
+## 🏗️ Project Structure
 
-1. Create a Supabase project
-2. Enable the pgvector extension
-3. Create the embeddings table:
-
-```sql
-CREATE EXTENSION IF NOT EXISTS vector;
-
-CREATE TABLE portfolio_embeddings (
-  id SERIAL PRIMARY KEY,
-  content TEXT NOT NULL,
-  metadata JSONB DEFAULT '{}',
-  embedding vector(768),
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Create index for similarity search
-CREATE INDEX ON portfolio_embeddings 
-USING ivfflat (embedding vector_cosine_ops);
+```
+lgportfolio/
+├── src/
+│   ├── app/
+│   │   ├── page.tsx              # Hero with animated titles
+│   │   ├── about/page.tsx        # About + skills
+│   │   ├── work/page.tsx         # Projects showcase
+│   │   ├── architecture/page.tsx # Architecture case study
+│   │   ├── contact/page.tsx      # Contact info
+│   │   ├── chat/page.tsx         # AI chat interface
+│   │   └── api/chat/route.ts     # Gemini + RAG API
+│   ├── components/
+│   │   └── Navbar.tsx
+│   ├── lib/
+│   │   ├── rag.ts               # RAG retrieval logic
+│   │   └── rate-limit.ts         # Rate limiting + caching
+│   └── content/                 # MDX content (future)
+├── terraform/                   # GCP Cloud Run IaC
+├── .github/workflows/           # CI/CD pipeline
+├── Dockerfile                   # Container config
+└── SETUP.md                     # Setup instructions
 ```
 
-4. Add your portfolio content to the table
+## 🤖 AI Chat Implementation
 
-## 🏗️ Build
+### Rate Limiting Strategy
 
-```bash
-# Build for production
-npm run build
+The chat implements multiple layers of rate limiting to stay within Gemini's free tier:
 
-# Run linter
-npm run lint
-```
+1. **Per-IP Token Bucket:** Max 3 requests/minute per visitor
+2. **Session Cap:** Max 20 messages per browser session
+3. **Daily Budget:** Max 900 requests/day (of 1000 RPD limit)
+4. **Response Caching:** Pre-seeded cache for common questions
+
+### Cached Queries
+
+These common queries return cached responses (don't burn API calls):
+- "Tell me about Luis's experience"
+- "What GCP services has Luis used?"
+- "Describe the Churnistic project"
+- "What's Luis's tech stack?"
+- "Is Luis open to remote work?"
+- And more...
+
+### Fallback Strategy
+
+When limits are hit:
+1. Return cached response if available
+2. Show pre-written fallback message
+3. Provide contact info for detailed questions
+
+## 💰 Cost Budget
+
+| Service | Monthly Cost |
+|---------|-------------|
+| Cloud Run (scale to 0) | $0-5 |
+| Supabase (free tier) | $0 |
+| Gemini API (free tier) | $0-3 |
+| Cloud CDN | $0-2 |
+| Secret Manager | <$1 |
+| **Total** | **$1-11/month** |
 
 ## 🐳 Docker
-
-Build and run locally with Docker:
 
 ```bash
 # Build image
 docker build -t lgportfolio .
 
-# Run container
-docker run -p 3000:3000 \
-  -e GEMINI_API_KEY=your_key \
-  lgportfolio
+# Run locally
+docker run -p 3000:3000 -e GOOGLE_API_KEY=your-key lgportfolio
 ```
 
-## ☁️ GCP Cloud Run Deployment
+## ☁️ GCP Deployment
 
-### Option 1: GitHub Actions (Recommended)
+### GitHub Actions (Recommended)
 
-1. Fork this repository
-2. Add these secrets to your GitHub repository:
-   - `GCP_PROJECT_ID`: Your GCP project ID
-   - `GCP_SA_KEY`: Service account key JSON
-   - `GEMINI_API_KEY`: Your Gemini API key
+1. Set up GCP project with APIs enabled
+2. Configure Workload Identity
+3. Add secrets to GitHub
+4. Push to main → auto-deploy
 
-3. Push to `main` branch - deployment happens automatically
-
-### Option 2: Terraform
+### Terraform
 
 ```bash
 cd terraform
-
-# Initialize Terraform
 terraform init
-
-# Plan changes
-terraform plan \
-  -var="project_id=your_project_id" \
-  -var="region=us-central1" \
-  -var="container_image=gcr.io/your_project_id/lgportfolio:latest"
-
-# Apply
-terraform apply \
-  -var="project_id=your_project_id" \
-  -var="region=us-central1" \
-  -var="container_image=gcr.io/your_project_id/lgportfolio:latest"
-```
-
-## 📁 Project Structure
-
-```
-lgportfolio/
-├── src/
-│   ├── app/              # Next.js App Router
-│   │   ├── about/        # About page
-│   │   ├── work/         # Projects showcase
-│   │   ├── contact/      # Contact page
-│   │   ├── chat/         # AI chat interface
-│   │   ├── api/          # API routes
-│   │   │   ├── chat/     # Gemini API route
-│   │   │   └── rag/      # RAG retrieval route
-│   │   ├── layout.tsx    # Root layout
-│   │   ├── page.tsx      # Home page
-│   │   └── globals.css   # Global styles
-│   ├── components/       # Reusable components
-│   └── lib/              # Utility functions
-├── terraform/            # Terraform IaC
-├── .github/
-│   └── workflows/        # GitHub Actions
-├── Dockerfile            # Container config
-├── next.config.ts        # Next.js config
-└── package.json
+terraform plan -var="project_id=your-project"
+terraform apply -var="project_id=your-project"
 ```
 
 ## 📝 Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
-
-## 🤖 AI Chat Implementation
-
-The AI chat feature uses:
-
-1. **Gemini API**: For generating responses
-2. **System Prompt**: Pre-configured with Luis's background
-3. **Conversation History**: Last 10 messages for context
-4. **Fallback RAG**: Static portfolio context when Supabase isn't configured
-
-### API Routes
-
-- `POST /api/chat` - Gemini chat endpoint
-- `POST /api/rag` - RAG context retrieval
-
-## 🔐 Security
-
-- Environment variables for all secrets
-- No hardcoded API keys
-- CORS configured for production
-- Input validation on API routes
-
-## 📄 License
-
-MIT License - see LICENSE file for details
+| `npm run dev` | Development server |
+| `npm run build` | Production build |
+| `npm run start` | Production server |
+| `npm run lint` | ESLint |
 
 ## 👤 Author
 
 **Luis Gimenez**
-- Website: https://gimenez.dev
+- Email: luisgimenezdev@gmail.com
 - GitHub: [@menezmethod](https://github.com/menezmethod)
-- LinkedIn: [linkedin.com/in/gimenezdev](https://www.linkedin.com/in/gimenezdev/)
+- LinkedIn: [linkedin.com/in/gimenezdev](https://www.linkedin.com/in/gimenezdev)
 - Twitter: [@menezmethod](https://twitter.com/menezmethod)
 
 ---
 
-Built with ❤️ and AI
+Built with ❤️ and AI. This portfolio is itself a case study in cloud architecture.

@@ -1,15 +1,10 @@
-name: Deploy to GCP Cloud Run
+name: Build & Deploy to Cloud Run
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
-env:
-  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GCP_REGION: us-central1
-  IMAGE_NAME: lgportfolio
 
 jobs:
   lint-and-build:
@@ -55,25 +50,25 @@ jobs:
       - name: Build application
         run: npm run build
 
-      - name: Authenticate to Google Cloud
+      - name: Auth to GCP
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SA }}
 
       - name: Configure Docker
         run: gcloud auth configure-docker
 
-      - name: Build and push container
+      - name: Build and Push Docker Image
         run: |
-          IMAGE_TAG=gcr.io/$GCP_PROJECT_ID/$IMAGE_NAME:${{ github.sha }}
+          IMAGE_TAG=${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/portfolio/app:${{ github.sha }}
           docker build -t $IMAGE_TAG .
           docker push $IMAGE_TAG
 
       - name: Deploy to Cloud Run
-        run: |
-          gcloud run deploy $IMAGE_NAME \
-            --image gcr.io/$GCP_PROJECT_ID/$IMAGE_NAME:${{ github.sha }} \
-            --platform managed \
-            --region $GCP_REGION \
-            --allow-unauthenticated \
-            --set-env-vars GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: gimenez-portfolio
+          region: ${{ secrets.REGION }}
+          image: ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/portfolio/app:${{ github.sha }}
+          flags: '--allow-unauthenticated'

@@ -1,6 +1,6 @@
 'use client';
 
-import { Mail, Github, Linkedin, Twitter } from 'lucide-react';
+import { Mail, Github, Linkedin, Twitter, Sparkles } from 'lucide-react';
 
 const socialLinks = [
   { href: 'mailto:luisgimenezdev@gmail.com', icon: Mail, label: 'Email', text: 'luisgimenezdev@gmail.com' },
@@ -14,7 +14,7 @@ export default function Contact() {
     <div className="min-h-screen bg-black text-white pt-24 px-4">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-4xl font-bold mb-12">
-          <span className="text-cyan-400 font-mono">[2]</span> Get In Touch
+          <span className="text-[#32c0f4] font-mono">[2]</span> Get In Touch
         </h1>
 
         <p className="text-lg text-gray-400 mb-12">
@@ -29,12 +29,12 @@ export default function Contact() {
               href={link.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-4 p-4 bg-gray-900/30 rounded-lg border border-white/5 hover:border-cyan-500/30 transition-colors group"
+              className="flex items-center gap-4 p-4 bg-gray-900/30 rounded-lg border border-white/5 hover:border-[#32c0f4]/30 transition-colors group"
             >
-              <link.icon className="w-6 h-6 text-gray-400 group-hover:text-cyan-400 transition-colors" />
+              <link.icon className="w-6 h-6 text-gray-400 group-hover:text-[#32c0f4] transition-colors" />
               <div>
                 <p className="text-sm text-gray-500">{link.label}</p>
-                <p className="text-white group-hover:text-cyan-400 transition-colors">{link.text}</p>
+                <p className="text-white group-hover:text-[#32c0f4] transition-colors">{link.text}</p>
               </div>
             </a>
           ))}
@@ -47,8 +47,9 @@ export default function Contact() {
           </p>
           <a
             href="/chat"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500/20 text-cyan-400 rounded-lg hover:bg-cyan-500/30 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-[#32c0f4]/20 text-[#32c0f4] rounded-lg hover:bg-[#32c0f4]/30 transition-colors"
           >
+            <Sparkles className="w-4 h-4" />
             Start a Conversation
           </a>
         </div>

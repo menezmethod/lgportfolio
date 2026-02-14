@@ -1,9 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 0, 0, 0;
-  --background-end-rgb: 0, 0, 0;
+  /* Dark theme — derived from original site colors */
+  /* Original: name_head: #32c0f4, sub_name_head: #e97124 */
+  
+  --background: 222 47% 6%; /* deep dark blue-black */
+  --foreground: 210 40% 93%; /* near-white text */
+  
+  /* Brand colors from original site */
+  --primary: 190 85% 53%; /* #32c0f4 - cyan */
+  --primary-foreground: 0 0% 0%;
+  
+  --secondary: 25 95% 55%; /* #e97124 - orange */
+  --secondary-foreground: 0 0% 100%;
+  
+  --muted: 215 20% 55%;
+  --muted-foreground: 215 20% 65%;
+  
+  --border: 215 20% 18%;
+  --card: 222 47% 9%; /* slightly lighter than bg */
+  --card-foreground: 210 40% 93%;
+  
+  --accent: 190 85% 53%; /* cyan */
+  --accent-foreground: 0 0% 0%;
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  
+  --radius: 0.5rem;
 }
 
 * {
@@ -16,11 +40,11 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  background: rgb(var(--background-start-rgb));
-  color: rgb(var(--foreground-rgb));
 }
 
 body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
 }
 
@@ -67,4 +91,32 @@ a {
 .bg-clip-text {
   -webkit-background-clip: text;
   background-clip: text;
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+}
+
+.glass-card:hover {
+  border-color: rgba(50, 192, 244, 0.3);
+  box-shadow: 0 0 20px rgba(50, 192, 244, 0.1);
+}
+
+/* Glow effects */
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(50, 192, 244, 0.3);
+}
+
+.glow-orange {
+  box-shadow: 0 0 20px rgba(233, 113, 36, 0.3);
 }
