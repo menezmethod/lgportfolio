@@ -57,7 +57,7 @@ jobs:
           service_account: ${{ secrets.WIF_SA }}
 
       - name: Configure Docker
-        run: gcloud auth configure-docker
+        run: gcloud auth configure-docker ${{ secrets.REGION }}-docker.pkg.dev
 
       - name: Build and Push Docker Image
         run: |
