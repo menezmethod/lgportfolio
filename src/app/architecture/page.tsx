@@ -88,8 +88,8 @@ export default function Architecture() {
                     <Activity className="size-4 text-secondary" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-foreground">Gemini 1.5 Pro</h4>
-                    <p className="text-sm text-muted-foreground mt-1">Advanced reasoning model integrated via streaming edge functions for real-time chat.</p>
+                    <h4 className="font-medium text-foreground">Local GPT-OSS (Self-Hosted)</h4>
+                    <p className="text-sm text-muted-foreground mt-1">Fine-tuned open-source model running on optimized inference endpoints for data privacy and control.</p>
                   </div>
                 </li>
                 <li className="flex gap-4">
@@ -135,14 +135,14 @@ export default function Architecture() {
                   </tr>
                   <tr className="hover:bg-muted/10 transition-colors">
                     <td className="p-4 md:p-6 font-medium">LLM Inference</td>
-                    <td className="p-4 md:p-6 text-muted-foreground text-sm">Google Gemini Flash optimized for high-throughput/low-cost reasoning.</td>
-                    <td className="p-4 md:p-6 text-primary font-mono font-medium">$0.00 (Tier)</td>
+                    <td className="p-4 md:p-6 text-muted-foreground text-sm">Self-hosted quantization on spot instances.</td>
+                    <td className="p-4 md:p-6 text-primary font-mono font-medium">$4.00 - $8.00</td>
                   </tr>
                 </tbody>
                 <tfoot className="bg-primary/5">
                     <tr>
                         <td colSpan={2} className="p-4 md:p-6 font-semibold text-right text-foreground">Total Operational Cost</td>
-                        <td className="p-4 md:p-6 font-mono font-bold text-primary text-lg">~$2.00 / mo</td>
+                        <td className="p-4 md:p-6 font-mono font-bold text-primary text-lg">~$10.00 / mo</td>
                     </tr>
                 </tfoot>
               </table>
