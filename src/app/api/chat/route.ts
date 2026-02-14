@@ -1,4 +1,5 @@
 import { google } from "@ai-sdk/google";
+import { anthropic } from "@ai-sdk/anthropic";
 import { streamText } from "ai";
 import { checkRateLimit, incrementDailyCount, getCachedResponse, isDailyBudgetExhausted } from "@/lib/rate-limit";
 import { retrieveContext } from "@/lib/rag";
@@ -7,8 +8,17 @@ import { retrieveContext } from "@/lib/rag";
 export const runtime = "edge";
 export const maxDuration = 30;
 
-// Model fallbacks: try primary first, then alternatives on rate limit / overload
-const CHAT_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"] as const;
+// Model configurations with provider info
+type ModelConfig = {
+  provider: "google" | "anthropic";
+  model: string;
+};
+
+const CHAT_MODELS: ModelConfig[] = [
+  { provider: "google", model: "gemini-2.0-flash" },
+  { provider: "google", model: "gemini-1.5-flash" },
+  { provider: "anthropic", model: "claude-3-haiku-20240307" }, // Free tier fallback
+];
 
 const MAX_RETRIES_PER_MODEL = 3;
 const INITIAL_BACKOFF_MS = 1000;
@@ -40,6 +50,7 @@ function isRetryableProviderError(error: unknown): boolean {
     "too many requests",
     "429",
     "503",
+    "exceeded your current quota",
   ];
   return retryablePhrases.some((p) => msg.includes(p));
 }
@@ -68,7 +79,7 @@ export async function POST(req: Request) {
         JSON.stringify({
           error: "Daily limit exhausted",
           message:
-            "Chat is resting. Try again tomorrow or email Luis at luisgimenezdev@gmail.com",
+            "Chat will be back tomorrow. Email luisgimenezdev@gmail.com for urgent questions.",
         }),
         { status: 429, headers: { "Content-Type": "application/json" } }
       );
@@ -112,15 +123,32 @@ ${context}`;
     let lastError: unknown = null;
     let wasRateLimitOrOverload = false;
 
-    for (const modelId of CHAT_MODELS) {
+    for (const config of CHAT_MODELS) {
       for (let attempt = 0; attempt < MAX_RETRIES_PER_MODEL; attempt++) {
         try {
-          const result = await streamText({
-            model: google(modelId),
-            system: systemPrompt,
-            messages,
-          });
-          return result.toTextStreamResponse();
+          let result;
+          
+          if (config.provider === "google") {
+            result = await streamText({
+              model: google(config.model),
+              system: systemPrompt,
+              messages,
+            });
+          } else if (config.provider === "anthropic") {
+            // Convert messages format for Anthropic
+            const anthropicMessages = messages.map((m: { role: string; content: string }) => ({
+              role: m.role === "model" ? "assistant" : m.role,
+              content: m.content,
+            }));
+            
+            result = await streamText({
+              model: anthropic(config.model),
+              system: systemPrompt,
+              messages: anthropicMessages,
+            });
+          }
+          
+          return result!.toTextStreamResponse();
         } catch (err) {
           lastError = err;
           wasRateLimitOrOverload = isRetryableProviderError(err);
@@ -130,10 +158,10 @@ ${context}`;
           }
           if (attempt < MAX_RETRIES_PER_MODEL - 1) {
             const delay = backoffMs(attempt);
-            console.warn(`Chat provider rate limit/overload (model=${modelId}, attempt=${attempt + 1}), retrying in ${delay}ms`);
+            console.warn(`Chat provider rate limit/overload (provider=${config.provider}, model=${config.model}, attempt=${attempt + 1}), retrying in ${delay}ms`);
             await sleep(delay);
           } else {
-            console.warn(`Chat provider failed after ${MAX_RETRIES_PER_MODEL} attempts for model=${modelId}, trying next model`);
+            console.warn(`Chat provider failed after ${MAX_RETRIES_PER_MODEL} attempts for ${config.provider}/${config.model}, trying next model`);
           }
         }
       }
@@ -144,13 +172,12 @@ ${context}`;
     const status = wasRateLimitOrOverload ? 429 : 500;
     const body = wasRateLimitOrOverload
       ? {
-          error: "Provider rate limit",
-          message:
-            "All chat models are temporarily busy or over limit. Please wait a minute and try again, or email luisgimenezdev@gmail.com.",
+          error: "All models busy",
+          message: "Chat will be back soon. Please try again in a minute.",
         }
       : {
           error: "Service unavailable",
-          message: "The AI service couldn’t respond. Please try again in a moment or contact Luis at luisgimenezdev@gmail.com.",
+          message: "Chat will be back soon. Try again or email luisgimenezdev@gmail.com.",
         };
     return new Response(JSON.stringify(body), {
       status,
@@ -161,8 +188,8 @@ ${context}`;
     const isRetryable = isRetryableProviderError(error);
     const status = isRetryable ? 429 : 500;
     const message = isRetryable
-      ? "The AI service is temporarily overloaded. Please wait a moment and try again."
-      : "Something went wrong. Please try again or contact Luis at luisgimenezdev@gmail.com.";
+      ? "Chat will be back soon. Please try again in a moment."
+      : "Chat will be back soon. Try again or email luisgimenezdev@gmail.com.";
     return new Response(
       JSON.stringify({ error: isRetryable ? "Rate limit" : "Internal error", message }),
       { status, headers: { "Content-Type": "application/json" } }
