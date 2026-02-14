@@ -1,5 +1,6 @@
 import { google } from "@ai-sdk/google";
 import { anthropic } from "@ai-sdk/anthropic";
+import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
 import { checkRateLimit, incrementDailyCount, getCachedResponse, isDailyBudgetExhausted } from "@/lib/rate-limit";
 import { retrieveContext } from "@/lib/rag";
@@ -10,14 +11,23 @@ export const maxDuration = 30;
 
 // Model configurations with provider info
 type ModelConfig = {
-  provider: "google" | "anthropic";
+  provider: "google" | "anthropic" | "openai";
   model: string;
+  baseURL?: string; // For custom endpoints like local LLMs
+  apiKey?: string;  // For local LLMs (can be "dummy" if no auth needed)
 };
 
 const CHAT_MODELS: ModelConfig[] = [
   { provider: "google", model: "gemini-2.0-flash" },
   { provider: "google", model: "gemini-1.5-flash" },
-  { provider: "anthropic", model: "claude-3-haiku-20240307" }, // Free tier fallback
+  { provider: "anthropic", model: "claude-3-haiku-20240307" },
+  // Local LLM fallback - Luis's gpt-oss-20b-MXFP4-Q8
+  { 
+    provider: "openai", 
+    model: "gpt-oss-20b-MXFP4-Q8", // Local model name
+    baseURL: process.env.LOCAL_LLM_URL || "https://4060-47-203-87-233.ngrok-free.app/v1",
+    apiKey: process.env.LOCAL_LLM_API_KEY || "dummy"
+  },
 ];
 
 const MAX_RETRIES_PER_MODEL = 3;
@@ -145,6 +155,18 @@ ${context}`;
               model: anthropic(config.model),
               system: systemPrompt,
               messages: anthropicMessages,
+            });
+          } else if (config.provider === "openai" && config.baseURL) {
+            // For local LLM fallback - using OpenAI SDK with custom baseURL
+            const customOpenAI = openai({
+              baseURL: config.baseURL,
+              apiKey: config.apiKey,
+            });
+            
+            result = await streamText({
+              model: customOpenAI(config.model),
+              system: systemPrompt,
+              messages,
             });
           }
           
