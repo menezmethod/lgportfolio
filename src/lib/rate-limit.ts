@@ -1,6 +1,9 @@
 // Rate limiting for Gemini free tier
 // Implements: per-IP token bucket, session caps, daily budget
 
+/** Set to true to disable all rate limits (for now). */
+const RATE_LIMITS_DISABLED = true;
+
 interface RateLimitResult {
   allowed: boolean;
   remaining: number;
@@ -114,6 +117,10 @@ const CACHED_RESPONSES = new Map<string, string>([
 ]);
 
 export function checkRateLimit(ip: string): RateLimitResult {
+  if (RATE_LIMITS_DISABLED) {
+    const now = Date.now();
+    return { allowed: true, remaining: 999, resetAt: now + 60_000 };
+  }
   const now = Date.now();
   const windowMs = 60 * 1000; // 1 minute
   const maxRequests = parseInt(process.env.CHAT_MAX_RPM_PER_IP || "3");
@@ -156,6 +163,7 @@ export function incrementDailyCount(): void {
 }
 
 export function isDailyBudgetExhausted(): boolean {
+  if (RATE_LIMITS_DISABLED) return false;
   const today = new Date().toDateString();
   const budget = parseInt(process.env.CHAT_DAILY_BUDGET || "900");
   const existing = dailyCounters.get(today);
@@ -207,6 +215,7 @@ export function incrementSessionMessageCount(): number {
 }
 
 export function isSessionLimitReached(): boolean {
+  if (RATE_LIMITS_DISABLED) return false;
   const maxMessages = parseInt(process.env.NEXT_PUBLIC_CHAT_MAX_MESSAGES || "20");
   return getSessionMessageCount() >= maxMessages;
 }

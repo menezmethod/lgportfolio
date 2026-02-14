@@ -1,49 +1,39 @@
-import { google } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { streamText } from "ai";
 import { checkRateLimit, incrementDailyCount, getCachedResponse, isDailyBudgetExhausted } from "@/lib/rate-limit";
 import { retrieveContext } from "@/lib/rag";
 
-// Edge runtime for better performance
 export const runtime = "edge";
 export const maxDuration = 30;
 
-// Model configurations with provider info.
-// Rate limits (RPM, TPM, RPD) are per project and per model — see https://ai.google.dev/gemini-api/docs/rate-limits
-// We spread load by trying multiple Gemini models in order; each has its own quota. On 429 we retry with backoff, then fall to next model.
 type ModelConfig = {
-  provider: "google" | "openai";
+  provider: "openai";
   model: string;
-  baseURL?: string; // For custom endpoints like local LLMs
-  apiKey?: string;  // For local LLMs (can be "dummy" if no auth needed)
-  headers?: Record<string, string>; // e.g. ngrok-skip-browser-warning for tunnel
+  baseURL: string;
+  apiKey?: string;
+  headers?: Record<string, string>;
 };
 
-const CHAT_MODELS: ModelConfig[] = [
-  // Gemini: limits vary by model; order by preference, then fallbacks with separate quotas
-  { provider: "google", model: "gemini-2.0-flash" },
-  { provider: "google", model: "gemini-2.0-flash-lite" },
-  { provider: "google", model: "gemini-1.5-flash" },
-  { provider: "google", model: "gemini-1.5-flash-8b" },
-  // 5. Tunnel (ngrok) — reachable from Vercel when Gemini is exhausted
-  {
+// Local MLX only. Localhost first (for local dev); tunnel second (for Vercel). No Gemini.
+function getChatModels(): ModelConfig[] {
+  const tunnel: ModelConfig = {
     provider: "openai",
     model: "gpt-oss-20b-MXFP4-Q8",
     baseURL: process.env.LOCAL_LLM_TUNNEL_URL || "https://63d4-47-203-87-233.ngrok-free.app/v1",
     apiKey: process.env.LOCAL_LLM_API_KEY || "dummy",
     headers: { "ngrok-skip-browser-warning": "true" },
-  },
-  // 6. Local MLX (localhost) — only when running locally; not reachable from Vercel
-  {
+  };
+  const local: ModelConfig = {
     provider: "openai",
     model: "gpt-oss-20b-MXFP4-Q8",
     baseURL: process.env.LOCAL_LLM_URL || "http://localhost:11973/v1",
     apiKey: process.env.LOCAL_LLM_API_KEY || "dummy",
-  },
-];
+  };
+  // On Vercel, tunnel is the only option; locally, try localhost first so we don't hit dead tunnel.
+  return process.env.VERCEL ? [tunnel, local] : [local, tunnel];
+}
 
-// Retry with exponential backoff when we hit 429 (rate limit); aligns with API RetryInfo.
-const MAX_RETRIES_PER_MODEL = 3;
+const MAX_RETRIES_PER_MODEL = 1;
 const INITIAL_BACKOFF_MS = 1000;
 const MAX_BACKOFF_MS = 10000;
 
@@ -56,13 +46,16 @@ function backoffMs(attempt: number): number {
   return Math.min(value, MAX_BACKOFF_MS);
 }
 
-/** Returns true if the error is rate limit, quota, or temporary overload (retry or switch model). */
+/** Returns true if we should try the next model (rate limit, 404, offline, overload). */
 function isRetryableProviderError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
-  const msg = String((error as { message?: string }).message ?? "").toLowerCase();
-  const status = (error as { status?: number }).status;
-  const code = (error as { code?: number }).code;
-  if (status === 429 || status === 503 || code === 429 || code === 503) return true;
+  const e = error as { message?: string; name?: string; status?: number; code?: string; statusCode?: number };
+  if (e.name === "AI_RetryError" || e.name === "AI_APICallError") return true;
+  const status = e.status ?? e.statusCode;
+  if (status === 404 || status === 429 || status === 503) return true;
+  const code = String(e.code ?? "").toLowerCase();
+  if (code === "enotfound" || code === "econnrefused" || code === "econnreset") return true;
+  const msg = String(e.message ?? "").toLowerCase();
   const retryablePhrases = [
     "rate",
     "quota",
@@ -74,15 +67,24 @@ function isRetryableProviderError(error: unknown): boolean {
     "429",
     "503",
     "exceeded your current quota",
+    "offline",
+    "err_ngrok",
+    "not found",
+    "404",
+    "parse",
+    "html",
+    "doctype",
   ];
   return retryablePhrases.some((p) => msg.includes(p));
 }
 
 export async function POST(req: Request) {
+  console.log("[chat] POST /api/chat received");
   try {
     // Rate limiting — enforce free tier budget
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
     const rateLimitResult = checkRateLimit(ip);
+    console.log("[chat] rateLimit check", { allowed: rateLimitResult.allowed, ip });
 
     if (!rateLimitResult.allowed) {
       return new Response(
@@ -110,12 +112,14 @@ export async function POST(req: Request) {
 
     const { messages } = await req.json();
     const lastMessage = messages[messages.length - 1]?.content || "";
+    console.log("[chat] lastMessage length", lastMessage?.length ?? 0, "messages count", messages?.length ?? 0);
 
     // Check cache first — don't burn API calls on common questions
     const cached = await getCachedResponse(lastMessage);
     if (cached) {
+      console.log("[chat] cache HIT, returning cached response");
       return new Response(cached, {
-        headers: { "Content-Type": "text/plain", "X-Cache": "HIT" },
+        headers: { "Content-Type": "text/plain", "X-Cache": "HIT", "X-Chat-Source": "cache" },
       });
     }
 
@@ -145,63 +149,109 @@ ${context}`;
 
     let lastError: unknown = null;
     let wasRateLimitOrOverload = false;
+    const models = getChatModels();
+    console.log("[chat] models order", models.map((m) => (m.baseURL.includes("localhost") ? "local" : "tunnel")));
 
-    for (const config of CHAT_MODELS) {
+    for (const config of models) {
+      const label = config.baseURL.includes("localhost") ? "local" : "tunnel";
       for (let attempt = 0; attempt < MAX_RETRIES_PER_MODEL; attempt++) {
+        console.log("[chat] trying provider", label, "baseURL", config.baseURL, "attempt", attempt + 1);
         try {
-          let result;
-          
-          if (config.provider === "google") {
-            result = await streamText({
-              model: google(config.model),
-              system: systemPrompt,
-              messages,
-            });
-          } else if (config.provider === "openai" && config.baseURL) {
-            // For local LLM fallback - using OpenAI-compatible /v1/chat/completions
-            const customOpenAI = createOpenAI({
-              baseURL: config.baseURL,
-              apiKey: config.apiKey ?? "dummy",
-              ...(config.headers && { headers: config.headers }),
-            });
-            result = await streamText({
-              model: customOpenAI.chat(config.model),
-              system: systemPrompt,
-              messages,
-            });
+          const customOpenAI = createOpenAI({
+            baseURL: config.baseURL,
+            apiKey: config.apiKey ?? "dummy",
+            ...(config.headers && { headers: config.headers }),
+          });
+          const result = await streamText({
+            model: customOpenAI.chat(config.model),
+            system: systemPrompt,
+            messages,
+            maxRetries: 0,
+          });
+          const response = result.toTextStreamResponse();
+          if (!response.body) {
+            throw new Error("No response body");
           }
-          
-          return result!.toTextStreamResponse();
+          // Force the stream to start so the fetch runs here; if provider returns 404/HTML we throw and try next.
+          const reader = response.body.getReader();
+          const first = await reader.read();
+          console.log("[chat] first chunk received", { done: first.done, size: first.value?.byteLength ?? 0 });
+          if (first.done) {
+            reader.releaseLock();
+            console.log("[chat] stream ended immediately (empty), returning");
+            return new Response(new ReadableStream(), { headers: response.headers });
+          }
+          const firstText = new TextDecoder().decode(first.value);
+          const looksLikeErrorPage =
+            firstText.includes("<!DOCTYPE") ||
+            firstText.includes("<html") ||
+            firstText.toLowerCase().includes("ngrok") ||
+            firstText.toLowerCase().includes("offline");
+          if (looksLikeErrorPage) {
+            console.log("[chat] provider returned error page, first 120 chars:", firstText.slice(0, 120));
+            reader.releaseLock();
+            throw new Error(`Provider returned error page: ${firstText.slice(0, 80)}`);
+          }
+          const source = config.baseURL.includes("localhost") ? "local" : "tunnel";
+          console.log(`[chat] response from: ${source} (baseURL: ${config.baseURL})`);
+          const stream = new ReadableStream({
+            start(controller) {
+              controller.enqueue(first.value);
+              (async () => {
+                try {
+                  for (;;) {
+                    const next = await reader.read();
+                    if (next.done) break;
+                    controller.enqueue(next.value);
+                  }
+                  controller.close();
+                } catch (e) {
+                  controller.error(e);
+                }
+              })();
+            },
+          });
+          const headers = new Headers(response.headers);
+          headers.set("X-Chat-Source", source);
+          return new Response(stream, { headers });
         } catch (err) {
           lastError = err;
+          const errName = err && typeof err === "object" && "name" in err ? (err as { name: string }).name : "";
+          const errMsg = err instanceof Error ? err.message : String(err);
           wasRateLimitOrOverload = isRetryableProviderError(err);
+          console.warn("[chat] provider error", {
+            label,
+            name: errName,
+            message: errMsg.slice(0, 200),
+            isRetryable: wasRateLimitOrOverload,
+          });
           if (!wasRateLimitOrOverload) {
-            // Non-retryable (auth, bad request, etc.) — fail fast
+            console.error("[chat] non-retryable, failing fast");
             throw err;
           }
           if (attempt < MAX_RETRIES_PER_MODEL - 1) {
             const delay = backoffMs(attempt);
-            console.warn(`Chat provider rate limit/overload (provider=${config.provider}, model=${config.model}, attempt=${attempt + 1}), retrying in ${delay}ms`);
+            console.warn(`[chat] retrying ${label} in ${delay}ms`);
             await sleep(delay);
           } else {
-            console.warn(`Chat provider failed after ${MAX_RETRIES_PER_MODEL} attempts for ${config.provider}/${config.model}, trying next model`);
+            console.warn(`[chat] ${label} failed, trying next model`);
           }
         }
       }
     }
 
-    // All models and retries exhausted
-    console.error("Chat API: all models exhausted", lastError);
-    const status = wasRateLimitOrOverload ? 429 : 500;
-    const body = wasRateLimitOrOverload
-      ? {
-          error: "All models busy",
-          message: "Chat will be back soon. Please try again in a minute.",
-        }
-      : {
-          error: "Service unavailable",
-          message: "Chat will be back soon. Try again or email luisgimenezdev@gmail.com.",
-        };
+    // All models and retries exhausted (e.g. tunnel offline, local not running)
+    console.error("[chat] all models exhausted", {
+      lastErrorName: lastError && typeof lastError === "object" && "name" in lastError ? (lastError as { name: string }).name : "",
+      lastErrorMessage: lastError instanceof Error ? lastError.message : String(lastError).slice(0, 200),
+      wasRateLimitOrOverload,
+    });
+    const status = wasRateLimitOrOverload ? 429 : 503;
+    const body = {
+      error: wasRateLimitOrOverload ? "All models busy" : "Service unavailable",
+      message:
+        "The AI model is temporarily unavailable. If you're running locally, make sure the local model server is running. Otherwise try again later or email luisgimenezdev@gmail.com.",
+    };
     return new Response(JSON.stringify(body), {
       status,
       headers: { "Content-Type": "application/json" },
@@ -209,12 +259,11 @@ ${context}`;
   } catch (error) {
     console.error("Chat API error:", error);
     const isRetryable = isRetryableProviderError(error);
-    const status = isRetryable ? 429 : 500;
-    const message = isRetryable
-      ? "Chat will be back soon. Please try again in a moment."
-      : "Chat will be back soon. Try again or email luisgimenezdev@gmail.com.";
+    const status = isRetryable ? 429 : 503;
+    const message =
+      "The AI model is temporarily unavailable. If you're running locally, start the local model server. Otherwise try again later or email luisgimenezdev@gmail.com.";
     return new Response(
-      JSON.stringify({ error: isRetryable ? "Rate limit" : "Internal error", message }),
+      JSON.stringify({ error: isRetryable ? "Rate limit" : "Service unavailable", message }),
       { status, headers: { "Content-Type": "application/json" } }
     );
   }

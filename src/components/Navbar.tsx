@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -16,72 +18,95 @@ const navLinks = [
 export default function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-white/10" aria-label="Main navigation">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link href="/" className="text-xl font-bold text-white hover:text-cyan-400 transition-colors" aria-label="Luis Gimenez - Home">
-            LG
+    <nav 
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent",
+        scrolled ? "glass border-border/40 py-2" : "bg-transparent py-4"
+      )} 
+      aria-label="Main navigation"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-12 items-center justify-between">
+          <Link href="/" aria-label="Luis Gimenez - Home" className="group flex items-center gap-2">
+            <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 text-primary font-bold text-lg group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+              LG
+            </div>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden items-center gap-1 md:flex">
             {navLinks.map((link) => (
-              <Link
+              <Button
                 key={link.href}
-                href={link.href}
-                className={`text-sm transition-colors ${
-                  pathname === link.href
-                    ? 'text-cyan-400'
-                    : 'text-gray-300 hover:text-white'
-                }`}
+                variant="ghost"
+                asChild
+                className={cn(
+                  "rounded-full px-4 text-sm font-medium transition-colors hover:bg-primary/10 hover:text-primary",
+                  pathname === link.href ? 'text-primary bg-primary/5' : 'text-muted-foreground'
+                )}
               >
-                {link.label}
-              </Link>
+                <Link href={link.href}>{link.label}</Link>
+              </Button>
             ))}
-            <Link
-              href="/chat"
-              className="flex items-center gap-2 px-4 py-2 bg-cyan-500/20 text-cyan-400 rounded-lg hover:bg-cyan-500/30 transition-colors text-sm"
+            <div className="mx-2 h-4 w-px bg-border/50" />
+            <Button 
+              asChild 
+              className="gap-2 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground shadow-sm hover:shadow-glow-primary transition-all duration-300"
             >
-              <Sparkles className="w-4 h-4" />
-              AI Chat
-            </Link>
+              <Link href="/chat">
+                <Sparkles className="size-4" />
+                AI Chat
+              </Link>
+            </Button>
           </div>
 
-          {/* Mobile Toggle */}
-          <button
-            className="md:hidden text-white"
-            onClick={() => setIsOpen(!isOpen)}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="md:hidden text-muted-foreground hover:text-primary hover:bg-primary/10" 
+            onClick={() => setIsOpen(!isOpen)} 
+            aria-label={isOpen ? 'Close menu' : 'Open menu'}
           >
-            {isOpen ? <X /> : <Menu />}
-          </button>
+            {isOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </Button>
         </div>
 
-        {/* Mobile Nav */}
+        {/* Mobile Menu */}
         {isOpen && (
-          <div className="md:hidden pb-4">
+          <div className="absolute top-full left-0 right-0 glass border-t border-border/40 p-4 flex flex-col gap-2 md:hidden animate-fadeIn shadow-2xl">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`block py-2 text-sm ${
-                  pathname === link.href
-                    ? 'text-cyan-400'
-                    : 'text-gray-300'
-                }`}
                 onClick={() => setIsOpen(false)}
+                className={cn(
+                  "flex items-center rounded-lg px-4 py-3 text-sm font-medium transition-colors",
+                  pathname === link.href 
+                    ? 'bg-primary/10 text-primary' 
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
               >
                 {link.label}
               </Link>
             ))}
+            <div className="h-px bg-border/50 my-1" />
             <Link
               href="/chat"
-              className="flex items-center gap-2 py-2 text-cyan-400"
               onClick={() => setIsOpen(false)}
+              className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/20"
             >
-              <Sparkles className="w-4 h-4" />
-              AI Chat
+              <Sparkles className="size-4" />
+              Ask AI Assistant
             </Link>
           </div>
         )}

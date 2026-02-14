@@ -1,146 +1,207 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Dark theme — derived from original site colors */
-  /* Original: name_head: #32c0f4, sub_name_head: #e97124 */
-  
-  --background: 222 47% 6%; /* deep dark blue-black */
-  --foreground: 210 40% 93%; /* near-white text */
-  
-  /* Brand colors from original site */
-  --primary: 190 85% 53%; /* #32c0f4 - cyan */
-  --primary-foreground: 0 0% 0%;
-  
-  --secondary: 25 95% 55%; /* #e97124 - orange */
-  --secondary-foreground: 0 0% 100%;
-  
-  --muted: 215 20% 55%;
-  --muted-foreground: 215 20% 65%;
-  
-  --border: 215 20% 18%;
-  --card: 222 47% 9%; /* slightly lighter than bg */
-  --card-foreground: 210 40% 93%;
-  
-  --accent: 190 85% 53%; /* cyan */
-  --accent-foreground: 0 0% 0%;
-  
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 210 40% 98%;
-  
-  --radius: 0.5rem;
+  /* Fortune 50 Styling - Deep Enterprise Dark Mode */
+
+  /* Modern Enterprise Blue & Accent Orange */
+  --primary: oklch(0.65 0.18 240);
+  /* Vibrant tech blue */
+  --primary-foreground: oklch(0.98 0 0);
+
+  --secondary: oklch(0.70 0.16 45);
+  /* Warm professional orange */
+  --secondary-foreground: oklch(0.15 0 0);
+
+  --accent: oklch(0.25 0.05 240);
+  /* Deep blue accent background */
+  --accent-foreground: oklch(0.98 0 0);
+
+  --muted: oklch(0.20 0.02 240);
+  /* Low contrast background */
+  --muted-foreground: oklch(0.70 0.02 240);
+  /* Subdued text */
+
+  --destructive: oklch(0.60 0.20 20);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  --border: oklch(0.25 0.02 240);
+  /* Subtle borders */
+  --input: oklch(0.25 0.02 240);
+  --ring: oklch(0.65 0.18 240);
+
+  --background: oklch(0.12 0.02 240);
+  /* Deep navy-black, not pure black */
+  --foreground: oklch(0.95 0.01 240);
+
+  --card: oklch(0.16 0.03 240);
+  /* Slightly lighter than bg */
+  --card-foreground: oklch(0.95 0.01 240);
+
+  --popover: oklch(0.14 0.03 240);
+  --popover-foreground: oklch(0.95 0.01 240);
+
+  --radius: 0.75rem;
+
+  /* Charts - Keeping original structure but refining colors */
+  --chart-1: oklch(0.65 0.18 240);
+  --chart-2: oklch(0.70 0.16 45);
+  --chart-3: oklch(0.55 0.20 280);
+  --chart-4: oklch(0.60 0.15 140);
+  --chart-5: oklch(0.85 0.10 80);
+
+  /* Sidebar */
+  --sidebar: oklch(0.14 0.03 240);
+  --sidebar-foreground: oklch(0.95 0.01 240);
+  --sidebar-primary: oklch(0.65 0.18 240);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.20 0.04 240);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.25 0.02 240);
+  --sidebar-ring: oklch(0.65 0.18 240);
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+.dark {
+  /* Ensure consistency if .dark class is forcefully applied */
+  --background: oklch(0.12 0.02 240);
+  --foreground: oklch(0.95 0.01 240);
+  --card: oklch(0.16 0.03 240);
+  --card-foreground: oklch(0.95 0.01 240);
+  --popover: oklch(0.14 0.03 240);
+  --popover-foreground: oklch(0.95 0.01 240);
+  --primary: oklch(0.65 0.18 240);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.70 0.16 45);
+  --secondary-foreground: oklch(0.15 0 0);
+  --muted: oklch(0.20 0.02 240);
+  --muted-foreground: oklch(0.70 0.02 240);
+  --accent: oklch(0.25 0.05 240);
+  --accent-foreground: oklch(0.98 0 0);
+  --destructive: oklch(0.60 0.20 20);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.25 0.02 240);
+  --input: oklch(0.25 0.02 240);
+  --ring: oklch(0.65 0.18 240);
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  /* Map theme colors to CSS variables */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 }
 
-body {
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #1a1a1a;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #444;
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+    /* Modern font features if supported by Inter */
+  }
+
+  /* Custom Scrollbar for a premium feel */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/30 rounded-full hover:bg-primary/50 transition-colors;
   }
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.5s ease-out;
+@layer utilities {
+
+  /* Glassmorphism Utilities */
+  .glass {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-lg;
+  }
+
+  .glass-card {
+    @apply bg-card/40 backdrop-blur-xl border border-white/5 shadow-2xl shadow-black/20;
+  }
+
+  /* Glow Effects */
+  .glow-primary {
+    box-shadow: 0 0 30px -10px oklch(0.65 0.18 240 / 0.3);
+  }
+
+  .glow-secondary {
+    box-shadow: 0 0 30px -10px oklch(0.70 0.16 45 / 0.3);
+  }
+
+  .text-balance-header {
+    text-wrap: balance;
+  }
 }
 
-/* Gradient text utility */
-.bg-clip-text {
-  -webkit-background-clip: text;
-  background-clip: text;
+/* Chat specific styles */
+.chat-markdown {
+  @apply text-base leading-relaxed;
 }
 
-/* Glassmorphism */
-.glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.chat-markdown p {
+  @apply mb-3 last:mb-0;
 }
 
-.glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0.75rem;
+.chat-markdown h1,
+.chat-markdown h2,
+.chat-markdown h3 {
+  @apply font-semibold text-foreground mt-4 mb-2;
 }
 
-.glass-card:hover {
-  border-color: rgba(50, 192, 244, 0.3);
-  box-shadow: 0 0 20px rgba(50, 192, 244, 0.1);
+.chat-markdown ul,
+.chat-markdown ol {
+  @apply pl-4 mb-3 space-y-1;
 }
 
-/* Glow effects */
-.glow-cyan {
-  box-shadow: 0 0 20px rgba(50, 192, 244, 0.3);
+.chat-markdown code {
+  @apply bg-muted/60 px-1 py-0.5 rounded font-mono text-sm text-primary-foreground/90;
 }
 
-.glow-orange {
-  box-shadow: 0 0 20px rgba(233, 113, 36, 0.3);
+.chat-markdown pre {
+  @apply bg-muted/40 p-3 rounded-lg overflow-x-auto my-3 border border-border/50;
 }
 
-/* Accessibility: screen-reader only, visible on focus */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+.chat-markdown pre code {
+  @apply bg-transparent p-0 text-sm text-foreground;
 }
 
-.focus\:not-sr-only:focus {
-  position: static;
-  width: auto;
-  height: auto;
-  padding: inherit;
-  margin: inherit;
-  overflow: visible;
-  clip: auto;
-  white-space: normal;
+.chat-markdown a {
+  @apply text-primary underline underline-offset-4 hover:text-primary/80 transition-colors;
 }
