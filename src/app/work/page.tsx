@@ -10,6 +10,7 @@ const projects = [
     architecture: 'Event-driven microservices',
     gcp: 'Demonstrates Cloud Run + Pub/Sub patterns applicable to enterprise payment systems',
     github: 'https://github.com/menezmethod/churnistic',
+    demo: 'https://churnistic.vercel.app',
     metrics: { coverage: '95%', latency: 'p99 < 200ms' },
     featured: true,
   },
@@ -47,18 +48,18 @@ const projects = [
 
 export default function Work() {
   return (
-    <div className="min-h-screen bg-black text-white pt-24 px-4">
+    <div className="min-h-screen bg-black text-white pt-32 px-6">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-4xl font-bold mb-12">
+        <h1 className="text-5xl font-bold mb-16">
           <span className="text-[#32c0f4] font-mono">[1]</span> Projects
         </h1>
 
         {/* Featured Projects */}
-        <div className="space-y-16">
+        <div className="space-y-24">
           {projects.filter(p => p.featured).map((project, idx) => (
             <div key={project.title} className="group">
-              <div className={`grid md:grid-cols-2 gap-6 ${idx % 2 === 1 ? 'md:flex-row-reverse' : ''}`}>
-                <div className="space-y-4">
+              <div className={`grid md:grid-cols-2 gap-12 ${idx % 2 === 1 ? 'md:flex-row-reverse' : ''}`}>
+                <div className="space-y-6">
                   <h3 className="text-2xl font-semibold text-[#32c0f4] group-hover:text-[#32c0f4]/80 transition-colors">
                     {project.title}
                   </h3>
@@ -84,6 +85,16 @@ export default function Work() {
                   </div>
 
                   <div className="flex gap-4 pt-2">
+                    {project.demo && (
+                      <a
+                        href={project.demo}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-[#32c0f4] hover:text-[#32c0f4]/80 transition-colors"
+                      >
+                        <ExternalLink className="w-5 h-5" /> Live Demo
+                      </a>
+                    )}
                     {project.github && (
                       <a
                         href={project.github}
@@ -117,8 +128,8 @@ export default function Work() {
         </div>
 
         {/* Other Projects */}
-        <h2 className="text-2xl font-semibold mt-16 mb-8">Other Projects</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <h2 className="text-2xl font-semibold mt-16 mb-12">Other Projects</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
           {projects.filter(p => !p.featured).map((project) => (
             <div
               key={project.title}

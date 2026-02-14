@@ -1,6 +1,6 @@
 'use client';
 
-import { Mail, Github, Linkedin, Twitter, Sparkles } from 'lucide-react';
+import { Mail, Github, Linkedin, Twitter, Sparkles, FileText, Download } from 'lucide-react';
 
 const socialLinks = [
   { href: 'mailto:luisgimenezdev@gmail.com', icon: Mail, label: 'Email', text: 'luisgimenezdev@gmail.com' },
@@ -11,7 +11,7 @@ const socialLinks = [
 
 export default function Contact() {
   return (
-    <div className="min-h-screen bg-black text-white pt-24 px-4">
+    <div className="min-h-screen bg-black text-white pt-24 px-6">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-4xl font-bold mb-12">
           <span className="text-[#32c0f4] font-mono">[2]</span> Get In Touch
@@ -22,7 +22,28 @@ export default function Contact() {
           I will try my best to get back to you!
         </p>
 
-        <div className="space-y-6">
+        {/* Resume Download CTA */}
+        <div className="mb-12 p-6 bg-gradient-to-r from-[#32c0f4]/10 to-[#32c0f4]/5 rounded-xl border border-[#32c0f4]/30">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold mb-2">Download My Resume</h2>
+              <p className="text-gray-400 text-sm">
+                Get the full details on my experience, skills, and achievements.
+              </p>
+            </div>
+            <a
+              href="https://docs.google.com/document/d/1YkK8dF8N7M9xX5qZ2vT1uO8r6pS4cE9gH0iL3mN2Q4/export?format=pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#32c0f4] text-black font-semibold rounded-lg hover:bg-[#32c0f4]/90 transition-colors whitespace-nowrap"
+            >
+              <Download className="w-4 h-4" />
+              Download PDF
+            </a>
+          </div>
+        </div>
+
+        <div className="space-y-10">
           {socialLinks.map((link) => (
             <a
               key={link.label}

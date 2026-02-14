@@ -11,11 +11,11 @@ interface Message {
 }
 
 const SUGGESTED_PROMPTS = [
-  "Tell me about Luis experience experience",
+  "Tell me about Luis's background and experience",
   "What GCP services has Luis used?",
   "Describe the Churnistic project",
-  "What's Luis experience tech stack?",
-  "Is Luis open to remote work?",
+  "What's Luis's tech stack?",
+  "Is Luis open to remote opportunities?",
 ];
 
 export default function Chat() {
@@ -23,7 +23,7 @@ export default function Chat() {
     {
       id: '1',
       role: 'assistant',
-      content: "Hi! I'm Luis experience AI assistant. Ask me anything about his work, experience, or projects!",
+      content: "Hi! I'm Luis's AI assistant. Ask me anything about his work, experience, or projects.",
     },
   ]);
   const [input, setInput] = useState('');
@@ -272,7 +272,7 @@ export default function Chat() {
         <div className="mt-6 p-4 bg-gray-900/30 rounded-lg border border-white/5">
           <h3 className="text-sm font-semibold text-gray-400 mb-2">How this works</h3>
           <p className="text-xs text-gray-500">
-            This AI chat uses Google Gemini API with a knowledge base about Luis experience. 
+            This AI chat uses Google Gemini API with a knowledge base about Luis's experience. 
             Responses are cached to stay within free tier limits. For detailed questions, 
             email Luis directly at luisgimenezdev@gmail.com
           </p>

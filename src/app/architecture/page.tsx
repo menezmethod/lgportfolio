@@ -4,7 +4,7 @@ import { Cloud, Database, Cpu, GitBranch, Box, Activity, Shield, Zap } from 'luc
 
 export default function Architecture() {
   return (
-    <div className="min-h-screen bg-black text-white pt-24 px-4">
+    <div className="min-h-screen bg-black text-white pt-24 px-6">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-bold mb-4">
           <span className="text-[#32c0f4] font-mono">[0]</span> Architecture
@@ -18,10 +18,10 @@ export default function Architecture() {
           <h2 className="text-2xl font-semibold mb-6">System Architecture</h2>
           
           {/* Main Architecture Diagram */}
-          <div className="glass-card p-8 mb-8">
+          <div className="glass-card p-8 mb-12">
             <div className="grid md:grid-cols-2 gap-8">
               {/* Left Column - User Facing */}
-              <div className="space-y-6">
+              <div className="space-y-10">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-lg bg-[#32c0f4]/20 flex items-center justify-center">
                     <Box className="w-6 h-6 text-[#32c0f4]" />
@@ -54,7 +54,7 @@ export default function Architecture() {
               </div>
 
               {/* Right Column - Backend */}
-              <div className="space-y-6">
+              <div className="space-y-10">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-lg bg-[#e97124]/20 flex items-center justify-center">
                     <Database className="w-6 h-6 text-[#e97124]" />
