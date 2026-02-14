@@ -30,7 +30,7 @@ jobs:
   deploy:
     needs: lint-and-build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     permissions:
       contents: 'read'
       id-token: 'write'
