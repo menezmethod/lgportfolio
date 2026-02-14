@@ -35,9 +35,15 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   return data.embedding?.values || [];
 }
 
+
+// Import our file-based context
+import { KNOWLEDGE_BASE } from "./knowledge";
+
 export async function retrieveContext(query: string, topK = 5): Promise<string> {
+  // If no Supabase (or just for testing), use our local file first
   if (!supabase) {
-    return getStaticContext();
+    console.log("Using local file-based knowledge base (Supabase not configured)");
+    return KNOWLEDGE_BASE;
   }
 
   try {
@@ -49,8 +55,10 @@ export async function retrieveContext(query: string, topK = 5): Promise<string> 
       match_count: topK,
     });
 
+    // If RAG returns nothing, fallback to our full knowledge base
     if (error || !data || data.length === 0) {
-      return getStaticContext();
+      console.log("RAG query returned no matches, falling back to full knowledge base.");
+      return KNOWLEDGE_BASE;
     }
 
     return data
@@ -61,38 +69,7 @@ export async function retrieveContext(query: string, topK = 5): Promise<string> 
       .join("\n\n---\n\n");
   } catch (err) {
     console.error("RAG retrieval error:", err);
-    return getStaticContext();
+    // On error, always fallback to the file
+    return KNOWLEDGE_BASE;
   }
-}
-
-function getStaticContext(): string {
-  return `
-Luis Gimenez is a Software Engineer II at The Home Depot specializing in enterprise payment systems.
-
-PROFESSIONAL EXPERIENCE:
-- Software Engineer II, Payment Systems @ The Home Depot
-- Architecting mission-critical payment processing systems handling millions in daily transactions
-- Working with Go, Java, and Google Cloud Platform
-- GCP Professional Cloud Architect certified
-
-TECHNICAL SKILLS:
-- Languages: Go, Java, TypeScript, Rust, Python
-- Cloud: GCP (Cloud Run, GKE, BigQuery, Pub/Sub, Cloud CDN)
-- Frameworks: React, Next.js, Node.js, Spring Boot
-- Tools: Docker, Kubernetes, Terraform, Git, CI/CD
-- Domains: Payment Systems, Microservices, System Architecture
-
-PROJECTS:
-- Churnistic: AI-powered customer churn prediction (TypeScript, Firebase, TensorFlow)
-- Trading Journal: Real-time trading platform (React TS, Go gRPC, WebSockets)
-- Rythmae: Audio engine (Rust, DSP)
-- URL Shortener: High-throughput service (Go, Redis, Kubernetes)
-
-CERTIFICATIONS:
-- GCP Professional Cloud Architect
-
-LOCATION: Parrish, Florida area
-
-CONTACT: luisgimenezdev@gmail.com | github.com/menezmethod | linkedin.com/in/gimenezdev
-`;
 }
