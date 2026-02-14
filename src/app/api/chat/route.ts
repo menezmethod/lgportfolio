@@ -1,6 +1,6 @@
 import { google } from "@ai-sdk/google";
 import { anthropic } from "@ai-sdk/anthropic";
-import { openai } from "@ai-sdk/openai";
+import { createOpenAI } from "@ai-sdk/openai";
 import { streamText } from "ai";
 import { checkRateLimit, incrementDailyCount, getCachedResponse, isDailyBudgetExhausted } from "@/lib/rate-limit";
 import { retrieveContext } from "@/lib/rag";
@@ -157,14 +157,13 @@ ${context}`;
               messages: anthropicMessages,
             });
           } else if (config.provider === "openai" && config.baseURL) {
-            // For local LLM fallback - using OpenAI SDK with custom baseURL
-            const customOpenAI = openai({
+            // For local LLM fallback - using OpenAI-compatible /v1/chat/completions
+            const customOpenAI = createOpenAI({
               baseURL: config.baseURL,
-              apiKey: config.apiKey,
+              apiKey: config.apiKey ?? "dummy",
             });
-            
             result = await streamText({
-              model: customOpenAI(config.model),
+              model: customOpenAI.chat(config.model),
               system: systemPrompt,
               messages,
             });
