@@ -21,11 +21,11 @@ const CHAT_MODELS: ModelConfig[] = [
   { provider: "google", model: "gemini-2.0-flash" },
   { provider: "google", model: "gemini-1.5-flash" },
   { provider: "anthropic", model: "claude-3-haiku-20240307" },
-  // Local LLM fallback - Luis's gpt-oss-20b-MXFP4-Q8
+  // Local LLM fallback (MLX server) when main AI returns 429 — OpenAI-compatible /v1/chat/completions
   { 
     provider: "openai", 
-    model: "gpt-oss-20b-MXFP4-Q8", // Local model name
-    baseURL: process.env.LOCAL_LLM_URL || "https://4060-47-203-87-233.ngrok-free.app/v1",
+    model: "gpt-oss-20b-MXFP4-Q8",
+    baseURL: process.env.LOCAL_LLM_URL || "http://localhost:11973/v1",
     apiKey: process.env.LOCAL_LLM_API_KEY || "dummy"
   },
 ];
