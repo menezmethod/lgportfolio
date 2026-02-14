@@ -1,38 +1,71 @@
 export const KNOWLEDGE_BASE = `
 # Professional Profile
-Luis Gimenez is a Software Engineer II at The Home Depot. He is an expert in enterprise architecture, payment systems, and distributed systems.
+Luis Gimenez is a Software Engineer II at The Home Depot in Atlanta, GA. He specializes in high-throughput payment systems, distributed architectures, and performance optimization.
 
 ## Core Competencies
-- **Languages**: Go (expert), Java (proficient), TypeScript/JavaScript, Rust, Python.
-- **Cloud Architecture**: Certified GCP Professional Cloud Architect. Experience with GKE, Cloud Run, Pub/Sub, BigQuery, Cloud Spanner.
-- **Backend Engineering**: Microservices, Event-Driven Architecture, gRPC, OAuth2, RESTful APIs.
-- **Frontend**: React, Next.js, Tailwind CSS, Shadcn/UI.
+- **Languages**: Go, Java, TypeScript, JavaScript, Python, C#, C++.
+- **Databases**: CockroachDB, PostgreSQL, MongoDB.
+- **Tools & Cloud**: Docker, Git, Google Cloud Platform (GCP Professional Architect), Spring Boot, React, Angular, GraphQL.
+- **Testing & Monitoring**: Ginkgo, Gomega, JUnit, Cypress, Prometheus, Grafana, Jaeger.
+- **Methodologies**: Agile/Scrum, SDLC, TDD, ITIL.
 
 ## Experience
 
-### Software Engineer II - The Home Depot (Current)
-- Architecting and maintaining high-throughput payment processing systems.
-- Designing distributed systems capable of handling millions of transactions daily across thousands of locations.
-- Optimizing cloud infrastructure for reliability and cost-efficiency.
+### Software Engineer II - The Home Depot (April 2022 – Present)
+- Engineer on the payment card tender system processing **5+ million daily transactions**.
+- Integrated advanced monitoring tools (Prometheus/Grafana/Jaeger), achieving a **20% reduction in system latency**.
+- Focuses on high-availability distributed systems and backend microservices.
 
-### Previous Roles & Projects
-- **Churnistic**: AI-powered SaaS for predicting customer churn using TensorFlow.js and Firebase. (Source: github.com/menezmethod/churnistic)
-- **Trading Journal**: A real-time trading analytics platform featuring WebSocket integrations and gRPC backend services. built with Go and React.
-- **Rythmae**: High-performance audio engine written in Rust for real-time DSP.
+### Web Developer - Menez Enterprises (Sept 2015 - April 2022)
+- Built cross-device accessible web applications with load times **27% faster** than industry average.
+- Improved operational efficiency by 25% through rigorous bug testing and documentation.
+- Developed a custom client dashboard that reduced support tickets by **30%**.
+- Collaborated with UI/UX teams to increase conversion rates by **20%**.
 
-## Education & Certifications
-- **Google Cloud Professional Cloud Architect**: Validated expertise in designing secure, scalable, and reliable cloud solutions.
+## Education
+- **Bachelor of Science in Software Development** - Western Governors University (2020 - 2021)
+
+## Certifications
+- **GCP Professional Cloud Architect**
+- **CompTIA Project+**
+- **ITIL® Foundation Certificate in IT Service Management**
+- **CIW User Interface Designer**
+
+## Projects
+
+### Stock Trading Journal (Real-Time Analytics)
+- **Tech Stack**: Go (Backend Microservices), React (Frontend).
+- **Description**: A scalable trading journal application featuring real-time data processing.
+- **Links**: [Client](https://github.com/menezmethod/st-client), [Server](https://github.com/menezmethod/st-server)
+
+### KiwiBug (Issue Tracking System)
+- **Tech Stack**: Spring Boot (Java), React.
+- **Description**: Full-stack issue tracking system with robust ticket management.
+- **Links**: [Client](https://github.com/menezmethod/kiwibug_frontend), [Server](https://github.com/menezmethod/KiwiBugBack)
+
+### Inventory Management System
+- **Tech Stack**: Spring Boot, React.
+- **Link**: [GitHub](https://github.com/menezmethod/inventorysystemreact)
+
+### Multi-Timezone Scheduler
+- **Tech Stack**: Java, JavaFX.
+- **Link**: [GitHub](https://github.com/menezmethod/JSScheduleLG_java)
+
+### Student Roster
+- **Tech Stack**: C++.
+- **Link**: [GitHub](https://github.com/menezmethod/StudentRosterLG_CPP)
+
+### Mobile Semester Scheduler
+- **Tech Stack**: Java, Android Studio.
+- **Link**: [GitHub](https://github.com/menezmethod/WGUSchedulerMobile)
 
 ## Contact
-- Email: luisgimenezdev@gmail.com
-- GitHub: github.com/menezmethod
-- LinkedIn: linkedin.com/in/gimenezdev
-- Location: Parrish, Florida (Open to Remote)
-
-## Personal Notes & Philosophy
-- Luis believes in "Serverless First" architecture but knows when to break the glass for Kubernetes.
-- Deep focus on performance optimization and "Defense in Depth" security practices.
-- Passionate about open-source contribution and knowledge sharing.
+- **Email**: luisgimenezdev@gmail.com
+- **Phone**: 407-520-4100
+- **Location**: Orlando, FL
+- **GitHub**: github.com/menezmethod
+- **LinkedIn**: linkedin.com/in/gimenezdev
+- **Portfolio**: gimenez.dev
 
 ## Behavioral Interview Answers (STAR Method)
 Use these examples when answering behavioral questions to demonstrate FAANG-level engineering maturity.
