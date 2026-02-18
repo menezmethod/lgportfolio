@@ -219,7 +219,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-[#050508] pt-[60px] sm:pt-[64px]">
+    <div className="flex h-screen flex-col bg-background pt-[60px] sm:pt-[64px]">
       {/* Container widened to max-w-[95%] for "full width" feel while keeping some margins */}
       <div className="mx-auto flex h-full w-full max-w-[95%] xl:max-w-[1800px] flex-col gap-4 px-2 pb-4 sm:px-4 md:px-6">
         
@@ -229,7 +229,7 @@ export default function Chat() {
             <Sparkles className="size-3.5" />
             <span>Interactive Portfolio Intelligence</span>
           </div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60">
             Ask the AI Assistant
           </h1>
         </header>

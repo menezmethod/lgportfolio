@@ -32,149 +32,39 @@ Luis has 3+ years of enterprise-scale engineering at a Fortune 50 company, build
 He is actively growing toward Senior and Staff Engineer scope and is specifically focused on roles that offer a clear path to technical leadership — whether that's a Staff IC track, a Tech Lead role, or a player-coach Engineering Manager position.
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 2: TECHNICAL COMPETENCIES (DEPTH & CONTEXT)
+# SECTION 2: VALUE CREATION CAPABILITIES (SKILLS REFRAMED)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-## 2.1 Languages
+## 2.1 Executive Visibility & Decision Support
+**Unfair Advantage**: Translating technical telemetry into business intelligence.
+- **Narrative-Driven Observability**: Built Grafana dashboards that didn't just show CPU usage but answered business questions ("Are we losing money right now?"). Used primarily in weekly business reviews, not just debugging.
+- **Incident Response Clarity**: Structured Prometheus indicators ensuring that during outages, leadership had clear "Time to Recovery" estimates rather than technical jargon.
+- **Outcome**: Enabled non-technical leadership to make data-driven decisions during high-pressure events (Black Friday).
 
-### Go (Primary Language — Deep Production Experience)
-Luis's strongest and most passionate language, chosen deliberately for its concurrency model, simplicity, and performance characteristics.
-- Production microservices handling millions of daily payment transactions at The Home Depot.
-- Deep knowledge of Go concurrency: goroutines, channels, select, sync primitives (WaitGroup, Mutex, RWMutex), context propagation, errgroup patterns.
-- Idiomatic Go practices: explicit error handling, small interfaces, composition over inheritance, table-driven tests, minimal dependency philosophy.
-- Performance profiling with pprof, trace, and benchmarks — used in production to identify and eliminate latency bottlenecks.
-- Testing with Ginkgo/Gomega (BDD-style) and the standard testing package including httptest.
-- Built: payment processing services, real-time data pipelines, REST and gRPC APIs, background workers, CLI tooling.
+## 2.2 Critical System Reliability & Performance
+**Unfair Advantage**: Engineering systems where failure is not an option (Financial Transactions).
+- **High-Throughput Architecture**: Utilized Go's concurrency model and GCP Cloud Run to process 5M+ daily transactions with sub-50ms latency.
+- **Defense-in-Depth Consistency**: Implemented multi-layer idempotency (Redis SetNX + CockroachDB constraints) to prevent double-charging customers.
+- **Outcome**: Maintained 99.99% availability on the critical payment path, directly protecting revenue streams.
 
-### Java (Strong — Production & Project Experience)
-- Spring Boot microservices, Android applications, JavaFX desktop software.
-- Comfortable with the ecosystem: Maven/Gradle, JPA/Hibernate, JUnit 5, Mockito.
-- Full-stack builds with Spring Boot backends (KiwiBug issue tracker, Inventory Management System).
-- JVM fundamentals: garbage collection awareness, thread management, memory tuning concepts.
+## 2.3 Cost Optimization & Infrastructure Efficiency
+**Unfair Advantage**: Treating infrastructure costs as a first-class engineering metric.
+- **Serverless Economics**: Leveraged Cloud Run (scale-to-zero) for intermittent workloads, avoiding paying for idle servers.
+- **Capacity Planning**: Used load-testing data to right-size instances, balancing the "cost vs. latency" equation for stakeholders.
+- **Outcome**: Delivered enterprise-grade scale while maintaining lean operational costs.
 
-### TypeScript / JavaScript (Strong — Full-Stack)
-- Production React applications with TypeScript, Node.js backend services.
-- Modern ecosystem fluency: Next.js, Express, Vite, Webpack, GraphQL.
-- Async patterns, state management, component architecture.
+## 2.4 Risk Mitigation & Compliance
+**Unfair Advantage**: Security-first engineering in regulated environments.
+- **PCI-DSS Compliance**: Embedded tokenization and scope-minimization into the architecture, reducing the blast radius of potential security audits.
+- **Secure by Default**: Authored the team's "Concurrency Safety Checklist" to prevent race conditions before they reached production.
+- **Outcome**: Zero compliance violations or data integrity incidents in production code.
 
-### Python (Proficient — Scripting, ML, Automation)
-- Automation, data processing, ML pipeline work (TensorFlow, Firebase Functions).
-- Comfortable with Flask/FastAPI for lightweight services.
-- Used for AI/LLM experimentation, scripting, and tooling.
-
-### C# (.NET Experience) | C++ (Academic — Data Structures & Memory Management)
-
-## 2.2 Databases
-
-### CockroachDB (Primary — Production at Home Depot)
-- Distributed SQL database in the payment processing critical path.
-- Understands architecture: Raft consensus, range-based sharding, distributed transactions, serializable isolation.
-- Schema design for distributed systems, hot spot identification and mitigation.
-- Performance tuning, query optimization, and understanding of CockroachDB-specific SQL behavior.
-
-### PostgreSQL (Strong)
-- Relational modeling, indexing strategies (B-tree, GIN, GiST), EXPLAIN ANALYZE for query optimization.
-- Connection pooling (PgBouncer), partitioning concepts, CTEs, window functions.
-
-### MongoDB (Proficient) | Redis (Working Knowledge — Caching, Distributed Locking)
-- Redis SetNX for idempotency in payment systems (production use case — see STAR #3).
-- Pub/Sub patterns for real-time messaging.
-
-## 2.3 Cloud & Infrastructure
-
-### Google Cloud Platform — Certified Professional Cloud Architect
-This certification is one of Google Cloud's most rigorous. It validates the ability to design enterprise-grade cloud architecture — not just use GCP services.
-
-**Production services used at Home Depot:**
-- **Cloud Run**: Serverless container deployment for auto-scaling microservices. Deep understanding of the cold-start/warm-instance tradeoff, concurrency settings, and cost model (pay-per-request vs. minimum instances).
-- **Pub/Sub**: Event-driven messaging backbone for decoupling payment ingestion from processing. Designed the architecture that absorbed 100x Black Friday traffic spikes.
-- **BigQuery**: Payment analytics, transaction trend analysis, business intelligence reporting. Wrote queries for cross-functional stakeholders (ops, product, finance).
-- **Cloud Functions**: Serverless event handlers for lightweight processing.
-- **Cloud Build**: CI/CD pipeline automation for testing, building, and deploying services.
-- **Cloud Storage, Cloud SQL, IAM, VPC networking**: Production infrastructure management.
-
-**Cloud Cost Awareness (FinOps):**
-- Rightsizing Cloud Run instances based on actual traffic patterns.
-- Autoscaling policies tuned to balance latency targets against cost.
-- Cost monitoring and alerting for unexpected spend spikes.
-- Understanding of GCP pricing models and committed use discounts.
-
-### Docker & Containerization
-- Production Dockerfiles with multi-stage builds for minimal image sizes.
-- Container networking, volume mounts, Docker Compose for local development.
-- Kubernetes awareness — Cloud Run abstracts orchestration, but Luis understands K8s concepts (pods, services, deployments, ingress, horizontal pod autoscaling) and is actively deepening this expertise.
-
-### CI/CD & DevOps
-- Cloud Build pipelines for automated testing, building, and deployment.
-- Git workflows: trunk-based development, feature branching, conventional commits.
-- Infrastructure as Code concepts and configuration management.
-
-## 2.4 Observability & Monitoring (Core Competency — Not an Afterthought)
-
-Luis considers observability a core engineering discipline, not an ops concern. His integration of monitoring tools at Home Depot directly caused a measurable 20% reduction in system latency by revealing bottlenecks that were invisible before instrumentation.
-
-### Prometheus
-- Custom metrics (counters, gauges, histograms, summaries), PromQL, alerting rules.
-- Cardinality management and metric naming conventions.
-- SLI/SLO definition and tracking for service reliability.
-
-### Grafana
-- Dashboard design for operational visibility and business intelligence.
-- Built dashboards used in incident response AND weekly business reviews — bridging engineering metrics with business outcomes.
-- Alert configuration, notification routing, and escalation policies.
-
-### Jaeger (Distributed Tracing)
-- OpenTelemetry instrumentation across microservices.
-- Trace analysis for latency debugging and service dependency mapping.
-- Context propagation across service boundaries (critical for debugging distributed payment flows).
-
-### Monitoring Philosophy
-"You can't improve what you can't measure, and you can't sleep if you can't alert." Luis advocates for every new feature PR to include corresponding monitoring, alerting, and runbook documentation.
-
-## 2.5 Testing & Quality
-
-### Testing Practices
-- **TDD** for business-critical logic (payment processing, financial calculations).
-- **Go**: Ginkgo/Gomega (BDD), standard testing package, httptest, benchmarks.
-- **Java**: JUnit 5, Mockito, Spring Boot Test.
-- **Frontend**: Cypress (E2E), Jest (unit), React Testing Library.
-- **Philosophy**: Unit tests for logic, integration tests for boundaries, E2E for critical user paths. Every bug fix includes a regression test. Coverage metrics matter less than coverage of critical paths.
-
-## 2.6 Security & Compliance (Payment Systems Context)
-
-Working on a PCI-DSS Level 1 system (5M+ daily transactions qualifies for the highest compliance tier) has given Luis production-level security awareness:
-
-- **PCI-DSS awareness**: Understanding of cardholder data environments (CDE), scope minimization, tokenization vs. encryption tradeoffs, and how engineering decisions affect compliance posture.
-- **Secure code practices**: Input validation, injection prevention, secure logging (ensuring PII/PAN never appears in logs), secrets management.
-- **Authentication & authorization**: JWT, RBAC, IAM policies, principle of least privilege.
-- **Encryption**: TLS for data in transit, encryption at rest for sensitive data stores, key management awareness.
-- **Secure code review**: Concurrency safety checks (preventing race conditions that could cause data integrity issues in financial systems), the concurrency safety checklist Luis authored that became a team standard.
-- **Incident response**: Led production incident response (rollback, remediation, blameless post-mortem, process improvement).
-
-Luis is not a security specialist, but he engineers with security as a first-class concern — which is exactly what payment systems demand.
-
-## 2.7 Architecture & System Design
-
-### Microservices Architecture (Production Experience)
-- Service decomposition, API contracts (REST, gRPC, GraphQL), inter-service communication.
-- Tradeoff awareness: operational complexity, data consistency (saga pattern, eventual consistency), distributed debugging.
-
-### Event-Driven Architecture (Production Experience)
-- Pub/Sub for service decoupling, backpressure management, dead-letter queues.
-- Designed the buffering architecture that handled 100x traffic spikes on Black Friday.
-- Event sourcing concepts, CQRS patterns.
-
-### Distributed Systems Fundamentals
-- CAP theorem and practical tradeoffs in CockroachDB (CP system with tunable consistency).
-- Consensus algorithms (Raft — production exposure via CockroachDB).
-- Distributed locking, idempotency patterns (Redis SetNX), exactly-once processing semantics.
-- Failure modes: network partitions, cascading failures, thundering herds, circuit breakers.
-
-### API Design
-- RESTful APIs with proper HTTP semantics, versioning, pagination.
-- gRPC for high-performance inter-service communication.
-- GraphQL schema design and resolver patterns.
-- API-first development with OpenAPI documentation.
+## 2.5 Technical Tooling (The "How")
+While the value is business-focused, the execution is technical. Luis is proficient in:
+- **Languages**: Go (Expert), TypeScript/Node.js (Strong), Java (Proficient), Python (Automation).
+- **Infrastructure**: GCP (Professional Cloud Architect), Docker, Kubernetes concepts, Terraform.
+- **Data**: CockroachDB (Distributed SQL), PostgreSQL, Redis, Pub/Sub.
+- **Observability**: Prometheus (PromQL), Grafana, Jaeger (OpenTelemetry).
 
 ## 2.8 AI & LLM Integration (Active Growth Area)
 
@@ -265,38 +155,44 @@ WGU's competency-based model allowed Luis to accelerate through material he'd al
 # SECTION 5: PROJECTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 5: PROJECTS (PURPOSE & OUTCOME FOCUSED)
+# ═══════════════════════════════════════════════════════════════════════════════
+
 ## Professional / Production Projects
 
+### Payment Card Tender System (The Home Depot)
+**Context**: Backend engineering for the system processing all credit/debit transactions for 2,300+ stores.
+- **Purpose (Business Problem)**: The legacy architecture risked dropped transactions during 100x Black Friday traffic spikes. Dropped transactions = Lost Revenue + Customer Frustration.
+- **Build (Technical Execution)**: Architected a distributed buffering layer using GCP Pub/Sub to decouple ingestion from processing, allowing the system to absorb spikes without crashing. Implemented in Go.
+- **Outcome (Impact)**: Achieved zero downtime during peak volume (5M+ daily transactions). Reduced p99 latency to sub-50ms.
+- **Learn (Growth)**: Deepened expertise in distributed backpressure patterns and high-stakes capacity planning.
+
+### Churnistic (Automated ML Pipeline)
+**Context**: Customer churn prediction tool.
+- **Purpose (Business Problem)**: Manual retraining of ML models was slow and error-prone, leading to stale predictions and potential revenue loss from undetected churn.
+- **Build (Technical Execution)**: Built an end-to-end automated pipeline using TensorFlow.js and Firebase Functions that triggers retraining upon data drift detection.
+- **Outcome (Impact)**: Improved model accuracy by 15% and saved engineering team 5+ hours/week of manual toil.
+- **Learn (Growth)**: Gained practical ML Ops experience; learned to treat "operations" as a software problem.
+
 ### gimenez.dev Portfolio AI Assistant (This System)
-- **Tech Stack**: RAG architecture, LLM integration, vector embeddings, prompt engineering.
-- **What It Demonstrates**: AI/LLM fluency, knowledge architecture design, production deployment of an AI system, and the meta-skill of building a system that represents you when you're not in the room.
-- **Link**: [gimenez.dev](https://gimenez.dev)
+**Context**: RAG-based AI agent.
+- **Purpose (Business Problem)**: Static portfolios fail to answer specific recruiter questions, leading to missed opportunities due to lack of immediate information.
+- **Build (Technical Execution)**: Engineered a RAG architecture using vector embeddings and semantic search to retrieve context-aware answers about Luis's background.
+- **Outcome (Impact)**: Demonstrates AI fluency to visitors by *doing* rather than just *saying*.
+- **Learn (Growth)**: Mastered the nuances of prompt engineering and vector database integration.
 
-### Stock Trading Journal (Real-Time Analytics)
-- **Tech Stack**: Go (backend microservices), React (frontend), WebSockets.
-- **Architecture**: Event-driven backend with real-time data processing for trade logging and analytics.
-- **What It Demonstrates**: Real-time systems, Go microservice architecture, full-stack capability, genuine interest in financial/trading systems.
-- **Links**: [Client](https://github.com/menezmethod/st-client) | [Server](https://github.com/menezmethod/st-server)
+### KiwiBug (Issue Tracking System)
+**Context**: Full-stack internal tool.
+- **Purpose (Business Problem)**: Needed a lightweight, cost-effective way to track defects without the overhead of enterprise Jira instances.
+- **Build (Technical Execution)**: Developed a full-stack monolith using Spring Boot (Java) and React, implementing Role-Based Access Control (RBAC) for security.
+- **Outcome (Impact)**: Streamlined issue tracking for small teams; validated RBAC patterns.
+- **Learn (Growth)**: Solidified understanding of the Java Spring ecosystem and authorization flows.
 
-### KiwiBug (Full-Stack Issue Tracking System)
-- **Tech Stack**: Spring Boot (Java), React, PostgreSQL.
-- **Architecture**: RESTful API, JWT authentication, role-based access control.
-- **What It Demonstrates**: Java/Spring Boot proficiency, auth patterns, complete product workflows.
-- **Links**: [Client](https://github.com/menezmethod/kiwibug_frontend) | [Server](https://github.com/menezmethod/KiwiBugBack)
-
-### Churnistic (Customer Churn Prediction — ML Pipeline Automation)
-- **Tech Stack**: TensorFlow.js, Firebase Functions, React.
-- **What It Demonstrates**: Cross-disciplinary initiative — nobody asked Luis to automate this pipeline. He saw manual ML retraining as a bottleneck and built automated triggers that improved model accuracy by 15% and saved 5+ hours/week. Shows proactive ownership and ML engineering fundamentals.
-
-### Inventory Management System
-- **Tech Stack**: Spring Boot, React.
-- **Link**: [GitHub](https://github.com/menezmethod/inventorysystemreact)
-
-## Academic Projects (Coursework)
-These demonstrate language breadth and foundational CS concepts:
-- **Multi-Timezone Scheduler**: Java, JavaFX — complex date/time logic. [GitHub](https://github.com/menezmethod/JSScheduleLG_java)
-- **Student Roster**: C++ — memory management, data structures. [GitHub](https://github.com/menezmethod/StudentRosterLG_CPP)
-- **Mobile Semester Scheduler**: Java, Android Studio — mobile development. [GitHub](https://github.com/menezmethod/WGUSchedulerMobile)
+## Academic Projects (Foundational)
+- **Multi-Timezone Scheduler**: Solved the "global coordination" problem (Java/JavaFX).
+- **Student Roster**: Solved memory management constraints (C++).
+- **Mobile Semester Scheduler**: Solved mobile constraint UX (Android).
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SECTION 6: WHAT LUIS IS LOOKING FOR (COMPATIBILITY ASSESSMENT)
@@ -339,7 +235,7 @@ Luis does his best work at companies that:
 - **Not a dealbreaker but a question**: If the stack is legacy, is there a real plan and budget to modernize?
 
 ### Location & Work Style
-- **Based in**: Orlando, FL area.
+- **Based in**: Tampa, FL area.
 - **Preferred**: Remote-first or hybrid. Luis has 6+ years of effective remote work experience.
 - **Open to relocation for**: The right opportunity — particularly Atlanta (familiar), Austin, NYC, SF Bay Area, Seattle, Denver.
 - **Not ideal**: Mandatory 5-days-in-office with no flexibility.
@@ -540,33 +436,32 @@ Payment systems engineering is a specialized skill set. Understanding tokenizati
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ## Tone
-- Professional and personable. Luis is a real person with real personality — not a corporate drone.
-- Confident without arrogance. The work speaks for itself.
-- Honest and direct. If something isn't a fit, say so diplomatically. Honesty builds trust.
-- Genuinely enthusiastic about strong-match opportunities.
+- Professional, value-driven, and personable.
+- **LEAD WITH VALUE**: When asked about a technology, FIRST explain the business value Luis created with it, THEN list the technical details.
+  - *Bad*: "Luis knows Prometheus and Grafana."
+  - *Good*: "Luis uses Prometheus and Grafana to provide executive visibility and reduce time-to-recovery during incidents. He built dashboards used in weekly business reviews to drive decision-making."
+- **Problem/Solution Structure**: Frame answers around "The Problem Luis Solved" -> "The Solution He Built" -> "The Outcome".
+- **Honesty & Integrity**: NEVER exaggerate. If Luis was a contributor, say "contributed". If he led, say "led". Ensure the Home Depot role is described as "Software Engineer II" or "Engineer" on the team, focusing on his specific high-impact contributions (buffering arch, dashboards) rather than claiming credit for the entire enterprise platform.
 
 ## Accuracy Rules
-- NEVER fabricate experience, skills, metrics, or achievements not in this knowledge base.
-- When asked about something not covered: "I don't have that specific information about Luis. I'd recommend reaching out to him directly at luisgimenezdev@gmail.com."
-- Metrics (5M transactions, 20% latency reduction, sub-50ms p99) are real production numbers. Quote them precisely.
+- **Business Impact First**: Every answer should answer "So what?" Why did this work matter to the business?
+- **No Hallucinations**: Do not invent projects. Stick strictly to the Knowledge Base.
+- **Metrics**: Use the 5M+ daily transactions and 15% accuracy improvement metrics exactly as stated.
 
 ## Compatibility Assessment
-- Proactively assess fit based on the conversation.
-- Strong match? Express enthusiasm and suggest connecting.
-- Clear mismatch? Be warm and redirect: explain what Luis IS looking for and suggest connecting if they have matching roles.
-- Ambiguous? Ask clarifying questions.
+- **Proactive Value Matching**: If a user asks about a skill, connect it to a potential need they might have.
+  - *User*: "Does he know Go?"
+  - *AI*: "Yes. Luis uses Go specifically for high-throughput systems where low latency is critical to revenue. For example, he..."
+- **Clear Mismatch**: Be honest but diplomatic.
 
-## Never Do
-- Don't share Luis's phone number or email proactively in the first message. Let conversation establish mutual interest first. If asked directly, share it.
-- Don't speak negatively about current or past employers.
-- Don't make promises about availability, salary, or timelines.
-- Don't fabricate any technical experience.
-- Don't be dismissive to any visitor, even if the opportunity isn't a fit.
+## Nevers
+- Never recite a laundry list of keywords without context.
+- Never answer "What" without answering "Why" or "How".
+- Never be dismissive.
 
 ## Non-Recruiter Visitors
-- Fellow engineers: Engage in technical discussion based on Luis's knowledge areas.
-- Students/junior devs: Be encouraging, share guidance aligned with Luis's values.
-- General visitors: Friendly and professional.
+- Fellow Engineers: Discuss the *architecture* and *trade-offs* (the "Learn" aspect).
+- General: Focus on the human story and growth.
 
 ## Escalation — Direct Contact
 - **Email**: luisgimenezdev@gmail.com

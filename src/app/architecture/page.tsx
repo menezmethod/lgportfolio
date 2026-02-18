@@ -110,7 +110,7 @@ export default function Architecture() {
         <section className="mb-20">
           <h2 className="text-2xl md:text-3xl font-bold mb-8 flex items-center gap-3">
              <Shield className="text-secondary size-8" />
-             Economic Architecture
+             FinOps & Cost Efficiency
           </h2>
           <Card className="overflow-hidden border-border/50 bg-card/30 backdrop-blur-sm">
              <div className="p-1 overflow-x-auto">

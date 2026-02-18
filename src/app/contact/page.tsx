@@ -11,67 +11,73 @@ const socialLinks = [
 
 export default function Contact() {
   return (
-    <div className="min-h-screen bg-black text-white pt-24 px-6">
+    <div className="min-h-screen bg-background text-foreground pt-24 px-6 pb-16">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold mb-12">
-          <span className="text-[#32c0f4] font-mono">[2]</span> Get In Touch
+        <h1 className="text-3xl md:text-5xl font-bold mb-10 md:mb-16 animate-fadeIn">
+          <span className="text-primary font-mono">[2]</span> Get In Touch
         </h1>
 
-        <p className="text-lg text-gray-400 mb-12">
-          I am currently open to new opportunities. Whether you have a question or just want to say hi, 
-          I will try my best to get back to you!
+        <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
+          I am selectively accepting interviews for <span className="text-foreground font-semibold">Staff Engineer</span> or <span className="text-foreground font-semibold">Architect</span> roles. Whether you have a question or just want to say hi, I'll try my best to get back to you!
         </p>
 
         {/* Resume Download CTA */}
-        <div className="mb-12 p-6 bg-gradient-to-r from-[#32c0f4]/10 to-[#32c0f4]/5 rounded-xl border border-[#32c0f4]/30">
-          <div className="flex flex-col sm:flex-row items-center gap-6">
+        <div className="mb-12 p-8 bg-muted/20 rounded-xl border border-primary/20 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-bl-full pointer-events-none transition-transform group-hover:scale-110" />
+          
+          <div className="flex flex-col sm:flex-row items-center gap-8 relative z-10">
             <div className="flex-1">
-              <h2 className="text-xl font-semibold mb-2">Download My Resume</h2>
-              <p className="text-gray-400 text-sm">
-                Get the full details on my experience, skills, and achievements.
+              <h2 className="text-2xl font-semibold mb-2 flex items-center gap-2">
+                <FileText className="size-5 text-primary" />
+                Resume / CV
+              </h2>
+              <p className="text-muted-foreground">
+                Get the full details on my experience, including architectural diagrams and deep-dive case studies.
               </p>
             </div>
             <a
               href="https://docs.google.com/document/d/1YkK8dF8N7M9xX5qZ2vT1uO8r6pS4cE9gH0iL3mN2Q4/export?format=pdf"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#32c0f4] text-black font-semibold rounded-lg hover:bg-[#32c0f4]/90 transition-colors whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hover:scale-105 whitespace-nowrap"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-5 h-5" />
               Download PDF
             </a>
           </div>
         </div>
 
-        <div className="space-y-10">
+        <div className="space-y-6">
           {socialLinks.map((link) => (
             <a
               key={link.label}
               href={link.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-4 p-4 bg-gray-900/30 rounded-lg border border-white/5 hover:border-[#32c0f4]/30 transition-colors group"
+              className="flex items-center gap-6 p-6 bg-card/40 rounded-xl border border-border/50 hover:border-primary/50 transition-all group hover:bg-card/60 hover:-translate-y-1"
             >
-              <link.icon className="w-6 h-6 text-gray-400 group-hover:text-[#32c0f4] transition-colors" />
+              <div className="p-3 bg-background rounded-lg border border-white/5 group-hover:border-primary/20 group-hover:text-primary transition-colors text-muted-foreground">
+                <link.icon className="w-6 h-6" />
+              </div>
               <div>
-                <p className="text-sm text-gray-500">{link.label}</p>
-                <p className="text-white group-hover:text-[#32c0f4] transition-colors">{link.text}</p>
+                <p className="text-sm text-muted-foreground font-medium mb-1">{link.label}</p>
+                <p className="text-foreground text-lg group-hover:text-primary transition-colors">{link.text}</p>
               </div>
             </a>
           ))}
         </div>
 
-        <div className="mt-12 p-6 bg-gray-900/30 rounded-lg border border-white/10">
-          <h2 className="text-xl font-semibold mb-4">Or use the AI Chat</h2>
-          <p className="text-gray-400 mb-4">
-            Want to learn more about my work? Try the AI-powered chat that knows my entire portfolio!
+        <div className="mt-16 p-8 bg-gradient-to-br from-primary/10 to-transparent rounded-xl border border-primary/10 text-center">
+          <h2 className="text-xl font-semibold mb-4">Have questions about specific architectures?</h2>
+          <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
+            You can chat with my AI assistant to get instant answers about my background, technical decisions, and project details.
           </p>
           <a
             href="/chat"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-[#32c0f4]/20 text-[#32c0f4] rounded-lg hover:bg-[#32c0f4]/30 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-background border border-primary/30 text-primary rounded-lg hover:bg-primary/5 transition-colors"
           >
             <Sparkles className="w-4 h-4" />
-            Start a Conversation
+            Chat with RAG Agent
           </a>
         </div>
       </div>
