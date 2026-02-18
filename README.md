@@ -1,187 +1,154 @@
 # Luis Gimenez Portfolio
 
-A next-generation, AI-powered portfolio website built with Next.js 15 and Google Cloud Platform. Features an AI chat interface powered by Gemini with RAG pipeline, demonstrating production-grade cloud architecture skills.
+A Next.js portfolio with an AI-powered chat. Built with Next.js 16, TypeScript, and Tailwind. The chat is backed by an OpenAI-compatible API (Inferencia) with a RAG-style knowledge base, and the site showcases cloud architecture and deployment (GCP, Terraform, Docker).
 
-## 🎯 Target Roles
+## Target roles
 
-- GCP Cloud Architect
-- GCP AI/ML Architect  
-- GenAI Architect
-- Cloud Solutions Architect
+- **Senior**, **Staff**, and **Architect** (e.g. GCP Cloud Architect, AI/ML Architect, Cloud Solutions Architect)
+- Accepting interviews; open to remote and select relocation markets.
 
-## ✨ Features
+## Features
 
-- **Modern Stack:** Next.js 15 App Router, TypeScript, Tailwind CSS
-- **AI Chat:** Interactive chat powered by Google Gemini 2.0 Flash
-- **RAG Pipeline:** Vector search using Supabase pgvector (optional)
-- **Rate Limiting:** Free tier protection (10 RPM, 1000 RPD)
-- **Response Caching:** Pre-seeded cache for common questions
-- **Architecture Showcase:** Full system architecture page
-- **Responsive Design:** Mobile-first, dark theme
-- **Infrastructure as Code:** Terraform for GCP Cloud Run
-- **CI/CD:** GitHub Actions → Cloud Run deployment
-- **Containerized:** Multi-stage Dockerfile
+- **Modern stack:** Next.js 16 App Router, TypeScript, Tailwind CSS
+- **AI chat:** Interactive chat powered by the Inferencia API (OpenAI-compatible). Single provider, no client-side model config.
+- **RAG-style context:** Local file-based knowledge base by default; optional Supabase pgvector for vector search (uses Gemini embeddings when configured).
+- **Rate limiting:** Per-IP, session cap, and daily budget to protect free tiers.
+- **Response caching:** Pre-seeded cache for common questions to reduce API usage.
+- **Architecture showcase:** Dedicated architecture page.
+- **Responsive design:** Mobile-first, dark theme.
+- **Infrastructure:** Terraform for GCP Cloud Run, Docker, GitHub Actions CI/CD.
 
-## 🚀 Live Site
+## Live site
 
 **URL:** https://gimenez.dev
 
-## 🛠️ Tech Stack
+## Tech stack
 
-| Component | Technology | Justification |
-|-----------|------------|---------------|
-| Framework | Next.js 15 (App Router) | SSR/SSG, API routes, RSC |
-| Language | TypeScript | Type safety, professional standard |
-| Styling | Tailwind CSS | Clean, fast, professional |
-| AI Chat | Vercel AI SDK + Google Gemini 2.0 Flash | GCP-aligned, free tier |
-| Vector DB | Supabase (pgvector) | Free tier, PostgreSQL-based |
-| Embeddings | text-embedding-004 (Gemini API) | Free tier available |
-| Hosting | GCP Cloud Run | Proves GCP deployment skills |
-| IaC | Terraform | #1 requested skill in job listings |
-| CI/CD | GitHub Actions → Cloud Build | Industry standard |
+| Component      | Technology                          | Notes                                      |
+|----------------|-------------------------------------|--------------------------------------------|
+| Framework      | Next.js 16 (App Router)              | SSR/SSG, API routes, RSC                   |
+| Language       | TypeScript                          | Type safety                                |
+| Styling        | Tailwind CSS                        | Utility-first                              |
+| AI chat        | Vercel AI SDK + Inferencia API      | OpenAI-compatible; single provider         |
+| RAG / context  | Local knowledge + optional Supabase | File-based by default; pgvector optional  |
+| Embeddings     | Gemini text-embedding-004           | Only when Supabase RAG is configured       |
+| Hosting        | GCP Cloud Run                       | Scale-to-zero, Terraform                   |
+| IaC            | Terraform                           | Cloud Run, secrets, etc.                   |
+| CI/CD          | GitHub Actions → Cloud Build        | Deploy on push                             |
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Node.js 20+
-- Google Cloud Platform account
-- Gemini API key (free at https://aistudio.google.com/apikey)
-- (Optional) Supabase account for RAG features
+- **Chat:** Inferencia API key (contact admin or set up your own OpenAI-compatible endpoint). Required for `/api/chat`.
+- **Optional:** Google Gemini API key for RAG embeddings when using Supabase. Get one at https://aistudio.google.com/apikey
+- **Optional:** Supabase project for vector-backed RAG (otherwise the app uses the local knowledge file).
 
-## 🚀 Quick Start
+## Quick start
 
 ```bash
-# Clone the repository
 git clone https://github.com/menezmethod/lgportfolio.git
 cd lgportfolio
 
-# Install dependencies
 npm install
 
-# Set up environment variables
+# Chat requires Inferencia
 cp .env.example .env.local
-# Edit .env.local and add your GOOGLE_API_KEY
+# Set INFERENCIA_BASE_URL and INFERENCIA_API_KEY in .env.local
 
-# Run development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000). Chat is at [http://localhost:3000/chat](http://localhost:3000/chat).
 
-## 🔧 Environment Variables
+## Environment variables
 
-```env
-# Required - Get from https://aistudio.google.com/apikey
-GOOGLE_API_KEY=your-api-key
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `INFERENCIA_BASE_URL` | No (has default) | OpenAI-compatible API base URL (default: `https://llm.menezmethod.com/v1`) |
+| `INFERENCIA_API_KEY` | **Yes for chat** | API key for Inferencia. Chat returns 503 if missing. |
+| `INFERENCIA_CHAT_MODEL` | No | Chat model ID (default: `mlx-community/gpt-oss-20b-MXFP4-Q8`) |
+| `GOOGLE_API_KEY` | Optional | For Gemini embeddings when Supabase RAG is used |
+| `NEXT_PUBLIC_SUPABASE_URL` | Optional | Supabase project URL for vector RAG |
+| `SUPABASE_SERVICE_ROLE_KEY` | Optional | Supabase service role key |
+| `CHAT_MAX_RPM_PER_IP` | No | Per-IP rate limit (default: 3) |
+| `CHAT_MAX_MESSAGES_PER_SESSION` | No | Session message cap (default: 20) |
+| `CHAT_DAILY_BUDGET` | No | Daily request budget (default: 900) |
 
-# Optional - For RAG vector search
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-key
-```
+See `.env.example` for the full list (Analytics, GCP project, etc.).
 
-See `.env.example` for all options.
+**Security:** Do not commit `.env.local` or any file containing API keys or secrets. They are gitignored; use your host’s secret manager or environment variables for production.
 
-## 🏗️ Project Structure
+## Project structure
 
 ```
 lgportfolio/
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx              # Hero with animated titles
+│   │   ├── page.tsx              # Home (hero, roles, CTAs)
 │   │   ├── about/page.tsx        # About + skills
-│   │   ├── work/page.tsx         # Projects showcase
+│   │   ├── work/page.tsx         # Projects
 │   │   ├── architecture/page.tsx # Architecture case study
-│   │   ├── contact/page.tsx      # Contact info
-│   │   ├── chat/page.tsx         # AI chat interface
-│   │   └── api/chat/route.ts     # Gemini + RAG API
+│   │   ├── contact/page.tsx      # Contact + resume
+│   │   ├── chat/page.tsx         # AI chat UI
+│   │   └── api/
+│   │       ├── chat/route.ts     # Chat API (Inferencia only)
+│   │       └── rag/route.ts      # RAG/embeddings (optional)
 │   ├── components/
 │   │   └── Navbar.tsx
 │   ├── lib/
-│   │   ├── rag.ts               # RAG retrieval logic
-│   │   └── rate-limit.ts         # Rate limiting + caching
-│   └── content/                 # MDX content (future)
-├── terraform/                   # GCP Cloud Run IaC
-├── .github/workflows/           # CI/CD pipeline
-├── Dockerfile                   # Container config
-└── SETUP.md                     # Setup instructions
+│   │   ├── knowledge.ts          # Local knowledge base (RAG source)
+│   │   ├── rag.ts                # RAG retrieval (local or Supabase)
+│   │   └── rate-limit.ts         # Rate limits + response cache
+│   └── app/                      # Global layout, styles
+├── terraform/                    # GCP Cloud Run IaC
+├── .github/workflows/            # CI/CD
+├── Dockerfile
+└── SETUP.md
 ```
 
-## 🤖 AI Chat Implementation
+## AI chat behavior
 
-### Rate Limiting Strategy
+- **Provider:** One backend only, Inferencia (OpenAI-compatible). No fallbacks or client-side model switching.
+- **Rate limiting:** Per-IP token bucket, session message cap, and a daily budget. Cached responses for common questions don’t count against the budget.
+- **Context:** System prompt includes RAG context from the local knowledge base (or Supabase when configured).
+- **When limits are hit:** Cached answer if available, otherwise a clear message and contact info.
 
-The chat implements multiple layers of rate limiting to stay within Gemini's free tier:
+## Cost (indicative)
 
-1. **Per-IP Token Bucket:** Max 3 requests/minute per visitor
-2. **Session Cap:** Max 20 messages per browser session
-3. **Daily Budget:** Max 900 requests/day (of 1000 RPD limit)
-4. **Response Caching:** Pre-seeded cache for common questions
+| Service        | Notes                    |
+|----------------|--------------------------|
+| Cloud Run      | Scale-to-zero, low traffic ≈ $0–5/mo |
+| Inferencia     | Depends on your instance/plan       |
+| Supabase       | Free tier available                  |
+| Gemini (optional) | Free tier for embeddings         |
+| Secret Manager | Typically &lt;$1/mo                  |
 
-### Cached Queries
-
-These common queries return cached responses (don't burn API calls):
-- "Tell me about Luis's experience"
-- "What GCP services has Luis used?"
-- "Describe the Churnistic project"
-- "What's Luis's tech stack?"
-- "Is Luis open to remote work?"
-- And more...
-
-### Fallback Strategy
-
-When limits are hit:
-1. Return cached response if available
-2. Show pre-written fallback message
-3. Provide contact info for detailed questions
-
-## 💰 Cost Budget
-
-| Service | Monthly Cost |
-|---------|-------------|
-| Cloud Run (scale to 0) | $0-5 |
-| Supabase (free tier) | $0 |
-| Gemini API (free tier) | $0-3 |
-| Cloud CDN | $0-2 |
-| Secret Manager | <$1 |
-| **Total** | **$1-11/month** |
-
-## 🐳 Docker
+## Docker
 
 ```bash
-# Build image
 docker build -t lgportfolio .
 
-# Run locally
-docker run -p 3000:3000 -e GOOGLE_API_KEY=your-key lgportfolio
+docker run -p 3000:3000 \
+  -e INFERENCIA_API_KEY=your-key \
+  -e INFERENCIA_BASE_URL=https://llm.menezmethod.com/v1 \
+  lgportfolio
 ```
 
-## ☁️ GCP Deployment
+## GCP deployment
 
-### GitHub Actions (Recommended)
+- **GitHub Actions:** Configure Workload Identity and secrets (e.g. `INFERENCIA_API_KEY`), then push to main to deploy.
+- **Terraform:** `cd terraform && terraform init && terraform plan -var="project_id=YOUR_PROJECT" && terraform apply`
 
-1. Set up GCP project with APIs enabled
-2. Configure Workload Identity
-3. Add secrets to GitHub
-4. Push to main → auto-deploy
+## Scripts
 
-### Terraform
+| Command         | Description        |
+|----------------|--------------------|
+| `npm run dev`  | Dev server         |
+| `npm run build`| Production build   |
+| `npm run start`| Production server  |
+| `npm run lint` | ESLint             |
 
-```bash
-cd terraform
-terraform init
-terraform plan -var="project_id=your-project"
-terraform apply -var="project_id=your-project"
-```
-
-## 📝 Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Development server |
-| `npm run build` | Production build |
-| `npm run start` | Production server |
-| `npm run lint` | ESLint |
-
-## 👤 Author
+## Author
 
 **Luis Gimenez**
 - Email: luisgimenezdev@gmail.com
@@ -191,4 +158,4 @@ terraform apply -var="project_id=your-project"
 
 ---
 
-Built with ❤️ and AI. This portfolio is itself a case study in cloud architecture.
+Built with care; this repo is also a small case study in cloud and AI integration.
