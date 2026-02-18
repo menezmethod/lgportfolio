@@ -18,7 +18,7 @@ export default function Contact() {
         </h1>
 
         <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
-          I am selectively accepting interviews for <span className="text-foreground font-semibold">Staff Engineer</span> or <span className="text-foreground font-semibold">Architect</span> roles. Whether you have a question or just want to say hi, I'll try my best to get back to you!
+          I am selectively accepting interviews for <span className="text-foreground font-semibold">Senior</span>, <span className="text-foreground font-semibold">Staff</span> or <span className="text-foreground font-semibold">Architect</span> roles. Whether you have a question or just want to say hi, I'll try my best to get back to you!
         </p>
 
         {/* Resume Download CTA */}
@@ -70,7 +70,7 @@ export default function Contact() {
         <div className="mt-16 p-8 bg-gradient-to-br from-primary/10 to-transparent rounded-xl border border-primary/10 text-center">
           <h2 className="text-xl font-semibold mb-4">Have questions about specific architectures?</h2>
           <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-            You can chat with my AI assistant to get instant answers about my background, technical decisions, and project details.
+            You can chat with my AI assistant to get instant answers about my background, technical decisions, and project details. It can also help you (and me) figure out if we're actually a fit: whether I'd add value for you and whether your opportunity is somewhere I can do my best work.
           </p>
           <a
             href="/chat"

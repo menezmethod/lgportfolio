@@ -69,7 +69,7 @@ const CACHED_RESPONSES = new Map<string, string>([
   ],
   [
     "is luis open to remote work?",
-    "Yes! Luis is open to remote opportunities. He is based in the Parrish, Florida area and is actively seeking GCP Cloud Architect and AI Architecture roles.\n\n" +
+    "Yes! Luis is open to remote opportunities. He is based in the Parrish, Florida area and is actively seeking Senior, Staff and Architect roles (e.g. GCP Cloud Architect, AI Architecture).\n\n" +
     "He is flexible on location and eager to contribute to innovative teams working on cloud-native systems and AI solutions."
   ],
   [

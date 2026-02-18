@@ -49,7 +49,7 @@ function PortfolioContent() {
           {/* Data Patch: Contextual Personalization */}
           {isRecruiter ? (
              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed px-4 text-balance-header border-l-4 border-primary/50 pl-6 bg-primary/5 py-4 rounded-r-lg">
-               <strong className="text-foreground">Available for Staff & Architect Roles.</strong> I combine distributed systems expertise with business impact—scaling payments at Home Depot to <strong className="text-foreground">5M+ daily transactions</strong>. Ready to lead technical direction and mentor teams.
+               <strong className="text-foreground">Available for Senior, Staff & Architect Roles.</strong> I combine distributed systems expertise with business impact—scaling payments at Home Depot to <strong className="text-foreground">5M+ daily transactions</strong>. Ready to lead technical direction and mentor teams.
              </p>
           ) : (
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed px-4 text-balance-header">
@@ -113,7 +113,7 @@ function PortfolioContent() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary" />
             </span>
             <p className="text-secondary font-medium text-sm">
-              Accepting Interviews • Staff & Architect Roles
+              Accepting Interviews • Senior, Staff & Architect Roles
             </p>
           </div>
         </div>
