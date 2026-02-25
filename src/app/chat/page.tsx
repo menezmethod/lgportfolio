@@ -321,8 +321,8 @@ export default function Chat() {
 
             {!showLimitMessage && (
               <div className="text-center mt-2.5">
-                <span className="text-[10px] text-muted-foreground/40 font-mono">
-                  {sessionMessageCount}/20 queries remaining
+                  <span className="text-[10px] text-muted-foreground/40 font-mono">
+                  {sessionMessageCount}/10 queries remaining
                 </span>
               </div>
             )}

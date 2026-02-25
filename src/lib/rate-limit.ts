@@ -1,8 +1,18 @@
-// Rate limiting for Gemini free tier
-// Implements: per-IP token bucket, session caps, daily budget
+/**
+ * Rate limiting for Cloud Run free-tier budget protection.
+ *
+ * Cloud Run free tier (monthly):
+ *   180,000 vCPU-seconds — at ~10s per chat request = ~18,000 requests
+ *   360,000 GiB-seconds
+ *   2,000,000 total HTTP requests
+ *
+ * Budget-safe targets:
+ *   ~150 LLM requests/day (leaves headroom for page loads)
+ *   2 RPM per IP (prevents single-source abuse)
+ *   10 messages per session (conserves tokens)
+ */
 
-/** Set to true to disable all rate limits (for now). */
-const RATE_LIMITS_DISABLED = true;
+const RATE_LIMITS_DISABLED = false;
 
 interface RateLimitResult {
   allowed: boolean;
@@ -16,121 +26,79 @@ interface DailyCounter {
   resetAt: number;
 }
 
-// In-memory stores (reset on cold start, which is fine)
 const ipRateLimits = new Map<string, { tokens: number; resetAt: number }>();
 const dailyCounters = new Map<string, DailyCounter>();
 
-// Pre-seeded cache for common queries
 const CACHED_RESPONSES = new Map<string, string>([
   [
-    "tell me about luis's experience",
-    "Luis Gimenez is a Software Engineer II at The Home Depot specializing in enterprise payment systems.\n\n" +
-    "Current Role: Software Engineer II, Payment Systems @ The Home Depot\n" +
-    "- Architecting mission-critical payment processing systems handling millions in daily transactions\n" +
-    "- Working with Go, Java, and Google Cloud Platform\n" +
-    "- GCP Professional Cloud Architect certified\n\n" +
-    "Experience:\n" +
-    "- 5+ years in enterprise software development\n" +
-    "- Focus on payment infrastructure, microservices, and cloud architecture\n" +
-    "- Experience with legacy system modernization at scale\n\n" +
-    "Location: Parrish, Florida area\n\n" +
-    "For more details, visit /about or /experience."
+    "tell me about luis",
+    "Luis Gimenez is a Systems Architect and Backend Engineer at The Home Depot.\n\n" +
+      "He builds and operates the payment card tender system — the critical path processing every credit, debit, and gift card transaction across 2,300+ stores, handling 5M+ daily transactions.\n\n" +
+      "Key strengths:\n" +
+      "- GCP Professional Cloud Architect (certified)\n" +
+      "- Distributed systems design (Go, Cloud Run, Pub/Sub)\n" +
+      "- OpenTelemetry & observability pipelines\n" +
+      "- Zero-downtime migration leadership\n" +
+      "- Edge AI & local RAG architectures\n\n" +
+      "For more details, visit /about or /work.",
   ],
   [
     "what gcp services has luis used?",
-    "Luis has extensive experience with Google Cloud Platform services:\n\n" +
-    "Compute: Cloud Run, GKE, Compute Engine, App Engine\n" +
-    "Data: BigQuery, Cloud SQL, Cloud Storage, Pub/Sub\n" +
-    "AI/ML: Vertex AI, Gemini API, Embeddings\n" +
-    "Networking: Cloud CDN, Cloud Load Balancing, VPC\n" +
-    "DevOps: Cloud Build, Artifact Registry, Secret Manager\n" +
-    "Architecture: Event-driven patterns, microservices, Kubernetes\n\n" +
-    "He has architected production systems on GCP handling enterprise-scale payment volumes."
-  ],
-  [
-    "describe the churnistic project",
-    "Churnistic is an AI-powered customer churn prediction platform:\n\n" +
-    "Stack: TypeScript, React, Firebase, TensorFlow\n" +
-    "Architecture: Event-driven microservices\n" +
-    "Metrics: 95% code coverage, p99 < 200ms latency\n\n" +
-    "Key Features:\n" +
-    "- Real-time churn prediction using ML models\n" +
-    "- Dashboard with actionable insights\n" +
-    "- Automated customer segmentation\n\n" +
-    "The project demonstrates AI/ML integration skills and production-grade TypeScript development."
+    "Luis has extensive GCP experience:\n\n" +
+      "Compute: Cloud Run, GKE, Cloud Functions\n" +
+      "Data: BigQuery, Cloud SQL, Cloud Storage, Pub/Sub\n" +
+      "AI/ML: Vertex AI, Gemini API, Embeddings\n" +
+      "Networking: Cloud CDN, Cloud Load Balancing, Cloud Armor\n" +
+      "DevOps: Cloud Build, Artifact Registry, Secret Manager\n" +
+      "IaC: Terraform for all provisioning\n\n" +
+      "He holds the GCP Professional Cloud Architect certification.",
   ],
   [
     "what's luis's tech stack?",
-    "Languages: Go, Java, TypeScript, Rust, Python\n\n" +
-    "Cloud: Google Cloud Platform (GCP Professional Architect certified)\n\n" +
-    "Frameworks: React, Next.js, Node.js, Spring Boot\n\n" +
-    "Tools: Docker, Kubernetes, Terraform, Git, CI/CD\n\n" +
-    "Domains: Payment Systems, Microservices, System Architecture, AI/ML"
+    "Languages: Go (primary), TypeScript, Java, Rust, Python\n\n" +
+      "Cloud: GCP (Professional Architect certified)\n" +
+      "Observability: OpenTelemetry, Prometheus, Grafana, Jaeger/Tempo\n" +
+      "Data: CockroachDB, PostgreSQL, Redis, pgvector\n" +
+      "Edge AI: llama.cpp, GGUF quantization, OpenClaw, picoCLAW\n" +
+      "Tools: Docker, Terraform, gRPC, Protobuf\n\n" +
+      "Domains: Payment Systems, Distributed Architecture, Edge AI",
   ],
   [
     "is luis open to remote work?",
-    "Yes! Luis is open to remote opportunities. He is based in the Parrish, Florida area and is actively seeking Senior, Staff and Architect roles (e.g. GCP Cloud Architect, AI Architecture).\n\n" +
-    "He is flexible on location and eager to contribute to innovative teams working on cloud-native systems and AI solutions."
-  ],
-  [
-    "how does luis's experience map to cloud architect roles?",
-    "Luis's experience directly maps to cloud architect roles:\n\n" +
-    "Required Skill -> Luis's Evidence -> Strength\n" +
-    "GCP Expertise -> Daily production workloads on GCP -> Strong\n" +
-    "System Design -> Payment systems handling millions -> Strong\n" +
-    "Microservices -> Event-driven architectures -> Strong\n" +
-    "Terraform -> Infrastructure as Code for portfolio -> Strong\n" +
-    "AI/ML -> RAG pipeline, Churnistic project -> Good\n" +
-    "Leadership -> Architecture decisions at Home Depot -> Strong\n\n" +
-    "His payment systems experience demonstrates the scale and complexity required for architect roles."
-  ],
-  [
-    "tell me about luis's payment systems work",
-    "Luis architects enterprise payment systems at The Home Depot:\n\n" +
-    "Scale: Millions in daily transactions\n" +
-    "Technologies: Go, Java, GCP\n" +
-    "Focus:\n" +
-    "- Legacy system modernization\n" +
-    "- New payment solution architecture\n" +
-    "- Compliance and security\n" +
-    "- High-availability design\n\n" +
-    "His work involves building fault-tolerant, scalable systems that process payments reliably at enterprise scale."
+    "Yes. Luis is based in Florida and is actively seeking Senior, Staff, and Architect roles.\n\n" +
+      "He is open to remote, hybrid, or relocation for the right opportunity — particularly Atlanta, Austin, NYC, SF/Bay Area, Seattle, or Denver.",
   ],
   [
     "what certifications does luis have?",
     "Luis holds:\n\n" +
-    "Google Cloud Professional Cloud Architect - Certified\n" +
-    "- Validates expertise in designing and managing GCP solutions\n" +
-    "- Demonstrates knowledge of cloud architecture best practices\n\n" +
-    "This certification directly aligns with his target roles in GCP Cloud Architecture."
-  ],
-  [
-    "describe luis's architecture philosophy",
-    "Luis's architecture approach:\n\n" +
-    "1. Start Simple - Do not over-engineer. Solve the problem at hand.\n" +
-    "2. Scale Incrementally - Design for today, enable tomorrow\n" +
-    "3. Embrace Trade-offs - Every decision has costs; be explicit about them\n" +
-    "4. Operational Excellence - Monitoring, observability, and automation first\n" +
-    "5. Security by Default - Not an afterthought\n\n" +
-    "He believes in practical architecture that delivers business value while maintaining flexibility for future needs."
+      "- Google Cloud Professional Cloud Architect (Active)\n" +
+      "- CompTIA Project+\n" +
+      "- ITIL Foundation\n\n" +
+      "The GCP certification validates enterprise-grade cloud architecture design.",
   ],
 ]);
 
 export function checkRateLimit(ip: string): RateLimitResult {
   if (RATE_LIMITS_DISABLED) {
-    const now = Date.now();
-    return { allowed: true, remaining: 999, resetAt: now + 60_000 };
+    return { allowed: true, remaining: 999, resetAt: Date.now() + 60_000 };
   }
+
   const now = Date.now();
-  const windowMs = 60 * 1000; // 1 minute
-  const maxRequests = parseInt(process.env.CHAT_MAX_RPM_PER_IP || "3");
+  const windowMs = 60 * 1000;
+  const maxRequests = parseInt(process.env.CHAT_MAX_RPM_PER_IP || "2");
 
   const existing = ipRateLimits.get(ip);
 
   if (!existing || existing.resetAt < now) {
-    // New window
-    ipRateLimits.set(ip, { tokens: maxRequests - 1, resetAt: now + windowMs });
-    return { allowed: true, remaining: maxRequests - 1, resetAt: now + windowMs };
+    ipRateLimits.set(ip, {
+      tokens: maxRequests - 1,
+      resetAt: now + windowMs,
+    });
+    return {
+      allowed: true,
+      remaining: maxRequests - 1,
+      resetAt: now + windowMs,
+    };
   }
 
   if (existing.tokens <= 0) {
@@ -139,12 +107,16 @@ export function checkRateLimit(ip: string): RateLimitResult {
       remaining: 0,
       resetAt: existing.resetAt,
       message:
-        "You've reached the rate limit. Please wait a moment or contact Luis directly at luisgimenezdev@gmail.com",
+        "Rate limit reached. Please wait a moment or contact Luis directly at luisgimenezdev@gmail.com",
     };
   }
 
   existing.tokens--;
-  return { allowed: true, remaining: existing.tokens, resetAt: existing.resetAt };
+  return {
+    allowed: true,
+    remaining: existing.tokens,
+    resetAt: existing.resetAt,
+  };
 }
 
 export function incrementDailyCount(): void {
@@ -165,22 +137,21 @@ export function incrementDailyCount(): void {
 export function isDailyBudgetExhausted(): boolean {
   if (RATE_LIMITS_DISABLED) return false;
   const today = new Date().toDateString();
-  const budget = parseInt(process.env.CHAT_DAILY_BUDGET || "900");
+  const budget = parseInt(process.env.CHAT_DAILY_BUDGET || "150");
   const existing = dailyCounters.get(today);
-
   if (!existing) return false;
   return existing.count >= budget;
 }
 
-export async function getCachedResponse(query: string): Promise<string | null> {
+export async function getCachedResponse(
+  query: string
+): Promise<string | null> {
   const normalizedQuery = query.toLowerCase().trim();
 
-  // Exact match
   if (CACHED_RESPONSES.has(normalizedQuery)) {
     return CACHED_RESPONSES.get(normalizedQuery)!;
   }
 
-  // Fuzzy match - check for key phrases
   for (const [key, value] of CACHED_RESPONSES.entries()) {
     if (normalizedQuery.includes(key) || key.includes(normalizedQuery)) {
       return value;
@@ -191,10 +162,9 @@ export async function getCachedResponse(query: string): Promise<string | null> {
 }
 
 export function getSessionMessageCount(): number {
-  // Cannot use sessionStorage on server
-  if (typeof window === 'undefined') return 0;
+  if (typeof window === "undefined") return 0;
   try {
-    const count = sessionStorage.getItem('chatMessageCount');
+    const count = sessionStorage.getItem("chatMessageCount");
     return count ? parseInt(count, 10) : 0;
   } catch {
     return 0;
@@ -202,12 +172,11 @@ export function getSessionMessageCount(): number {
 }
 
 export function incrementSessionMessageCount(): number {
-  // Cannot use sessionStorage on server
-  if (typeof window === 'undefined') return 0;
+  if (typeof window === "undefined") return 0;
   try {
     const current = getSessionMessageCount();
     const newCount = current + 1;
-    sessionStorage.setItem('chatMessageCount', newCount.toString());
+    sessionStorage.setItem("chatMessageCount", newCount.toString());
     return newCount;
   } catch {
     return 0;
@@ -216,6 +185,8 @@ export function incrementSessionMessageCount(): number {
 
 export function isSessionLimitReached(): boolean {
   if (RATE_LIMITS_DISABLED) return false;
-  const maxMessages = parseInt(process.env.NEXT_PUBLIC_CHAT_MAX_MESSAGES || "20");
+  const maxMessages = parseInt(
+    process.env.NEXT_PUBLIC_CHAT_MAX_MESSAGES || "10"
+  );
   return getSessionMessageCount() >= maxMessages;
 }
