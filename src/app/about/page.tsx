@@ -1,113 +1,128 @@
 'use client';
 
-import { Code2, Cloud, Database, Cpu } from 'lucide-react';
+import { Eye, Shield, Cpu, Code2 } from 'lucide-react';
 
-const skills = {
-  architecture: ['Distributed Systems', 'Microservices', 'Event-Driven', 'System Design', 'Cloud Native'],
-  cloud: ['Google Cloud Platform', 'Cloud Run', 'Pub/Sub', 'BigQuery', 'Terraform (IaC)'],
-  languages: ['Go (Golang)', 'Java', 'TypeScript', 'SQL', 'Rust'],
-  observability: ['Prometheus', 'Grafana', 'Jaeger', 'OpenTelemetry'],
-  domains: ['Fintech/Payments', 'High-Throughput Systems', 'PCI-DSS Compliance', 'AI Engineering'],
+const skills: Record<string, string[]> = {
+  'systems & architecture': ['Distributed Systems', 'Event-Driven Architecture', 'Microservices', 'Domain-Driven Design', 'System Design'],
+  'cloud (gcp certified)': ['Cloud Run', 'Pub/Sub', 'BigQuery', 'Cloud Build', 'Terraform', 'Cloud Armor'],
+  'languages': ['Go (primary)', 'TypeScript', 'Java', 'Rust', 'Python'],
+  'observability': ['OpenTelemetry', 'Prometheus', 'Grafana', 'Jaeger / Tempo', 'PromQL'],
+  'data': ['CockroachDB', 'PostgreSQL', 'Redis', 'pgvector'],
+  'edge ai': ['llama.cpp', 'GGUF Quantization', 'RAG Pipelines', 'OpenClaw', 'picoCLAW'],
 };
 
 export default function About() {
   return (
     <div className="min-h-screen bg-background text-foreground pt-20 md:pt-24 px-4 md:px-6 pb-16">
       <div className="max-w-5xl mx-auto">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-emerald-400 font-mono text-sm">$</span>
+          <span className="font-mono text-sm text-muted-foreground">cat about.md</span>
+        </div>
         <h1 className="text-3xl md:text-5xl font-bold mb-10 md:mb-16 animate-fadeIn">
-          <span className="text-primary font-mono">[0]</span> Professional Profile
+          Systems Thinker. <span className="text-primary">Builder.</span>
         </h1>
 
         <div className="grid md:grid-cols-3 gap-10 md:gap-16">
           <div className="md:col-span-2 space-y-8 text-lg leading-relaxed text-muted-foreground">
             <p>
-              I am a <span className="text-foreground font-semibold">Distributed Systems Engineer</span> at <span className="text-primary font-semibold">The Home Depot</span>, 
-              where I architect and build mission-critical payment processing infrastructures handling 
-              <span className="text-foreground font-semibold"> billions of dollars in annual transactions</span>.
+              I am a <span className="text-foreground font-semibold">Systems Architect and Backend Engineer</span> at{' '}
+              <span className="text-primary font-semibold">The Home Depot</span>.
+              I build and operate the payment card tender system&mdash;the critical path that
+              processes every credit, debit, and gift card transaction across 2,300+ stores
+              and e-commerce, handling{' '}
+              <span className="text-foreground font-semibold">5M+ daily transactions</span>.
             </p>
             <p>
-              My work sits at the intersection of reliability, scale, and performance. I specialize in designing 
-              <span className="text-foreground"> high-throughput Go microservices</span> on Google Cloud Platform that can withstand 
-              Black Friday traffic spikes without breaking a sweat.
+              My work sits at the intersection of{' '}
+              <span className="text-foreground">reliability, observability, and performance</span>.
+              I design high-throughput Go microservices on Google Cloud Platform that absorb
+              Black Friday traffic spikes without degradation. When systems fail silently,
+              I build the tracing infrastructure that makes failures visible.
             </p>
 
             <h2 className="text-2xl font-bold text-foreground mt-10 mb-6 flex items-center gap-3">
               <span className="w-1 h-8 bg-primary rounded-full"></span>
-              Impact & Architecture
+              What I Do
             </h2>
             <ul className="space-y-6">
               <li className="group">
-                <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-card/50 transition-colors border border-transparent hover:border-border">
-                   <div className="mt-1 p-2 rounded-lg bg-primary/10 text-primary">
-                     <Cpu className="size-5" />
-                   </div>
-                   <div>
-                     <span className="text-foreground font-semibold block text-lg mb-1">Scale & Reliability</span>
-                     <p className="text-muted-foreground">Maintained 99.99% availability for payment services processing 5M+ daily transactions. High-concurrency architecture is not a buzzword—it's my daily reality.</p>
-                   </div>
+                <div className="flex items-start gap-4 p-4 rounded-lg hover:bg-card/50 transition-colors border border-transparent hover:border-border/50">
+                  <div className="mt-1 p-2 rounded-lg bg-primary/10 text-primary">
+                    <Eye className="size-5" />
+                  </div>
+                  <div>
+                    <span className="text-foreground font-semibold block text-lg mb-1">Make Distributed Systems Visible</span>
+                    <p className="text-muted-foreground">
+                      I build the OpenTelemetry pipelines, Grafana dashboards, and tracing standards that turn
+                      &quot;it&apos;s slow&quot; into &quot;span X in service Y is adding 200ms due to a missing
+                      index.&quot; My observability work directly caused a 20% latency reduction across payment services.
+                    </p>
+                  </div>
                 </div>
               </li>
               <li className="group">
-                 <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-card/50 transition-colors border border-transparent hover:border-border">
-                   <div className="mt-1 p-2 rounded-lg bg-primary/10 text-primary">
-                     <Cloud className="size-5" />
-                   </div>
-                   <div>
-                     <span className="text-foreground font-semibold block text-lg mb-1">Cloud Native Modernization</span>
-                     <p className="text-muted-foreground">Led the architectural migration of legacy monoliths to serverless Go microservices on Cloud Run, achieving a 40% reduction in end-to-end latency.</p>
-                   </div>
+                <div className="flex items-start gap-4 p-4 rounded-lg hover:bg-card/50 transition-colors border border-transparent hover:border-border/50">
+                  <div className="mt-1 p-2 rounded-lg bg-primary/10 text-primary">
+                    <Shield className="size-5" />
+                  </div>
+                  <div>
+                    <span className="text-foreground font-semibold block text-lg mb-1">Migrate Without Downtime</span>
+                    <p className="text-muted-foreground">
+                      I lead zero-downtime migrations of legacy payment systems to type-safe Go microservices.
+                      Blue-green deployments, traffic shadowing, automated rollback gates. Every migration
+                      I&apos;ve led has had zero customer impact.
+                    </p>
+                  </div>
                 </div>
               </li>
               <li className="group">
-                 <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-card/50 transition-colors border border-transparent hover:border-border">
-                   <div className="mt-1 p-2 rounded-lg bg-primary/10 text-primary">
-                     <Database className="size-5" />
-                   </div>
-                   <div>
-                     <span className="text-foreground font-semibold block text-lg mb-1">Data Integrity & Security</span>
-                     <p className="text-muted-foreground">Architected idempotent transaction flows and PCI-DSS compliant data handling strategies. In payments, you cannot lose data, and you cannot be doubled-billed.</p>
-                   </div>
+                <div className="flex items-start gap-4 p-4 rounded-lg hover:bg-card/50 transition-colors border border-transparent hover:border-border/50">
+                  <div className="mt-1 p-2 rounded-lg bg-primary/10 text-primary">
+                    <Cpu className="size-5" />
+                  </div>
+                  <div>
+                    <span className="text-foreground font-semibold block text-lg mb-1">Push AI to the Edge</span>
+                    <p className="text-muted-foreground">
+                      I build and test local RAG pipelines and optimize LLM inference for edge compute
+                      devices like the Raspberry Pi. Not every inference call needs to leave your network.
+                    </p>
+                  </div>
                 </div>
               </li>
             </ul>
-            
-            <h2 className="text-2xl font-bold text-foreground mt-10 mb-6">Beyond the Terminal</h2>
-            <p>
-              When I'm not optimizing garbage collection in Go, I'm building AI tools (like this portfolio's assistant) and exploring Rust. 
-              I'm also preparing for the arrival of my first child — learning that <span className="text-primary font-medium">patience and eventual consistency</span> apply to parenting just as much as distributed databases.
-            </p>
 
-
-            {/* Behavioral Patch: Social Proof */}
             <h2 className="text-2xl font-bold text-foreground mt-12 mb-6 flex items-center gap-3">
               <span className="w-1 h-8 bg-primary rounded-full"></span>
               Peer Feedback
             </h2>
             <div className="grid gap-6">
-              <blockquote className="p-6 bg-muted/10 border border-white/5 rounded-xl relative overflow-hidden group hover:border-primary/20 transition-colors">
+              <blockquote className="p-6 bg-card/30 border border-border/50 rounded-lg relative overflow-hidden group hover:border-primary/20 transition-colors">
                 <p className="text-lg italic text-muted-foreground mb-4 relative z-10">
-                  "The engineer I trust with the most critical systems. Doesn't just fix bugs — fixes the process that let the bug happen."
+                  &quot;The engineer I trust with the most critical systems. Doesn&apos;t just fix
+                  bugs&mdash;fixes the process that let the bug happen.&quot;
                 </p>
                 <footer className="text-sm font-bold text-foreground flex items-center gap-2">
-                  — Senior Engineering Lead <span className="text-muted-foreground font-normal">@ The Home Depot</span>
+                  &mdash; Senior Engineering Lead <span className="text-muted-foreground font-normal">@ The Home Depot</span>
                 </footer>
               </blockquote>
-              
+
               <div className="grid md:grid-cols-2 gap-6">
-                 <blockquote className="p-6 bg-muted/10 border border-white/5 rounded-xl hover:border-primary/20 transition-colors">
+                <blockquote className="p-6 bg-card/30 border border-border/50 rounded-lg hover:border-primary/20 transition-colors">
                   <p className="italic text-muted-foreground mb-4">
-                    "Brings data to every discussion. 'Let's benchmark it' beats 'because I said so'."
+                    &quot;Brings data to every discussion. &apos;Let&apos;s benchmark it&apos; beats
+                    &apos;because I said so.&apos;&quot;
                   </p>
                   <footer className="text-sm font-bold text-foreground">
-                    — Principal Engineer
+                    &mdash; Principal Engineer
                   </footer>
                 </blockquote>
-                <blockquote className="p-6 bg-muted/10 border border-white/5 rounded-xl hover:border-primary/20 transition-colors">
+                <blockquote className="p-6 bg-card/30 border border-border/50 rounded-lg hover:border-primary/20 transition-colors">
                   <p className="italic text-muted-foreground mb-4">
-                    "Ramps up new engineers faster than anyone. Mentorship is his default mode."
+                    &quot;Ramps up new engineers faster than anyone. Mentorship is his default mode.&quot;
                   </p>
                   <footer className="text-sm font-bold text-foreground">
-                    — Engineering Manager
+                    &mdash; Engineering Manager
                   </footer>
                 </blockquote>
               </div>
@@ -115,20 +130,22 @@ export default function About() {
           </div>
 
           <div className="md:col-span-1">
-            <div className="glass-card p-8 rounded-xl sticky top-24 border border-border/50 bg-card/20 backdrop-blur-md">
-              <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                <Code2 className="size-5 text-primary" />
-                Technical Arsenal
-              </h3>
-              <div className="space-y-8">
+            <div className="rounded-xl sticky top-24 border border-border/50 bg-card/20 overflow-hidden">
+              <div className="flex items-center gap-2 px-5 py-3 border-b border-border/50 bg-card/40">
+                <Code2 className="size-4 text-primary" />
+                <span className="font-mono text-sm text-foreground">stack.yml</span>
+              </div>
+              <div className="p-5 space-y-6">
                 {Object.entries(skills).map(([category, items]) => (
                   <div key={category}>
-                    <h4 className="text-xs font-bold text-primary tracking-widest uppercase mb-3 border-b border-primary/20 pb-1">{category}</h4>
+                    <h4 className="text-xs font-mono text-primary tracking-wider uppercase mb-3 pb-1 border-b border-primary/20">
+                      {category}
+                    </h4>
                     <div className="flex flex-wrap gap-2">
                       {items.map((skill) => (
                         <span
                           key={skill}
-                          className="px-3 py-1.5 text-sm bg-secondary/10 hover:bg-secondary/20 transition-colors rounded-md text-secondary border border-secondary/20"
+                          className="px-2.5 py-1 text-xs bg-card/60 border border-border/50 rounded text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
                         >
                           {skill}
                         </span>
