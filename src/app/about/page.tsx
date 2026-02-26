@@ -26,12 +26,11 @@ export default function About() {
         <div className="grid md:grid-cols-3 gap-10 md:gap-16">
           <div className="md:col-span-2 space-y-8 text-lg leading-relaxed text-muted-foreground">
             <p>
-              I am a <span className="text-foreground font-semibold">Systems Architect and Backend Engineer</span> at{' '}
+              I am a <span className="text-foreground font-semibold">systems-focused backend engineer</span> at{' '}
               <span className="text-primary font-semibold">The Home Depot</span>.
-              I build and operate the payment card tender system&mdash;the critical path that
-              processes every credit, debit, and gift card transaction across 2,300+ stores
-              and e-commerce, handling{' '}
-              <span className="text-foreground font-semibold">5M+ daily transactions</span>.
+              I contribute to and operate payment-card tender services&mdash;part of the critical path for
+              credit, debit, and gift card transactions across stores and e-commerce,
+              in a large, high-volume production environment.
             </p>
             <p>
               My work sits at the intersection of{' '}
@@ -56,7 +55,7 @@ export default function About() {
                     <p className="text-muted-foreground">
                       I build the OpenTelemetry pipelines, Grafana dashboards, and tracing standards that turn
                       &quot;it&apos;s slow&quot; into &quot;span X in service Y is adding 200ms due to a missing
-                      index.&quot; My observability work directly caused a 20% latency reduction across payment services.
+                      index.&quot; My observability work has contributed directly to measurable latency improvements across payment services.
                     </p>
                   </div>
                 </div>
@@ -69,9 +68,8 @@ export default function About() {
                   <div>
                     <span className="text-foreground font-semibold block text-lg mb-1">Migrate Without Downtime</span>
                     <p className="text-muted-foreground">
-                      I lead zero-downtime migrations of legacy payment systems to type-safe Go microservices.
-                      Blue-green deployments, traffic shadowing, automated rollback gates. Every migration
-                      I&apos;ve led has had zero customer impact.
+                      I contribute to zero-downtime migrations of legacy payment systems to type-safe Go microservices.
+                      Blue-green deployments, traffic shadowing, and rollback gates are core parts of the delivery process.
                     </p>
                   </div>
                 </div>
@@ -85,7 +83,8 @@ export default function About() {
                     <span className="text-foreground font-semibold block text-lg mb-1">Local AI &amp; RAG</span>
                     <p className="text-muted-foreground">
                       I build and test local RAG pipelines. The LLM behind this site runs on my MacBook Pro M4 Max
-                      (128GB)&mdash;self-hosted inference, no cloud required. Not every call needs to leave your network.
+                      (128GB)&mdash;self-hosted inference, no cloud required. I also experiment with OpenClaw agents on
+                      Raspberry Pi and Pico-class devices as a hobby, separate from this production chat host.
                     </p>
                   </div>
                 </div>

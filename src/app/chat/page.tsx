@@ -17,11 +17,11 @@ interface Message {
 }
 
 const SUGGESTED_PROMPTS = [
-  "What distributed systems has Luis built?",
-  "Describe the payment architecture at Home Depot",
+  "What did Luis specifically contribute to Card Broker?",
+  "How should I frame his scope on a 100+ engineer team?",
+  "What powers this portfolio chat model?",
   "What is Luis's observability approach?",
-  "Tell me about the Edge AI work",
-  "How does Luis handle zero-downtime migrations?",
+  "What roles is Luis targeting next?",
 ];
 
 function cleanAssistantContent(raw: string): string {
@@ -103,7 +103,7 @@ export default function Chat() {
     {
       id: '1',
       role: 'assistant',
-      content: "I'm Luis's AI assistant. Ask me about his distributed systems architecture, GCP expertise, payment systems work, or edge AI projects.",
+      content: "I'm Luis's AI assistant. Ask me about his concrete contributions, GCP architecture work, payment systems experience, or how this gpt-oss chat stack is hosted.",
     },
   ]);
   const [input, setInput] = useState('');

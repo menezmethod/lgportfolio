@@ -48,7 +48,7 @@ resource "google_compute_security_policy" "default" {
     priority = 900
     match {
       expr {
-        expression = "request.path.matches('/api/chat')"
+        expression = "request.path.startsWith('/api/chat')"
       }
     }
     rate_limit_options {
@@ -70,7 +70,7 @@ resource "google_compute_security_policy" "default" {
     priority = 2000
     match {
       expr {
-        expression = "request.headers['user-agent'].matches('(?:sqlmap|nikto|nessus|masscan|zgrab|nuclei|httpx|dirbuster|gobuster|wfuzz|ffuf|whatweb|shodan|censys|nmap)')"
+        expression = "has(request.headers['user-agent']) && request.headers['user-agent'].lower().matches('(?:sqlmap|nikto|nessus|masscan|zgrab|nuclei|httpx|dirbuster|gobuster|wfuzz|ffuf|whatweb|shodan|censys|nmap)')"
       }
     }
     description = "Block known vulnerability scanners"

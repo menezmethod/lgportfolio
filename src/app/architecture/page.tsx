@@ -60,7 +60,7 @@ export default function Architecture() {
                   </div>
                   <div>
                     <h4 className="font-medium text-foreground">Cloud Run (SSR)</h4>
-                    <p className="text-sm text-muted-foreground mt-1">Containerized serverless deployment. Scale-to-zero eliminates idle costs. Auto-scales to 100 instances under load.</p>
+                    <p className="text-sm text-muted-foreground mt-1">Containerized serverless deployment with scale-to-zero. Production is intentionally capped at 1 instance for budget control and deterministic ops.</p>
                   </div>
                 </li>
               </ul>
@@ -93,8 +93,8 @@ export default function Architecture() {
                     <Database className="size-4 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-foreground">RAG Pipeline (pgvector)</h4>
-                    <p className="text-sm text-muted-foreground mt-1">Vector embeddings via Gemini text-embedding-004. Semantic search over a curated knowledge base. Local file fallback for zero-dependency mode.</p>
+                    <h4 className="font-medium text-foreground">RAG Pipeline (Local Knowledge Base)</h4>
+                    <p className="text-sm text-muted-foreground mt-1">Section-aware retrieval over a curated portfolio knowledge base, with backend guardrails and deterministic context assembly before inference.</p>
                   </div>
                 </li>
               </ul>
@@ -121,23 +121,23 @@ export default function Architecture() {
                   <tr className="hover:bg-muted/10 transition-colors">
                     <td className="p-4 md:p-6 font-medium">Cloud Run</td>
                     <td className="p-4 md:p-6 text-muted-foreground text-sm">Scale-to-zero. Pay only for active request milliseconds.</td>
-                    <td className="p-4 md:p-6 text-primary font-mono font-medium">$0.10 - $2.00</td>
+                    <td className="p-4 md:p-6 text-primary font-mono font-medium">$0-5</td>
                   </tr>
                   <tr className="hover:bg-muted/10 transition-colors">
-                    <td className="p-4 md:p-6 font-medium">Vector Database</td>
-                    <td className="p-4 md:p-6 text-muted-foreground text-sm">Supabase free tier. Local file fallback for zero cost.</td>
-                    <td className="p-4 md:p-6 text-primary font-mono font-medium">$0.00</td>
+                    <td className="p-4 md:p-6 font-medium">Global ALB</td>
+                    <td className="p-4 md:p-6 text-muted-foreground text-sm">Global HTTPS load balancing, Cloud CDN, and Cloud Armor enforcement.</td>
+                    <td className="p-4 md:p-6 text-primary font-mono font-medium">~$18</td>
                   </tr>
                   <tr className="hover:bg-muted/10 transition-colors">
                     <td className="p-4 md:p-6 font-medium">LLM Inference</td>
-                    <td className="p-4 md:p-6 text-muted-foreground text-sm">Self-hosted on local hardware. No per-token API costs.</td>
+                    <td className="p-4 md:p-6 text-muted-foreground text-sm">Self-hosted on local MacBook Pro M4 Max (gpt-oss). No per-token cloud model cost.</td>
                     <td className="p-4 md:p-6 text-primary font-mono font-medium">$0.00</td>
                   </tr>
                 </tbody>
                 <tfoot className="bg-primary/5">
                   <tr>
                     <td colSpan={2} className="p-4 md:p-6 font-semibold text-right text-foreground font-mono">Total</td>
-                    <td className="p-4 md:p-6 font-mono font-bold text-primary text-lg">~$2/mo</td>
+                    <td className="p-4 md:p-6 font-mono font-bold text-primary text-lg">~$18-20/mo</td>
                   </tr>
                 </tfoot>
               </table>
@@ -183,8 +183,8 @@ export default function Architecture() {
                 </div>
                 <pre className="text-xs sm:text-sm font-mono text-muted-foreground overflow-x-auto">
                   <code className="block">
-{`resource "google_compute_security_policy" "edge" {
-  name = "portfolio-edge-policy"
+{`resource "google_compute_security_policy" "default" {
+  name = "portfolio-waf-policy"
 
   adaptive_protection_config {
     layer_7_ddos_defense_config {
@@ -194,29 +194,42 @@ export default function Architecture() {
   }
 
   rule {
-    action   = "deny(429)"
-    priority = "1000"
+    action   = "throttle"
+    priority = 1000
     match {
-      expr { expression = "rate(ip.src) > 500" }
+      versioned_expr = "SRC_IPS_V1"
+      config { src_ip_ranges = ["*"] }
+    }
+    rate_limit_options {
+      conform_action = "allow"
+      exceed_action  = "deny(429)"
+      rate_limit_threshold {
+        count        = 60
+        interval_sec = 60
+      }
+      enforce_on_key = "IP"
     }
   }
 }
 
-resource "google_cloud_run_v2_service" "app" {
-  name     = "gimenez-portfolio"
+resource "google_cloud_run_v2_service" "portfolio" {
+  name     = "lgportfolio"
   location = var.region
+  ingress  = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
 
   template {
+    timeout = "30s"
+    max_instance_request_concurrency = 80
     scaling {
       min_instance_count = 0
-      max_instance_count = 100
+      max_instance_count = 1
     }
     containers {
       image = var.image
       resources {
         limits = {
-          cpu    = "2000m"
-          memory = "1Gi"
+          cpu    = "1000m"
+          memory = "512Mi"
         }
       }
     }

@@ -75,6 +75,12 @@ const CACHED_RESPONSES = new Map<string, string>([
       "- ITIL Foundation\n\n" +
       "The GCP cert was self-driven and has repeatedly opened doors at Home Depot.",
   ],
+  [
+    "what model powers this portfolio chat?",
+    "The portfolio chat is powered by gpt-oss through an OpenAI-compatible endpoint.\n\n" +
+      "Production inference is hosted on Luis's local MacBook Pro M4 Max (128GB).\n\n" +
+      "Luis also experiments with OpenClaw/agents on Raspberry Pi, Zero 2 W, Pico, and similar hardware as a hobby, but those devices are not the production host for this site.",
+  ],
 ]);
 
 export function checkRateLimit(ip: string): RateLimitResult {
@@ -185,7 +191,9 @@ export function incrementSessionMessageCount(): number {
 export function isSessionLimitReached(): boolean {
   if (RATE_LIMITS_DISABLED) return false;
   const maxMessages = parseInt(
-    process.env.NEXT_PUBLIC_CHAT_MAX_MESSAGES || "10"
+    process.env.NEXT_PUBLIC_CHAT_MAX_MESSAGES ||
+      process.env.CHAT_MAX_MESSAGES_PER_SESSION ||
+      "10"
   );
   return getSessionMessageCount() >= maxMessages;
 }

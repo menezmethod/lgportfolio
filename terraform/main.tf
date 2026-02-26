@@ -50,6 +50,10 @@ provider "google-beta" {
   region  = var.region
 }
 
+data "google_project" "current" {
+  project_id = var.project_id
+}
+
 # ── Enable Required APIs ─────────────────────────────────────────────────────
 
 locals {
@@ -59,6 +63,9 @@ locals {
     "secretmanager.googleapis.com",
     "compute.googleapis.com",
     "certificatemanager.googleapis.com",
+    "cloudbuild.googleapis.com",
+    "monitoring.googleapis.com",
+    "billingbudgets.googleapis.com",
   ]
 }
 

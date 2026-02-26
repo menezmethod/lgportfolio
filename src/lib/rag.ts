@@ -1,75 +1,90 @@
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-
-export const supabase = supabaseUrl && supabaseKey 
-  ? createClient(supabaseUrl, supabaseKey)
-  : null;
-
-export async function generateEmbedding(text: string): Promise<number[]> {
-  const apiKey = process.env.GOOGLE_API_KEY;
-  
-  if (!apiKey) {
-    throw new Error("GOOGLE_API_KEY not configured");
-  }
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "models/text-embedding-004",
-        content: { parts: [{ text }] },
-        taskType: "RETRIEVAL_QUERY",
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Embedding generation failed: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return data.embedding?.values || [];
-}
-
-
-// Import our file-based context
 import { KNOWLEDGE_BASE } from "./knowledge";
 
-export async function retrieveContext(query: string, topK = 5): Promise<string> {
-  // If no Supabase (or just for testing), use our local file first
-  if (!supabase) {
-    console.log("Using local file-based knowledge base (Supabase not configured)");
-    return KNOWLEDGE_BASE;
+const STOP_WORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "are",
+  "as",
+  "at",
+  "be",
+  "by",
+  "for",
+  "from",
+  "how",
+  "i",
+  "in",
+  "is",
+  "it",
+  "of",
+  "on",
+  "or",
+  "that",
+  "the",
+  "to",
+  "was",
+  "what",
+  "when",
+  "where",
+  "who",
+  "with",
+]);
+
+function normalize(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
+}
+
+function tokenize(text: string): string[] {
+  return normalize(text)
+    .split(/\s+/)
+    .filter((token) => token.length > 2 && !STOP_WORDS.has(token));
+}
+
+function splitKnowledgeBaseIntoChunks(): string[] {
+  const chunks = KNOWLEDGE_BASE.split(/\n(?=##\s)/g)
+    .map((chunk) => chunk.trim())
+    .filter(Boolean);
+
+  return chunks.length > 0 ? chunks : [KNOWLEDGE_BASE];
+}
+
+const KNOWLEDGE_CHUNKS = splitKnowledgeBaseIntoChunks();
+
+function scoreChunk(queryTokens: string[], chunk: string): number {
+  const normalizedChunk = normalize(chunk);
+  let score = 0;
+
+  for (const token of queryTokens) {
+    if (normalizedChunk.includes(token)) score += 2;
   }
 
-  try {
-    const embedding = await generateEmbedding(query);
-
-    const { data, error } = await supabase.rpc("match_documents", {
-      query_embedding: embedding,
-      match_threshold: 0.7,
-      match_count: topK,
-    });
-
-    // If RAG returns nothing, fallback to our full knowledge base
-    if (error || !data || data.length === 0) {
-      console.log("RAG query returned no matches, falling back to full knowledge base.");
-      return KNOWLEDGE_BASE;
+  const heading = chunk.match(/^##\s+(.+)$/m)?.[1];
+  if (heading) {
+    const normalizedHeading = normalize(heading);
+    for (const token of queryTokens) {
+      if (normalizedHeading.includes(token)) score += 2;
     }
-
-    return data
-      .map(
-        (doc: { content: string; metadata: { source: string } }) =>
-          `[Source: ${doc.metadata?.source || "unknown"}] ${doc.content}`
-      )
-      .join("\n\n---\n\n");
-  } catch (err) {
-    console.error("RAG retrieval error:", err);
-    // On error, always fallback to the file
-    return KNOWLEDGE_BASE;
   }
+
+  return score;
+}
+
+export async function retrieveContext(query: string, topK = 5): Promise<string> {
+  const trimmed = query.trim();
+  if (!trimmed) return KNOWLEDGE_BASE;
+
+  const queryTokens = tokenize(trimmed);
+  if (queryTokens.length === 0) return KNOWLEDGE_BASE;
+
+  const ranked = KNOWLEDGE_CHUNKS.map((chunk) => ({
+    chunk,
+    score: scoreChunk(queryTokens, chunk),
+  }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, Math.max(1, Math.min(topK, 8)));
+
+  if (ranked.length === 0) return KNOWLEDGE_BASE;
+
+  return ranked.map((item) => item.chunk).join("\n\n---\n\n");
 }

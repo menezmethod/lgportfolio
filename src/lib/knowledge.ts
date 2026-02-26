@@ -160,6 +160,12 @@ Card Broker was Luis's primary project for approximately two years, from pre-dep
 - GCP Professional Cloud Architect certification directly supported migration decisions
 - This early cloud expertise is what led to being identified for GCP migration work
 
+## Contribution 13: Portfolio Chat Infrastructure (Current Side Project)
+- The AI chat on gimenez.dev is powered by gpt-oss running on Luis's local MacBook Pro M4 Max (128GB) through an OpenAI-compatible endpoint.
+- Luis built the backend integration, security guardrails, and RAG retrieval pipeline that routes portfolio questions to that local model host.
+- Luis experiments with OpenClaw and agent workflows on Raspberry Pi, Zero 2 W, Pico, and similar devices as a hobby.
+- Honest framing: those hobby devices are for experimentation; they are not the production model host for this website chat.
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # SECTION 4: CERTIFICATIONS & EDUCATION
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -242,6 +248,9 @@ Luis's career path was non-traditional. He spent 6+ years running his own consul
 
 ### "What about the AI reliability agent?"
 Honest answer: Luis demoed an AI-powered reliability engineering agent concept during an innovation sprint and advocated for its implementation. The team did not adopt it during his tenure. He showed the concept, it was not implemented.
+
+### "What powers the chat on gimenez.dev?"
+The chat is powered by gpt-oss running on Luis's local MacBook Pro M4 Max (128GB) through an OpenAI-compatible inference endpoint. Luis also experiments with smaller hobby hardware (Raspberry Pi, Zero 2 W, Pico, etc.), but those devices are not the production model host for this site.
 
 ### "Does Luis know Go?"
 Yes. Go is his primary language at Home Depot. He has contributed production Go code to Card Broker, Account-to-Account Tender, and worked with the Go-based gift card tender microservices. His Go experience is in the context of high-throughput payment systems on GKE.

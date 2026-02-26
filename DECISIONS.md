@@ -1,60 +1,34 @@
-# Portfolio Rebuild Decisions
+# Architecture Decisions
 
-## Project Setup
-- **Framework:** Next.js 15 App Router with TypeScript
-- **Styling:** Tailwind CSS with original site colors preserved (#32c0f4 cyan, #e97124 orange)
-- **AI Chat:** Vercel AI SDK + Google Gemini 2.0 Flash (free tier)
-- **RAG:** Supabase pgvector scaffolded (optional - falls back to static context)
-- **Infrastructure:** GCP Cloud Run via Terraform
-- **CI/CD:** GitHub Actions with Workload Identity
+## Core decisions
 
-## Branch Strategy
-- Working branch: `main` (per directive)
-- Source: Convert from existing CRA React app (master branch)
+1. **Single chat provider path**
+   - `/api/chat` uses one OpenAI-compatible provider configuration (`INFERENCIA_*` env vars).
+   - No multi-provider fallback logic.
 
-## Key Decisions
-1. Used original site colors (#32c0f4 cyan for primary, #e97124 orange for secondary) adapted to dark theme
-2. Implemented Vercel AI SDK for streaming chat responses
-3. Created comprehensive rate limiting to stay within Gemini free tier (10 RPM, 1000 RPD)
-4. Pre-seeded cache for 9 common questions to avoid burning API calls
-5. Session-based message cap (20/session) to manage usage
-6. Architecture page as case study - showing RAG pipeline, cost breakdown, infrastructure diagrams
-7. Edge runtime for chat API for better performance
-8. No maxTokens in streamText - relies on system prompt for length control
-9. String concatenation instead of template literals for cached responses (avoided parsing issues)
+2. **Reality-first contribution framing**
+   - System prompt and knowledge base explicitly prevent over-claiming ownership.
+   - Responses must frame team scale context and Luis's specific contributions.
 
-## Assumptions
-- Luis will provide GOOGLE_API_KEY as GitHub Secret
-- Supabase optional - static fallback works without it
-- Using Workload Identity instead of service account keys for better security
-- Dark theme only - no light mode
+3. **Production chat host truth**
+   - Production chat is documented as gpt-oss on local MacBook Pro M4 Max (128GB).
+   - Hobby SBC/MCU experimentation is explicitly separated from production hosting.
 
-## Cost Optimization
-- Cloud Run scale-to-0: $0-5/mo
-- Supabase free tier: $0
-- Gemini API free tier: $0-3/mo
-- Total estimated: $1-11/month
+4. **Deterministic evaluation harness**
+   - Added `/api/chat/eval` + `scripts/run-chat-eval.sh`.
+   - Enables recruiter/security regression checks via CLI without GUI tests.
 
-## Quality Gates Met
-- [x] npm run build succeeds
-- [x] npm run lint passes (warnings only, no errors)
-- [x] All pages render: Home, About, Work, Architecture, Chat, Contact
-- [x] Chat API with rate limiting and caching
-- [x] RAG pipeline scaffolded
-- [x] Terraform IaC complete
-- [x] GitHub Actions CI/CD configured
-- [x] Dockerfile for containerization
-- [x] Comprehensive README and SETUP.md
+5. **Local knowledge retrieval**
+   - Retrieval is section-aware over canonical `knowledge.ts`.
+   - Removed drift-prone fallback context from `/api/rag`.
 
-## Files Created/Updated
-- All Next.js app pages with dark theme
-- src/lib/rate-limit.ts - Rate limiting + response caching
-- src/lib/rag.ts - RAG retrieval logic
-- src/app/api/chat/route.ts - Gemini streaming API
-- src/app/api/rag/route.ts - RAG context retrieval
-- src/app/architecture/page.tsx - Architecture case study
-- terraform/main.tf - GCP Cloud Run IaC
-- .github/workflows/deploy.yml - CI/CD pipeline
-- README.md - Comprehensive documentation
-- SETUP.md - Step-by-step setup instructions
-- QUESTIONS.md - Questions for Luis post-build
+6. **Free-first infrastructure posture**
+   - Cloud Run max instances remains 1.
+   - ALB + Cloud Armor retained for edge security and real architecture credibility.
+
+## Quality gates
+
+- `npm run lint`
+- `npm run build`
+- chat eval run through CLI harness
+- Terraform formatting/validation checks for infra edits

@@ -39,9 +39,9 @@ function PortfolioContent() {
           </div>
 
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold">
-            <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">Systems Architect.</span>
+            <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">Systems Engineer.</span>
             <br />
-            <span className="text-primary">Golang. Edge AI.</span>
+            <span className="text-primary">Golang. Reliability. AI.</span>
           </h1>
 
           <div className="h-[50px] md:h-[60px] mb-6">
@@ -56,32 +56,31 @@ function PortfolioContent() {
           {isRecruiter ? (
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4 border-l-2 border-primary/50 pl-6 text-left">
               <strong className="text-foreground">Available for Senior, Staff &amp; Architect roles.</strong>{' '}
-              I fix broken distributed systems and integrate local AI pipelines.
-              Currently scaling payment infrastructure at The Home Depot&mdash;
-              <strong className="text-foreground">5M+ daily transactions, 99.99% uptime, sub-50ms p99</strong>.
+              I fix reliability gaps in distributed systems and integrate local AI pipelines.
+              Currently an SE II contributor on a 100+ engineer payments organization at The Home Depot&mdash;
+              high-volume traffic, strict uptime constraints, and real production ownership.
             </p>
           ) : (
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
-              I fix broken distributed systems and build local AI pipelines.
+              I fix reliability bottlenecks in distributed systems and build local AI pipelines.
               Currently engineering mission-critical payment infrastructure at{' '}
-              <strong className="text-foreground">The Home Depot</strong>&mdash;
-              <strong className="text-foreground">5M+ daily transactions</strong>{' '}
-              processed through Go microservices on GCP with 99.99% availability.
+              <strong className="text-foreground">The Home Depot</strong> as an individual contributor on a large team.
+              My focus is observability, production operations, and migration support across Go services on GCP.
             </p>
           )}
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 py-8 border-y border-white/5 my-8 font-mono">
             <div className="text-center">
-              <div className="text-2xl md:text-4xl font-bold text-foreground">5M+</div>
-              <div className="text-xs text-muted-foreground mt-1">txn/day</div>
+              <div className="text-2xl md:text-4xl font-bold text-foreground">185K+</div>
+              <div className="text-xs text-muted-foreground mt-1">txn/hour context</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-4xl font-bold text-foreground">99.99%</div>
-              <div className="text-xs text-muted-foreground mt-1">uptime</div>
+              <div className="text-2xl md:text-4xl font-bold text-foreground">100+</div>
+              <div className="text-xs text-muted-foreground mt-1">engineer org</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-4xl font-bold text-foreground">&lt;50ms</div>
-              <div className="text-xs text-muted-foreground mt-1">p99 latency</div>
+              <div className="text-2xl md:text-4xl font-bold text-foreground">50+</div>
+              <div className="text-xs text-muted-foreground mt-1">microservices</div>
             </div>
             <div className="text-center">
               <div className="text-2xl md:text-4xl font-bold text-emerald-400">GCP</div>
@@ -212,26 +211,26 @@ service:
             Enterprise <span className="text-primary">Migration</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl leading-relaxed mb-12">
-            Massive structural shifts don&apos;t happen by accident. I lead complex,
-            zero-downtime backend migrations&mdash;decomposing monolithic payment systems
-            into type-safe, scalable Golang microservices without dropping a single transaction.
+            Massive structural shifts don&apos;t happen by accident. I contribute to complex,
+            zero-downtime backend migration programs&mdash;helping decompose legacy payment paths
+            into safer, more observable Go services without customer disruption.
           </p>
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
                 title: 'Zero-Downtime GCT Migrations',
-                desc: 'Led multi-phase migration strategies for Gift Card Tender systems. Blue-green deployments, traffic shadowing, and automated rollback gates ensuring zero customer impact.',
+                desc: 'Contributed to multi-phase migration strategies for Gift Card Tender systems, including rollout support, observability validation, and rollback readiness.',
                 tags: ['Blue-Green', 'Traffic Shadow', 'Rollback Gates'],
               },
               {
                 title: 'Monolith Decomposition',
-                desc: 'Refactored legacy monolithic payment services into isolated, type-safe Go microservices. Each service owns its data, its deployment, and its on-call rotation.',
+                desc: 'Supported decomposition of legacy payment services into isolated Go microservices with stronger ownership boundaries and safer operations.',
                 tags: ['Go', 'Domain Isolation', 'Cloud Run'],
               },
               {
                 title: 'Type-Safe Contract Evolution',
-                desc: 'Introduced protobuf contracts and backwards-compatible API versioning. Breaking changes are caught at compile time, not in production at 2 AM.',
+                desc: 'Implemented safer contract-evolution patterns so breaking changes are detected earlier in delivery, not during production incidents.',
                 tags: ['Protobuf', 'gRPC', 'API Versioning'],
               },
             ].map((item) => (
@@ -280,11 +279,11 @@ service:
                 },
                 {
                   title: 'Self-Hosted Inference',
-                  desc: 'The LLM backing this site runs on a MacBook Pro M4 Max (128GB). Real inference on real hardware—no Raspberry Pis, no cloud required for the model.',
+                  desc: 'The LLM backing this site runs on a MacBook Pro M4 Max (128GB). Hobby hardware experiments exist, but production chat inference for this site is on the MacBook host.',
                 },
                 {
                   title: 'Hardware/Software Integration',
-                  desc: 'Bridging ML models and local compute. Custom inference servers (e.g. Inferencia, OpenAI-compatible APIs) and efficient batch processing on Apple Silicon.',
+                  desc: 'Bridging model serving and local compute with an OpenAI-compatible inference endpoint, backend guardrails, and efficient execution on Apple Silicon.',
                 },
               ].map((item) => (
                 <div key={item.title} className="p-5 rounded-lg bg-card/40 border border-border/50 hover:border-primary/30 transition-colors">
@@ -304,23 +303,23 @@ service:
               <pre className="p-5 text-xs sm:text-sm font-mono text-muted-foreground overflow-x-auto leading-relaxed">
 {`#!/bin/bash
 # Local RAG / inference — MacBook Pro M4 Max 128GB
-# OpenAI-compatible API (e.g. Inferencia) + RAG on your own hardware
+# OpenAI-compatible API + RAG on your own hardware
 
 # Start local inference server (OpenAI-compatible)
 # Serves the model that backs gimenez.dev/chat
 inferencia serve \\
-  --model /path/to/model \\
+  --model mlx-community/gpt-oss-20b-MXFP4-Q8 \\
   --port 8080
 
 # RAG: embeddings + retrieval + context
-# This site: knowledge base + optional pgvector, no cloud LLM required
+# This site: knowledge base + retrieval + chat API guardrails
 echo "Local inference ready."`}
               </pre>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-3 mt-10">
-            {['Apple Silicon', 'M4 Max', 'Self-hosted LLM', 'GGUF Quantization', 'llama.cpp', 'Local RAG', 'Inferencia', 'OpenAI-compatible API'].map((tag) => (
+            {['Apple Silicon', 'M4 Max', 'gpt-oss', 'Self-hosted LLM', 'Local RAG', 'OpenClaw (hobby)', 'Inferencia', 'OpenAI-compatible API'].map((tag) => (
               <span key={tag} className="px-3 py-1.5 text-xs font-mono bg-card/60 border border-border/50 rounded-lg text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors">
                 {tag}
               </span>
@@ -352,7 +351,7 @@ echo "Local inference ready."`}
             '@context': 'https://schema.org',
             '@type': 'Person',
             name: 'Luis Gimenez',
-            jobTitle: 'Systems Architect & Backend Engineer',
+            jobTitle: 'Software Engineer II / Backend Engineer',
             url: 'https://gimenez.dev',
             sameAs: [
               'https://github.com/menezmethod',

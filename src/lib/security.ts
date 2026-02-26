@@ -9,6 +9,8 @@
  *   LLM10 — Unbounded Consumption: length limits + message count caps
  */
 
+import { PORTFOLIO_ONLY_REFUSAL } from "@/lib/chat-config";
+
 const MAX_MESSAGE_LENGTH = 1500;
 const MAX_MESSAGES_IN_CONTEXT = 8;
 const MAX_TOTAL_CHARS = 8000;
@@ -91,8 +93,7 @@ export function sanitizeInput(content: string): SecurityCheckResult {
     if (pattern.test(cleaned)) {
       return {
         safe: false,
-        reason:
-          "I can only answer questions about Luis Gimenez's professional background. Please ask about his experience, skills, or projects.",
+        reason: PORTFOLIO_ONLY_REFUSAL,
       };
     }
   }

@@ -27,7 +27,7 @@ export default function Contact() {
           <span className="text-foreground font-semibold">Staff</span>, and{' '}
           <span className="text-foreground font-semibold">Architect</span> roles.
           If you have a hard distributed systems problem or need someone to
-          unfuck your observability stack, let&apos;s talk.
+          stabilize your observability stack, let&apos;s talk.
         </p>
 
         <div className="mb-12 p-8 bg-card/30 rounded-xl border border-border/50 relative overflow-hidden group">

@@ -1,97 +1,41 @@
-import { createClient } from '@supabase/supabase-js';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { retrieveContext } from "@/lib/rag";
+import { sanitizeInput } from "@/lib/security";
 
-// Initialize Supabase client for RAG
-function getSupabaseClient() {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    return null;
-  }
-
-  return createClient(supabaseUrl, supabaseKey);
-}
-
-// Portfolio content for RAG (fallback when Supabase not configured)
-const PORTFOLIO_CONTEXT = `
-Luis Gimenez - Professional Profile
-
-EXPERIENCE:
-- Software Engineer II at The Home Depot
-- Architecting mission-critical payment processing systems
-- Handling millions in daily transactions
-- Working with Go, Java, TypeScript on Google Cloud Platform
-- GCP Professional Architect certified
-
-PROJECTS:
-1. Churnistic - AI-powered customer churn prediction platform
-2. VAULT - Privacy-first iMessage automation system
-3. Parrish Local - Local business directory
-4. BuilderPlug - SaaS for real estate professionals
-
-SKILLS:
-- Languages: Go, Java, TypeScript, Rust, Python, JavaScript
-- Cloud: Google Cloud Platform, GCP, Cloud Run, GKE, BigQuery
-- Frameworks: React, Next.js, Node.js, Spring Boot
-- Tools: Docker, Kubernetes, Terraform, Git, CI/CD
-- Domains: Payment Systems, Microservices, System Architecture
-
-EDUCATION:
-- Bachelor's in Computer Science (implied from software engineering career)
-
-LOCATION:
-- Parrish, Florida area
-
-CONTACT:
-- Email: luisgimenezdev@gmail.com
-- GitHub: @menezmethod
-- LinkedIn: linkedin.com/in/gimenezdev
-- Twitter: @menezmethod
-`;
+export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
-    const { query } = await req.json();
+    const body = (await req.json()) as { query?: unknown; topK?: unknown };
+    const query = typeof body.query === "string" ? body.query : "";
+    const requestedTopK = typeof body.topK === "number" ? body.topK : 5;
+    const topK = Math.max(1, Math.min(8, Math.trunc(requestedTopK)));
 
-    if (!query) {
+    if (!query.trim()) {
       return NextResponse.json(
-        { error: 'Query is required' },
+        { error: "Query is required" },
         { status: 400 }
       );
     }
 
-    const supabase = getSupabaseClient();
-
-    // If Supabase is configured, try RAG
-    if (supabase) {
-      try {
-        // For now, we'll do a simple similarity search on text
-        // In production, you'd use embeddings and pgvector
-        const { data, error } = await supabase
-          .from('portfolio_embeddings')
-          .select('content, metadata')
-          .textSearch('content', query)
-          .limit(3);
-
-        if (!error && data && data.length > 0) {
-          const context = data.map((d) => d.content).join('\n');
-          return NextResponse.json({ context, source: 'supabase' });
-        }
-      } catch (ragError) {
-        console.warn('RAG lookup failed, using fallback:', ragError);
-      }
+    const inputCheck = sanitizeInput(query);
+    if (!inputCheck.safe || !inputCheck.sanitized) {
+      return NextResponse.json(
+        { error: "Query rejected", message: inputCheck.reason || "Unsafe query." },
+        { status: 400 }
+      );
     }
 
-    // Fallback: return static portfolio context
-    return NextResponse.json({ 
-      context: PORTFOLIO_CONTEXT, 
-      source: 'fallback' 
+    const context = await retrieveContext(inputCheck.sanitized, topK);
+    return NextResponse.json({
+      context,
+      source: "local_knowledge_base",
+      top_k: topK,
     });
   } catch (error) {
-    console.error('RAG API error:', error);
+    console.error("RAG API error:", error);
     return NextResponse.json(
-      { error: 'Failed to process query' },
+      { error: "Failed to process query" },
       { status: 500 }
     );
   }

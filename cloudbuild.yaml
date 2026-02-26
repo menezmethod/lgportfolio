@@ -62,7 +62,7 @@ steps:
       - "--port"
       - "8080"
       - "--set-env-vars"
-      - "NODE_ENV=production,NEXT_TELEMETRY_DISABLED=1,PORT=8080"
+      - "NODE_ENV=production,NEXT_TELEMETRY_DISABLED=1,PORT=8080,INFERENCIA_CHAT_MODEL=mlx-community/gpt-oss-20b-MXFP4-Q8"
       - "--set-secrets"
       - "INFERENCIA_API_KEY=inferencia-api-key:latest,INFERENCIA_BASE_URL=inferencia-base-url:latest"
 

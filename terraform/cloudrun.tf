@@ -5,6 +5,10 @@ resource "google_service_account" "portfolio" {
   display_name = "Portfolio Cloud Run Service Account"
 }
 
+locals {
+  cloud_build_sa = "${data.google_project.current.number}@cloudbuild.gserviceaccount.com"
+}
+
 # ── Artifact Registry ────────────────────────────────────────────────────────
 
 resource "google_artifact_registry_repository" "portfolio" {
@@ -62,6 +66,36 @@ resource "google_secret_manager_secret_iam_member" "base_url_accessor" {
   member    = "serviceAccount:${google_service_account.portfolio.email}"
 }
 
+resource "google_secret_manager_secret_iam_member" "cloudbuild_api_key_accessor" {
+  secret_id = google_secret_manager_secret.inferencia_api_key.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${local.cloud_build_sa}"
+}
+
+resource "google_secret_manager_secret_iam_member" "cloudbuild_base_url_accessor" {
+  secret_id = google_secret_manager_secret.inferencia_base_url.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${local.cloud_build_sa}"
+}
+
+resource "google_project_iam_member" "cloudbuild_run_admin" {
+  project = var.project_id
+  role    = "roles/run.admin"
+  member  = "serviceAccount:${local.cloud_build_sa}"
+}
+
+resource "google_project_iam_member" "cloudbuild_artifact_writer" {
+  project = var.project_id
+  role    = "roles/artifactregistry.writer"
+  member  = "serviceAccount:${local.cloud_build_sa}"
+}
+
+resource "google_service_account_iam_member" "cloudbuild_sa_user" {
+  service_account_id = google_service_account.portfolio.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${local.cloud_build_sa}"
+}
+
 # ── Cloud Run Service ────────────────────────────────────────────────────────
 
 resource "google_cloud_run_v2_service" "portfolio" {
@@ -70,6 +104,8 @@ resource "google_cloud_run_v2_service" "portfolio" {
   ingress  = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
 
   template {
+    timeout                          = "30s"
+    max_instance_request_concurrency = 80
     service_account = google_service_account.portfolio.email
 
     containers {
@@ -90,6 +126,10 @@ resource "google_cloud_run_v2_service" "portfolio" {
       env {
         name  = "NEXT_TELEMETRY_DISABLED"
         value = "1"
+      }
+      env {
+        name  = "INFERENCIA_CHAT_MODEL"
+        value = "mlx-community/gpt-oss-20b-MXFP4-Q8"
       }
 
       env {
@@ -145,6 +185,11 @@ resource "google_cloud_run_v2_service" "portfolio" {
     google_project_service.apis,
     google_secret_manager_secret_version.inferencia_api_key,
     google_secret_manager_secret_version.inferencia_base_url,
+    google_project_iam_member.cloudbuild_run_admin,
+    google_project_iam_member.cloudbuild_artifact_writer,
+    google_service_account_iam_member.cloudbuild_sa_user,
+    google_secret_manager_secret_iam_member.cloudbuild_api_key_accessor,
+    google_secret_manager_secret_iam_member.cloudbuild_base_url_accessor,
   ]
 }
 
