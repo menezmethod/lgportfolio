@@ -66,6 +66,13 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 
 - **Google Analytics 4 only.** Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` in `.env.local` (and in Cloud Run env if you want GA in production). Component: `src/components/GoogleAnalytics.tsx`. No Vercel analytics or `/_vercel/` scripts.
 
+### Repo layout
+
+- **Root:** `README.md`, `AGENTS.md`, `package.json`, `next.config.ts`, `Dockerfile`, `cloudbuild.yaml`, `tsconfig.json`, `.env.example`, `.gitignore`. Entry docs and app config only.
+- **docs/** — Secondary documentation: `DEPLOY-CLOUDRUN.md`, `SETUP.md`, `DEBUGGING_CHAT.md`, `DECISIONS.md`, `QUESTIONS.md`, `our_domain.md`. See `docs/README.md` for index.
+- **scripts/** — `deploy-cloudrun.sh`, `check-ssl-cert.sh`, `disable-project-spend.sh`.
+- **terraform/** — GCP IaC (Cloud Run, LB, WAF, monitoring). No legacy CRA files in `src/` (removed; see .gitignore).
+
 ### Gotchas
 
 - No automated test suite (no `test` script in `package.json`).

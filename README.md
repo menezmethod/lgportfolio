@@ -16,7 +16,7 @@ A Next.js portfolio with an AI-powered chat. Built with Next.js 16, TypeScript, 
 - **Response caching:** Pre-seeded cache for common questions to reduce API usage.
 - **Architecture showcase:** Dedicated architecture page.
 - **Responsive design:** Mobile-first, dark theme.
-- **Infrastructure:** Terraform for GCP Cloud Run, Docker, GitHub Actions CI/CD.
+- **Infrastructure:** Terraform for GCP Cloud Run, Docker, Cloud Build (auto-deploy on push to main).
 
 ## Live site
 
@@ -75,7 +75,7 @@ Open [http://localhost:3000](http://localhost:3000). Chat is at [http://localhos
 | `CHAT_DAILY_BUDGET` | No | Daily request budget (default: 900) |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Optional | Google Analytics 4 (no Vercel analytics) |
 
-See `.env.example` for the full list. In production (Cloud Run), Inferencia keys come from GCP Secret Manager via the deploy step; see [AGENTS.md](./AGENTS.md) and [DEPLOY-CLOUDRUN.md](./DEPLOY-CLOUDRUN.md).
+See `.env.example` for the full list. In production (Cloud Run), Inferencia keys come from GCP Secret Manager via the deploy step; see [AGENTS.md](./AGENTS.md) and [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md).
 
 **Security:** Do not commit `.env.local` or any file containing API keys or secrets. They are gitignored; use your host’s secret manager or environment variables for production.
 
@@ -102,10 +102,10 @@ lgportfolio/
 │   │   └── rate-limit.ts         # Rate limits + response cache
 │   └── app/                      # Global layout, styles
 ├── terraform/                    # GCP Cloud Run IaC (LB, WAF, DNS)
-├── cloudbuild.yaml              # Cloud Build: push to main → build & deploy
-├── .github/workflows/           # Optional CI
+├── cloudbuild.yaml              # Cloud Build: push to main → build & deploy (no GitHub Actions)
+├── docs/                        # Additional documentation
 ├── Dockerfile
-└── SETUP.md
+└── README.md
 ```
 
 ## AI chat behavior
@@ -140,8 +140,11 @@ docker run -p 3000:3000 \
 
 ## GCP deployment
 
-- **GitHub Actions:** Configure Workload Identity and secrets (e.g. `INFERENCIA_API_KEY`), then push to main to deploy.
-- **Terraform:** `cd terraform && terraform init && terraform plan -var="project_id=YOUR_PROJECT" && terraform apply`
+Deployment is **Cloud Build only** (no GitHub Actions, Vercel, or Cloudflare). Push to `main` triggers Cloud Build → build image → deploy to Cloud Run. See [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md) and [AGENTS.md](./AGENTS.md).
+
+If you see Vercel or Cloudflare checks on PRs, disconnect those integrations in **GitHub → Settings → Integrations** (or in the Vercel/Cloudflare dashboards) so only GCP Cloud Build runs.
+
+- **Terraform (infra only):** `cd terraform && terraform init && terraform plan -var="project_id=YOUR_PROJECT" && terraform apply`
 
 ## Scripts
 
