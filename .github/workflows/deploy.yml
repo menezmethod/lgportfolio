@@ -38,18 +38,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build application
-        run: npm run build
-
       - name: Auth to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -72,7 +60,7 @@ jobs:
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: gimenez-portfolio
+          service: lgportfolio
           region: ${{ secrets.REGION }}
           image: ${{ secrets.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/portfolio/app:${{ github.sha }}
-          flags: '--allow-unauthenticated'
+          flags: '--allow-unauthenticated --ingress internal-and-cloud-load-balancing --cpu-throttling --memory 512Mi --max-instances 1 --min-instances 0 --concurrency 80 --timeout 30'
