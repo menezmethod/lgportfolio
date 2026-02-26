@@ -32,10 +32,10 @@ const dailyCounters = new Map<string, DailyCounter>();
 const CACHED_RESPONSES = new Map<string, string>([
   [
     "tell me about luis",
-    "Luis Gimenez is a Software Engineer II (SE II) on the Enterprise Payments Platform team at The Home Depot — a team of 100+ engineers operating 50+ microservices processing ~185K transactions/hour.\n\n" +
+    "Luis Gimenez is a Software Engineer II (SE II) on the Enterprise Payments Platform team at The Home Depot — a large engineering team operating 50+ microservices with six-figure hourly transaction volumes.\n\n" +
       "He did not build the platform. He works within it. His specific contributions include:\n" +
       "- Built Grafana observability dashboards adopted by VP-level leadership (his signature work)\n" +
-      "- Contributed production code to Card Broker (credit/debit routing) for ~2 years\n" +
+      "- Contributed production code to Card Broker (credit/debit routing) for approximately two years\n" +
       "- Owns interrupt rotation — production reliability at 2 AM\n" +
       "- Advocated for and implemented PII masking for PCI DSS compliance\n" +
       "- GCP Professional Cloud Architect certified\n\n" +

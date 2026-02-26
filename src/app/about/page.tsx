@@ -29,9 +29,9 @@ export default function About() {
               I am a <span className="text-foreground font-semibold">Systems Architect and Backend Engineer</span> at{' '}
               <span className="text-primary font-semibold">The Home Depot</span>.
               I build and operate the payment card tender system&mdash;the critical path that
-              processes every credit, debit, and gift card transaction across 2,300+ stores
-              and e-commerce, handling{' '}
-              <span className="text-foreground font-semibold">5M+ daily transactions</span>.
+              processes every credit, debit, and gift card transaction across a nationwide store
+              footprint and e-commerce, handling{' '}
+              <span className="text-foreground font-semibold">high-throughput daily transaction volumes</span>.
             </p>
             <p>
               My work sits at the intersection of{' '}

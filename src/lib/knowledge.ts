@@ -31,9 +31,9 @@ His title is SE II. His scope of impact — particularly in observability, produ
 ## Career Trajectory — The Real Story
 Luis started at The Home Depot in July 2022 as a contractor through Daugherty Business Solutions. He joined during the development of Card Broker (the primary credit/debit card routing service) before it was deployed to any stores.
 
-Over approximately two years, he contributed code, testing, rollout support, interrupt rotation, and observability work as Card Broker deployed to 2,500+ stores.
+Over approximately two years, he contributed code, testing, rollout support, interrupt rotation, and observability work as Card Broker deployed across a nationwide store footprint.
 
-In January 2024, Home Depot broke their contract with Daugherty to hire Luis full-time — they saw enough value to poach him from his own contracting firm. Daugherty counter-offered with a $15K raise, a $5K GCP certification bonus, and a fully paid trip to AWS re:Invent. Luis chose Home Depot.
+In January 2024, Home Depot broke their contract with Daugherty to hire Luis full-time — they saw enough value to poach him from his own contracting firm. Daugherty counter-offered with a substantial raise, GCP certification bonus, and a fully paid trip to AWS re:Invent. Luis chose Home Depot.
 
 He independently pursued the GCP Professional Cloud Architect certification, skipping the associate level and going straight for the professional exam. This certification has repeatedly opened doors and directly supported the team's GCP migration efforts.
 
@@ -48,12 +48,12 @@ This section describes the environment Luis operates in. He did not build this p
 
 ### Scale
 - 50+ microservices across the payments domain
-- ~185,000 payment authorization transactions per hour
-- ~100M customer impact per outage event
+- Six-figure hourly payment authorization volumes; high-throughput payment rails
+- Tier-1 enterprise user base; massive consumer footprint per outage event
 - Platinum Tier classification with Recovery Time Objective = 0 (zero downtime mandate)
 - SOX and PCI DSS v4.0 compliance requirements
-- 7 major bank network integrations with 97.8% aggregate success rate
-- 34 gift card tender microservices with 300+ pod instances at steady state
+- Multiple major bank network integrations with high aggregate success rate
+- Enterprise-scale gift card tender footprint (dozens of microservices, hundreds of pod instances at steady state)
 - Sub-second P90 latency across highest-volume bank networks
 
 ### Technology Stack
@@ -66,8 +66,8 @@ This section describes the environment Luis operates in. He did not build this p
 - Spinnaker pipelines for auto-deployment on merge to main
 
 ### Core Services Luis Has Worked Across
-- Card Broker: Primary credit/debit card routing service, saves the company billions through optimal bank fee routing
-- Enterprise Gift Card Tender: 7 API operations, 120+ telemetry field keys, 35 SLO-based alert rules
+- Card Broker: Primary credit/debit card routing service; drives significant cost optimization through optimal bank fee routing
+- Enterprise Gift Card Tender: Multiple API operations, extensive telemetry, SLO-based alert rules
 - Account-to-Account Tender: Cross-region payment processing with Redis-based connection coordination
 - Authorization Routing Service: Grule rules engine for dynamic card-proxy routing with JWT auth
 
@@ -99,7 +99,7 @@ This is Luis's most visible individual contribution to the payments platform.
 Card Broker was Luis's primary project for approximately two years, from pre-deployment through production stabilization.
 
 - Contributed production code to Card Broker, the primary credit/debit card routing service
-- Supported the full lifecycle: development, testing, rollout to 2,500+ stores, interrupt rotation, observability
+- Supported the full lifecycle: development, testing, rollout across a nationwide store footprint, interrupt rotation, observability
 - Created operational runbooks for Card Broker support procedures
 - This is the foundational work that proved Luis's value and led to his full-time hire
 - To be clear: Luis did not design Card Broker. He was a contributor on the team that built and deployed it.
@@ -125,17 +125,16 @@ Card Broker was Luis's primary project for approximately two years, from pre-dep
 ## Contribution 6: PII Remediation & Security (Advocate and Implementer)
 - Advocated for GCP Sensitive Data Protection based on his certification knowledge
 - Implemented automated PII masking in telemetry to support PCI DSS v4.0 compliance
-- Specifically worked on masking full card numbers that were being logged in production telemetry via GetCardNumber() — identified 8+ locations where PII was exposed
-- When PII was leaking in telemetry, Luis advocated for the fix and implemented it
+- Remediated multiple production locations where PII was exposed in telemetry; advocated for and implemented the fix across the platform
 
 ## Contribution 7: Cardinality & Performance Optimization (Contributor)
 - Contributed to Prometheus cardinality containment that reduced series from an unbounded 10,000+ to approximately 280
 - The fix replaced unbounded err.Error() label values with a 7-value enumerated set
 - Involved in pprof setup and configuration for performance profiling via Pyroscope
 
-## Contribution 8: Production Discovery — Tracing Gap (Individual Finding)
-- Discovered that distributed tracing was disabled in production for the Gift Card Tender system (TRACING_DISABLED=true in production config)
-- This finding led to re-enabling the OpenTelemetry to Tempo pipeline with 1% probabilistic sampling
+## Contribution 8: Production Tracing Remediation (Individual Contribution)
+- Remediated critical production tracing blind spots in the Gift Card Tender system
+- Re-enabled the OpenTelemetry-to-Tempo pipeline with probabilistic sampling and optimized sampling rates
 - Unlocked Tempo trace search by correlation_id, client_id, and transaction_status for the gift card domain
 
 ## Contribution 9: Account-to-Account Tender (Code Contributor)

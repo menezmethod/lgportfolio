@@ -72,7 +72,7 @@ In Namecheap (or your registrar): A record for `@` → that IP; CNAME `www` → 
 
 ## 7. Continuous deployment (auto-deploy on)
 
-Auto-deploy is enabled: **push to `main`** triggers Cloud Build, which builds the image (amd64), pushes to Artifact Registry, and deploys to Cloud Run. The deploy step uses `--set-secrets` so each new revision gets `INFERENCIA_API_KEY` and `INFERENCIA_BASE_URL` from Secret Manager (chat works only if those secrets exist and are correct). See AGENTS.md **Step 8** to (re)connect or verify the trigger. For "exec format error" or chat 503, see AGENTS.md **Troubleshooting**.
+Auto-deploy is enabled: **push to `main`** triggers Cloud Build, which builds the image (amd64), pushes to Artifact Registry, and deploys to Cloud Run. **You do not need to run `docker build` / `docker push` / `gcloud run services update` yourself**—just push. The deploy step uses `--set-secrets` so each new revision gets `INFERENCIA_API_KEY` and `INFERENCIA_BASE_URL` from Secret Manager (chat works only if those secrets exist and are correct). See AGENTS.md **Step 8** to (re)connect or verify the trigger. For "exec format error" or chat 503, see AGENTS.md **Troubleshooting**. Use the manual docker/gcloud flow only if the trigger isn't set up or you need a one-off deploy without pushing.
 
 ---
 
