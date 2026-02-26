@@ -32,49 +32,48 @@ const dailyCounters = new Map<string, DailyCounter>();
 const CACHED_RESPONSES = new Map<string, string>([
   [
     "tell me about luis",
-    "Luis Gimenez is a Systems Architect and Backend Engineer at The Home Depot.\n\n" +
-      "He builds and operates the payment card tender system — the critical path processing every credit, debit, and gift card transaction across 2,300+ stores, handling 5M+ daily transactions.\n\n" +
-      "Key strengths:\n" +
-      "- GCP Professional Cloud Architect (certified)\n" +
-      "- Distributed systems design (Go, Cloud Run, Pub/Sub)\n" +
-      "- OpenTelemetry & observability pipelines\n" +
-      "- Zero-downtime migration leadership\n" +
-      "- Edge AI & local RAG architectures\n\n" +
-      "For more details, visit /about or /work.",
+    "Luis Gimenez is a Software Engineer II (SE II) on the Enterprise Payments Platform team at The Home Depot — a team of 100+ engineers operating 50+ microservices processing ~185K transactions/hour.\n\n" +
+      "He did not build the platform. He works within it. His specific contributions include:\n" +
+      "- Built Grafana observability dashboards adopted by VP-level leadership (his signature work)\n" +
+      "- Contributed production code to Card Broker (credit/debit routing) for ~2 years\n" +
+      "- Owns interrupt rotation — production reliability at 2 AM\n" +
+      "- Advocated for and implemented PII masking for PCI DSS compliance\n" +
+      "- GCP Professional Cloud Architect certified\n\n" +
+      "For details, visit /about or /work.",
   ],
   [
     "what gcp services has luis used?",
-    "Luis has extensive GCP experience:\n\n" +
-      "Compute: Cloud Run, GKE, Cloud Functions\n" +
-      "Data: BigQuery, Cloud SQL, Cloud Storage, Pub/Sub\n" +
-      "AI/ML: Vertex AI, Gemini API, Embeddings\n" +
-      "Networking: Cloud CDN, Cloud Load Balancing, Cloud Armor\n" +
-      "DevOps: Cloud Build, Artifact Registry, Secret Manager\n" +
-      "IaC: Terraform for all provisioning\n\n" +
-      "He holds the GCP Professional Cloud Architect certification.",
+    "Luis is GCP Professional Cloud Architect certified and works within a GKE-based payments platform.\n\n" +
+      "Services he has hands-on experience with:\n" +
+      "Compute: GKE (daily), Cloud Run (portfolio)\n" +
+      "Data: Pub/Sub (CDC changefeeds), BigQuery, Cloud SQL, CockroachDB\n" +
+      "Security: Cloud KMS (Tink encryption), Secret Manager, Sensitive Data Protection\n" +
+      "DevOps: Cloud Build, Artifact Registry, Spinnaker\n" +
+      "IaC: CDK8s, Terraform\n\n" +
+      "He pursued the certification independently and it directly informed the team's PCF-to-GCP migration.",
   ],
   [
     "what's luis's tech stack?",
-    "Languages: Go (primary), TypeScript, Java, Rust, Python\n\n" +
+    "Languages: Go (primary at Home Depot), TypeScript (portfolio), Java (legacy services)\n\n" +
+      "Observability: Prometheus/PromQL, Grafana, Loki, Tempo, Pyroscope, OpenTelemetry\n" +
       "Cloud: GCP (Professional Architect certified)\n" +
-      "Observability: OpenTelemetry, Prometheus, Grafana, Jaeger/Tempo\n" +
-      "Data: CockroachDB, PostgreSQL, Redis, pgvector\n" +
-      "Edge AI: llama.cpp, GGUF quantization, OpenClaw, picoCLAW\n" +
-      "Tools: Docker, Terraform, gRPC, Protobuf\n\n" +
-      "Domains: Payment Systems, Distributed Architecture, Edge AI",
+      "Data: CockroachDB, PostgreSQL, Redis\n" +
+      "Infrastructure: CDK8s, Terraform, Docker, Kubernetes (GKE)\n\n" +
+      "Domains: Payment Systems, Observability, Production Operations, Cloud Migration",
   ],
   [
     "is luis open to remote work?",
-    "Yes. Luis is based in Florida and is actively seeking Senior, Staff, and Architect roles.\n\n" +
-      "He is open to remote, hybrid, or relocation for the right opportunity — particularly Atlanta, Austin, NYC, SF/Bay Area, Seattle, or Denver.",
+    "Yes. Luis is based in Florida and is seeking Senior, Staff, SRE, or Architect roles.\n\n" +
+      "Open to remote, hybrid, or relocation — particularly Atlanta, Austin, NYC, SF/Bay Area, Seattle, or Denver.\n\n" +
+      "US work authorized. No sponsorship required.",
   ],
   [
     "what certifications does luis have?",
     "Luis holds:\n\n" +
-      "- Google Cloud Professional Cloud Architect (Active)\n" +
+      "- Google Cloud Professional Cloud Architect (Active) — skipped associate, went straight for professional\n" +
       "- CompTIA Project+\n" +
       "- ITIL Foundation\n\n" +
-      "The GCP certification validates enterprise-grade cloud architecture design.",
+      "The GCP cert was self-driven and has repeatedly opened doors at Home Depot.",
   ],
 ]);
 

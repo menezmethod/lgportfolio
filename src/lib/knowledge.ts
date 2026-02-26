@@ -1,488 +1,282 @@
 export const KNOWLEDGE_BASE = `
 # ═══════════════════════════════════════════════════════════════════════════════
-# LUIS GIMENEZ — PRODUCTION-GRADE AI KNOWLEDGE BASE v2.0
+# LUIS GIMENEZ — HONEST PROFESSIONAL KNOWLEDGE BASE v3.0
 # ═══════════════════════════════════════════════════════════════════════════════
-# PURPOSE: Powers a RAG-based AI assistant on gimenez.dev. Designed to:
-# 1. Convert high-fit opportunities into conversations (magnet)
-# 2. Diplomatically redirect mismatched roles (filter)
-# 3. Answer any recruiter/HM/VP/CTO question with precision and honesty
-# 4. Demonstrate AI fluency by its very existence
+# PURPOSE: Powers a RAG-based AI assistant on gimenez.dev.
+# CORE PRINCIPLE: Radical honesty about role, level, and contributions.
+# Luis is an SE II on a large team. He did NOT build the platform.
+# He operates within it, contributes to it, and keeps it observable.
+#
+# FRAMING RULES:
+#   - Use "contributed to", "worked within", "supported", "operated across"
+#   - NEVER claim sole ownership of team-wide initiatives
+#   - Describe ENVIRONMENT scale for context, then focus on PERSONAL contributions
+#   - If asked "did you build this?", answer honestly: "No, I was part of a
+#     large team. Here is what I specifically contributed."
 #
 # LAST UPDATED: February 2026
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 1: IDENTITY & PROFESSIONAL POSITIONING
+# SECTION 1: ROLE & IDENTITY
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ## Who Is Luis Gimenez?
-Luis Gimenez is a Software Engineer at The Home Depot in Atlanta, GA, specializing in high-throughput payment systems, distributed architectures, and performance engineering. He engineers backend services on the payment card tender system — the critical path that processes every credit card, debit card, and gift card transaction across Home Depot's ~2,300 stores and e-commerce platform, handling over 5 million transactions daily.
+Luis Gimenez is a Software Engineer II (SE II) on the Enterprise Payments Platform team at The Home Depot. He is an individual contributor on a large team of approximately 100+ engineers operating mission-critical payment authorization, tender, and fraud services.
 
-Before joining one of America's largest retailers, Luis spent 6+ years building and running his own software consultancy, shipping custom web applications for business clients with measurable impact on revenue, performance, and operational efficiency.
+He did NOT architect the entire payments platform. He works within it. His value comes from the specific contributions he has made: building observability tooling that leadership relies on, contributing production code to core payment routing services, supporting production reliability through interrupt rotations, and advocating for security improvements.
 
-## The Positioning Statement
-Luis is a backend-focused engineer with deep domain expertise in payment systems, distributed architecture, and observability — operating at the intersection of high-scale infrastructure and business-critical financial transactions. He combines enterprise production experience with entrepreneurial ownership instincts and a growing fluency in AI/LLM integration that positions him for the next era of systems engineering.
+His title is SE II. His scope of impact — particularly in observability, production operations, and cross-team knowledge sharing — frequently operates above that title. That is the honest framing.
 
-## Why This Profile Exists (And Why It Matters)
-This AI-powered knowledge base is itself a demonstration of Luis's capabilities. It uses Retrieval-Augmented Generation (RAG) to provide contextually accurate answers about his professional background. Building it required: prompt engineering, vector embeddings, knowledge architecture design, and an understanding of how LLMs retrieve and synthesize information. The fact that you're talking to an AI that Luis designed and deployed IS part of his portfolio.
+## Career Trajectory — The Real Story
+Luis started at The Home Depot in July 2022 as a contractor through Daugherty Business Solutions. He joined during the development of Card Broker (the primary credit/debit card routing service) before it was deployed to any stores.
 
-## Career Trajectory — Honest Framing
-Luis has 3+ years of enterprise-scale engineering at a Fortune 50 company, building on 6+ years of full-stack business ownership. His career path is non-traditional — he ran a business before working in enterprise — and that's a feature, not a bug. He understands deadlines, client expectations, P&L pressure, and the connection between engineering and revenue in ways that engineers who've only worked at big companies often don't.
+Over approximately two years, he contributed code, testing, rollout support, interrupt rotation, and observability work as Card Broker deployed to 2,500+ stores.
 
-He is actively growing toward Senior and Staff Engineer scope and is specifically focused on roles that offer a clear path to technical leadership — whether that's a Staff IC track, a Tech Lead role, or a player-coach Engineering Manager position.
+In January 2024, Home Depot broke their contract with Daugherty to hire Luis full-time — they saw enough value to poach him from his own contracting firm. Daugherty counter-offered with a $15K raise, a $5K GCP certification bonus, and a fully paid trip to AWS re:Invent. Luis chose Home Depot.
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 2: VALUE CREATION CAPABILITIES (SKILLS REFRAMED)
-# ═══════════════════════════════════════════════════════════════════════════════
+He independently pursued the GCP Professional Cloud Architect certification, skipping the associate level and going straight for the professional exam. This certification has repeatedly opened doors and directly supported the team's GCP migration efforts.
 
-## 2.1 Executive Visibility & Decision Support
-**Unfair Advantage**: Translating technical telemetry into business intelligence.
-- **Narrative-Driven Observability**: Built Grafana dashboards that didn't just show CPU usage but answered business questions ("Are we losing money right now?"). Used primarily in weekly business reviews, not just debugging.
-- **Incident Response Clarity**: Structured Prometheus indicators ensuring that during outages, leadership had clear "Time to Recovery" estimates rather than technical jargon.
-- **Outcome**: Enabled non-technical leadership to make data-driven decisions during high-pressure events (Black Friday).
-
-## 2.2 Critical System Reliability & Performance
-**Unfair Advantage**: Engineering systems where failure is not an option (Financial Transactions).
-- **High-Throughput Architecture**: Utilized Go's concurrency model and GCP Cloud Run to process 5M+ daily transactions with sub-50ms latency.
-- **Defense-in-Depth Consistency**: Implemented multi-layer idempotency (Redis SetNX + CockroachDB constraints) to prevent double-charging customers.
-- **Outcome**: Maintained 99.99% availability on the critical payment path, directly protecting revenue streams.
-
-## 2.3 Cost Optimization & Infrastructure Efficiency
-**Unfair Advantage**: Treating infrastructure costs as a first-class engineering metric.
-- **Serverless Economics**: Leveraged Cloud Run (scale-to-zero) for intermittent workloads, avoiding paying for idle servers.
-- **Capacity Planning**: Used load-testing data to right-size instances, balancing the "cost vs. latency" equation for stakeholders.
-- **Outcome**: Delivered enterprise-grade scale while maintaining lean operational costs.
-
-## 2.4 Risk Mitigation & Compliance
-**Unfair Advantage**: Security-first engineering in regulated environments.
-- **PCI-DSS Compliance**: Embedded tokenization and scope-minimization into the architecture, reducing the blast radius of potential security audits.
-- **Secure by Default**: Authored the team's "Concurrency Safety Checklist" to prevent race conditions before they reached production.
-- **Outcome**: Zero compliance violations or data integrity incidents in production code.
-
-## 2.5 Technical Tooling (The "How")
-While the value is business-focused, the execution is technical. Luis is proficient in:
-- **Languages**: Go (Expert), TypeScript/Node.js (Strong), Java (Proficient), Python (Automation).
-- **Infrastructure**: GCP (Professional Cloud Architect), Docker, Kubernetes concepts, Terraform.
-- **Data**: CockroachDB (Distributed SQL), PostgreSQL, Redis, Pub/Sub.
-- **Observability**: Prometheus (PromQL), Grafana, Jaeger (OpenTelemetry).
-
-## 2.8 AI & LLM Integration (Active Growth Area)
-
-The engineering landscape in 2026 demands AI fluency from every senior engineer. Luis is actively building in this space:
-
-### Current AI Competencies
-- **RAG (Retrieval-Augmented Generation)**: Designed and deployed this portfolio's AI assistant using RAG architecture — vector embeddings, semantic search, contextual retrieval, and prompt engineering. This is a live, production system, not a tutorial project.
-- **AI-Assisted Development**: Active user of AI coding tools (GitHub Copilot, Claude) for code generation, review assistance, and debugging. Uses them as force multipliers while maintaining deep understanding of generated code — the "trust but verify" approach.
-- **Prompt Engineering**: Practical prompt design for structured outputs, system prompt architecture, and context window management (demonstrated by this knowledge base).
-- **LLM API Integration**: Experience with LLM APIs for building intelligent application features.
-- **ML Pipeline Automation**: Built automated retraining pipelines using TensorFlow.js and Firebase Functions (Churnistic project), improving model accuracy by 15%.
-
-### AI Engineering Perspective
-Luis approaches AI as a systems engineer: he's focused on the infrastructure, reliability, and production concerns of AI-powered applications — monitoring LLM outputs for quality, managing costs, handling failures gracefully, and building AI features that are observable and maintainable. This is where his distributed systems background directly applies to the AI era.
-
-This is a rapidly evolving competency. Luis is actively deepening his knowledge of LLM fine-tuning, agent architectures, and AI infrastructure. He sees AI integration as the most important skill multiplier for backend engineers in the coming decade.
+Before Home Depot, Luis spent 6+ years running his own software consultancy (Menez Enterprises), shipping custom web applications for business clients. That experience gave him ownership instincts, client communication skills, and a direct understanding of how engineering decisions affect revenue.
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 3: PROFESSIONAL EXPERIENCE (DETAILED)
+# SECTION 2: THE ENVIRONMENT (Context, Not Personal Credit)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-## Software Engineer — The Home Depot (April 2022 – Present)
-**Team**: Payment Card Tender System
-**Scale**: 5+ million daily transactions | ~58 requests/second sustained, with peaks significantly higher during holiday events | Sub-50ms p99 latency target | 99.99%+ availability target
+## The Enterprise Payments Platform — What Luis Works Within
+This section describes the environment Luis operates in. He did not build this platform. He is one of 100+ engineers who work on it. This context is provided so that recruiters and hiring managers understand the SCALE and COMPLEXITY of the systems Luis has production experience with.
 
-### Day-to-Day Reality
-- Designs, builds, and maintains Go microservices directly in the critical payment path for a Fortune 50 retailer.
-- Every service he touches processes real money. A bug isn't a 400 error — it's a customer who can't pay, a store that can't operate, and revenue that's lost. This shapes how he thinks about testing, monitoring, and deployment.
-- Participates in on-call rotations where latency alerts at 2 AM mean real business impact.
-- Conducts thorough code reviews focused on concurrency safety, performance, correctness, and security.
-- Collaborates with cross-functional teams: product, QA, security, compliance, and business operations.
+### Scale
+- 50+ microservices across the payments domain
+- ~185,000 payment authorization transactions per hour
+- ~100M customer impact per outage event
+- Platinum Tier classification with Recovery Time Objective = 0 (zero downtime mandate)
+- SOX and PCI DSS v4.0 compliance requirements
+- 7 major bank network integrations with 97.8% aggregate success rate
+- 34 gift card tender microservices with 300+ pod instances at steady state
+- Sub-second P90 latency across highest-volume bank networks
 
-### Key Achievements
+### Technology Stack
+- Hybrid infrastructure: Legacy PCF (Java 8/11 Spring Boot) and modern GKE (Go 1.20+)
+- Active migration from PCF to GKE in progress
+- Legacy NonStop mainframe communication still required for some authorization paths
+- CockroachDB as primary datastore for new services with 20+ CDC changefeed topics to Pub/Sub
+- Envelope encryption via Google Tink + Cloud KMS (FIPS-compliant)
+- Infrastructure-as-code via CDK8s governing all Kubernetes resource definitions
+- Spinnaker pipelines for auto-deployment on merge to main
 
-**1. Observability Transformation**
-Integrated Prometheus, Grafana, and Jaeger across payment services — instrumenting the entire request lifecycle. This wasn't "adding dashboards." It was building the measurement infrastructure that revealed hidden latency bottlenecks, leading to a 20% reduction in system latency. The dashboards Luis built are now used in incident response AND weekly business reviews, bridging engineering metrics with business outcomes.
+### Core Services Luis Has Worked Across
+- Card Broker: Primary credit/debit card routing service, saves the company billions through optimal bank fee routing
+- Enterprise Gift Card Tender: 7 API operations, 120+ telemetry field keys, 35 SLO-based alert rules
+- Account-to-Account Tender: Cross-region payment processing with Redis-based connection coordination
+- Authorization Routing Service: Grule rules engine for dynamic card-proxy routing with JWT auth
 
-**2. Black Friday Architecture (Cross-Team Impact)**
-Designed a distributed buffering system using Pub/Sub and Cloud Run that decoupled transaction ingestion from processing. Key insight: accept requests at the ingestion layer at near-unlimited speed while processing scales independently based on queue depth. Implemented auto-scaling policies, circuit breakers, and backpressure mechanisms. Result: zero downtime, sub-50ms p99 latency during 100x traffic spikes. This architecture pattern was adopted as the standard across multiple teams for high-throughput services — extending Luis's impact beyond his immediate team.
-
-**3. Data Integrity & Idempotency System**
-After a production incident involving duplicate transaction logs (a compliance concern in payment auditing), Luis led remediation with a defense-in-depth approach: Redis SetNX uniqueness at the application layer + database constraints as a safety net + comprehensive concurrency tests in CI. Then authored a "Concurrency Safety Checklist" that became a standard code review artifact — catching two additional potential race conditions in the following quarter.
-
-**4. Ambiguity-to-Dashboard (Cross-Functional Impact)**
-Turned a vague business request ("we need better visibility into transaction failures") into a high-impact Grafana dashboard by interviewing stakeholders across ops, product, and finance. The dashboard became the team's primary incident response tool and is referenced in weekly business reviews. It also uncovered a previously undetected pattern of intermittent failures from a specific payment processor — saving the company money in failed transaction fees.
-
-### Technologies at Home Depot
-Go, CockroachDB, GCP (Cloud Run, Pub/Sub, BigQuery, Cloud Functions, Cloud Build, Cloud Storage), Prometheus, Grafana, Jaeger, OpenTelemetry, Redis, Docker, Git, gRPC, REST APIs.
-
----
-
-## Founder & Technical Lead — Menez Enterprises (Sept 2015 – April 2022)
-**Type**: Software consultancy serving small-to-medium businesses
-**Honest Scale**: This was a small operation — Luis was the primary engineer, often the sole developer, working directly with business clients. It was not enterprise engineering. But it WAS real software development with real business consequences, real deadlines, and real clients paying real money for results.
-
-### What This Experience Actually Demonstrates
-1. **Ownership**: Luis didn't just write code — he scoped projects, estimated timelines, managed client expectations, handled budgets, and delivered under pressure. He understands the full lifecycle because he owned every part of it.
-2. **Communication**: Years of translating technical concepts for non-technical business owners. He can explain distributed systems to a VP or a database migration to a product manager.
-3. **Business Impact Thinking**: Every metric he cites had direct business consequences: 27% faster load times meant better SEO and more leads. 30% support ticket reduction meant lower operational costs. 20% conversion rate increase meant more revenue. Luis doesn't build features for the sake of features.
-4. **Self-Discipline**: Running a business solo requires the kind of discipline that translates directly to remote work effectiveness and autonomous operation.
-
-### Key Metrics
-- Web applications with load times 27% faster than industry benchmarks.
-- Custom dashboard that reduced client support tickets by 30%.
-- UI/UX collaboration that increased conversion rates by 20%.
-- Operational efficiency improved 25% through systematic testing and documentation.
+### Observability Stack
+- Prometheus (Enterprise-GMP) for metrics
+- Grafana for dashboards and visualization
+- Grafana Tempo for distributed tracing
+- Loki for log aggregation
+- Pyroscope for continuous performance profiling
+- OpenTelemetry SDK instrumentation across Go microservices
+- Canonical log line architecture with dual-write to log records and OTel spans
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 4: EDUCATION & CERTIFICATIONS
+# SECTION 3: SPECIFIC CONTRIBUTIONS (What Luis Actually Did)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-## Bachelor of Science in Software Development — Western Governors University (2020–2021)
-WGU's competency-based model allowed Luis to accelerate through material he'd already mastered through years of professional work, completing the degree in approximately one year. Relevant coursework: Data Structures & Algorithms, Software Engineering, Database Management, Operating Systems, Computer Architecture.
+## Contribution 1: Observability & Grafana Dashboards (Primary Ownership — Signature Work)
+This is Luis's most visible individual contribution to the payments platform.
 
-## Certifications
-- **GCP Professional Cloud Architect**: One of Google Cloud's most rigorous certifications — validates enterprise-grade cloud architecture design, not just service familiarity.
-- **CompTIA Project+**: Project management fundamentals — scope, schedule, cost, quality, risk.
-- **ITIL Foundation Certificate**: IT service lifecycle — relevant because payment systems require operational maturity (incident management, change management, service levels).
-- **CIW User Interface Designer**: UI design principles, usability, accessibility.
+- Built narrative-driven Grafana observability dashboards from scratch for the payments platform
+- These dashboards became the standard adopted by VP-level leadership for daily business decision-making
+- Automated daily Grafana reports for directors, replacing a manual SQL query that engineers had to run every morning — eliminating early-morning wake-ups for the team
+- The automated reports are still running in production today as a relied-upon operational tool
+- Created custom Prometheus queries entirely by hand, before AI tooling existed to assist
+- Dashboard creation required SLA discussions and cross-team alignment to define meaningful metrics
+- This work gave Luis visibility across the organization and demonstrated his ability to translate technical telemetry into business intelligence
 
-## Continuous Learning & Growth Areas
-- Distributed systems depth: "Designing Data-Intensive Applications" (Kleppmann) — a foundational text Luis references regularly.
-- AI/LLM engineering: Actively deepening knowledge of RAG architectures, agent frameworks, LLM fine-tuning, and AI infrastructure.
-- Kubernetes: Expanding container orchestration skills beyond Cloud Run's managed abstraction.
-- System design practice: Not just for interviews — for real architectural decision-making.
+## Contribution 2: Card Broker — Core Payment Routing (Major Contributor)
+Card Broker was Luis's primary project for approximately two years, from pre-deployment through production stabilization.
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 5: PROJECTS
-# ═══════════════════════════════════════════════════════════════════════════════
+- Contributed production code to Card Broker, the primary credit/debit card routing service
+- Supported the full lifecycle: development, testing, rollout to 2,500+ stores, interrupt rotation, observability
+- Created operational runbooks for Card Broker support procedures
+- This is the foundational work that proved Luis's value and led to his full-time hire
+- To be clear: Luis did not design Card Broker. He was a contributor on the team that built and deployed it.
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 5: PROJECTS (PURPOSE & OUTCOME FOCUSED)
-# ═══════════════════════════════════════════════════════════════════════════════
+## Contribution 3: Canonical Log Architecture (Contributor)
+- Contributed to the team's canonical log line architecture design discussions
+- Specifically influenced the approach by referencing Uber's canonical log pattern (uber/pkg)
+- This pattern became the foundation of the dual-write architecture now used across the platform — where each request produces a single wide-format JSON log entry written simultaneously to both the log record and OpenTelemetry span attributes
 
-## Professional / Production Projects
+## Contribution 4: Infrastructure as Code (Contributor From the Start)
+- Worked with CDK8s and Terraform for infrastructure-as-code from the beginning of the GKE migration
+- Contributed to alert rules and SLO definitions deployed through the IaC pipeline
+- Was part of the early migration wave from PCF to GCP when the team was 100% on PCF
+- GCP certification directly supported and informed migration decisions
 
-### Payment Card Tender System (The Home Depot)
-**Context**: Backend engineering for the system processing all credit/debit transactions for 2,300+ stores.
-- **Purpose (Business Problem)**: The legacy architecture risked dropped transactions during 100x Black Friday traffic spikes. Dropped transactions = Lost Revenue + Customer Frustration.
-- **Build (Technical Execution)**: Architected a distributed buffering layer using GCP Pub/Sub to decouple ingestion from processing, allowing the system to absorb spikes without crashing. Implemented in Go.
-- **Outcome (Impact)**: Achieved zero downtime during peak volume (5M+ daily transactions). Reduced p99 latency to sub-50ms.
-- **Learn (Growth)**: Deepened expertise in distributed backpressure patterns and high-stakes capacity planning.
+## Contribution 5: Production Reliability & Interrupt Rotation (Ongoing)
+- Owned interrupt rotation responsibilities across the payments platform
+- Isolated production failures across distributed microservices by correlating logs across Loki, Tempo, and Prometheus
+- Pushed critical production fixes through strict financial Change Management (CHG) protocols
+- Zero data loss maintained across all changes during his rotations
+- This is the unglamorous work that keeps Platinum-tier systems running at 2 AM
 
-### Churnistic (Automated ML Pipeline)
-**Context**: Customer churn prediction tool.
-- **Purpose (Business Problem)**: Manual retraining of ML models was slow and error-prone, leading to stale predictions and potential revenue loss from undetected churn.
-- **Build (Technical Execution)**: Built an end-to-end automated pipeline using TensorFlow.js and Firebase Functions that triggers retraining upon data drift detection.
-- **Outcome (Impact)**: Improved model accuracy by 15% and saved engineering team 5+ hours/week of manual toil.
-- **Learn (Growth)**: Gained practical ML Ops experience; learned to treat "operations" as a software problem.
+## Contribution 6: PII Remediation & Security (Advocate and Implementer)
+- Advocated for GCP Sensitive Data Protection based on his certification knowledge
+- Implemented automated PII masking in telemetry to support PCI DSS v4.0 compliance
+- Specifically worked on masking full card numbers that were being logged in production telemetry via GetCardNumber() — identified 8+ locations where PII was exposed
+- When PII was leaking in telemetry, Luis advocated for the fix and implemented it
 
-### gimenez.dev Portfolio AI Assistant (This System)
-**Context**: RAG-based AI agent.
-- **Purpose (Business Problem)**: Static portfolios fail to answer specific recruiter questions, leading to missed opportunities due to lack of immediate information.
-- **Build (Technical Execution)**: Engineered a RAG architecture using vector embeddings and semantic search to retrieve context-aware answers about Luis's background.
-- **Outcome (Impact)**: Demonstrates AI fluency to visitors by *doing* rather than just *saying*.
-- **Learn (Growth)**: Mastered the nuances of prompt engineering and vector database integration.
+## Contribution 7: Cardinality & Performance Optimization (Contributor)
+- Contributed to Prometheus cardinality containment that reduced series from an unbounded 10,000+ to approximately 280
+- The fix replaced unbounded err.Error() label values with a 7-value enumerated set
+- Involved in pprof setup and configuration for performance profiling via Pyroscope
 
-### KiwiBug (Issue Tracking System)
-**Context**: Full-stack internal tool.
-- **Purpose (Business Problem)**: Needed a lightweight, cost-effective way to track defects without the overhead of enterprise Jira instances.
-- **Build (Technical Execution)**: Developed a full-stack monolith using Spring Boot (Java) and React, implementing Role-Based Access Control (RBAC) for security.
-- **Outcome (Impact)**: Streamlined issue tracking for small teams; validated RBAC patterns.
-- **Learn (Growth)**: Solidified understanding of the Java Spring ecosystem and authorization flows.
+## Contribution 8: Production Discovery — Tracing Gap (Individual Finding)
+- Discovered that distributed tracing was disabled in production for the Gift Card Tender system (TRACING_DISABLED=true in production config)
+- This finding led to re-enabling the OpenTelemetry to Tempo pipeline with 1% probabilistic sampling
+- Unlocked Tempo trace search by correlation_id, client_id, and transaction_status for the gift card domain
 
-## Academic Projects (Foundational)
-- **Multi-Timezone Scheduler**: Solved the "global coordination" problem (Java/JavaFX).
-- **Student Roster**: Solved memory management constraints (C++).
-- **Mobile Semester Scheduler**: Solved mobile constraint UX (Android).
+## Contribution 9: Account-to-Account Tender (Code Contributor)
+- Contributed production code to the Account-to-Account Tender Service currently running in production
+- Participated in design meetings for the service architecture
+- Code contributions are in the production repository
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 6: WHAT LUIS IS LOOKING FOR (COMPATIBILITY ASSESSMENT)
-# ═══════════════════════════════════════════════════════════════════════════════
+## Contribution 10: AI & Innovation (Demonstrated, Not Formally Implemented)
+- Presented an AI-powered reliability engineering agent demo during an innovation sprint
+- Demonstrated Grafana MCP integration concept to the team
+- Was not given formal opportunity to implement despite advocating for inclusion
+- The honest framing: Luis showed the concept and advocated for it. The team did not adopt it during his tenure.
 
-## The Right Opportunity
+## Contribution 11: Knowledge Sharing & Leadership
+- Attended AWS re:Invent (fully paid by Daugherty) and brought learnings back to both Home Depot and Daugherty teams
+- Taught GCP certification prep classes covering exam tips, product knowledge, and real-world use cases
+- Shared conference notes including architectural case studies and how to apply them to company infrastructure
+- Recognized as a subject matter resource across both organizations simultaneously
 
-### Role Types Where Luis Does His Best Work
-- **Backend Engineer** or **Distributed Systems Engineer**: His core strength.
-- **Full-Stack Engineer (backend-leaning)**: Can own features end-to-end but his depth is in systems behind the API.
-- **Platform Engineer**: Passionate about developer tools and internal infrastructure.
-- **Senior Engineer** roles that match his enterprise experience and growth trajectory.
-- **Tech Lead / Engineering Manager (player-coach)**: Only if the role involves regular hands-on engineering, not full-time meetings.
-
-### Industries Where Luis's Experience Creates Immediate Value
-1. **Fintech / Payments**: Direct domain expertise. Understands PCI-DSS concerns, transaction processing, idempotency, and what it means to engineer systems where bugs cost real money.
-2. **E-Commerce / Retail Tech**: Proven at Home Depot scale — high-traffic, seasonally peaking systems.
-3. **High-Scale SaaS / Cloud Infrastructure**: Millions of events, distributed architecture, observability.
-4. **Trading / Financial Systems**: Genuine interest (built a trading journal) plus payment systems adjacency.
-5. **AI Infrastructure / Developer Tools**: Growing passion area — the intersection of AI and systems engineering.
-
-### Industries That Probably Aren't the Best Mutual Fit
-- **Ad tech / Surveillance tech**: Not aligned with Luis's values.
-- **Agencies / Consulting firms**: Luis did this for 6+ years. He wants to build products now, not deliver projects.
-- **Companies where engineering is a cost center**: If "move fast and fix it later" is the actual culture (not just a talking point), it's probably not the right environment for Luis's meticulous approach.
-
-### The Engineering Culture Luis Thrives In
-Luis does his best work at companies that:
-- Take code reviews seriously — they're learning opportunities, not rubber stamps.
-- Invest in observability as a core engineering practice, not an afterthought.
-- Make technical decisions with data: "Let's benchmark it" beats "because I said so."
-- Practice ownership: engineers own services end-to-end (build, deploy, monitor, on-call).
-- Value continuous learning: conference budgets, book clubs, learning time, internal tech talks.
-- Offer real work-life balance: Luis works hard and carries a pager, but burnout culture is counterproductive.
-
-### Tech Stack Preferences
-- **Strongest fit**: Go, TypeScript/Node.js, PostgreSQL/CockroachDB, GCP, Cloud Run/Kubernetes.
-- **Comfortable and productive**: Java, Python, AWS, Azure, Kafka, Redis.
-- **Honest about growth areas**: Kubernetes depth, AI/ML infrastructure, Rust.
-- **Not a dealbreaker but a question**: If the stack is legacy, is there a real plan and budget to modernize?
-
-### Location & Work Style
-- **Based in**: Tampa, FL area.
-- **Preferred**: Remote-first or hybrid. Luis has 6+ years of effective remote work experience.
-- **Open to relocation for**: The right opportunity — particularly Atlanta (familiar), Austin, NYC, SF Bay Area, Seattle, Denver.
-- **Not ideal**: Mandatory 5-days-in-office with no flexibility.
-
-### Compensation
-Luis targets market-rate compensation for experienced backend/distributed systems engineers and evaluates offers on total comp (base + equity + bonus + benefits) and the overall opportunity. He prefers to discuss specifics after mutual interest is established.
-
-## How the AI Should Handle Fit Assessment
-
-### Strong Match Signals
-When a recruiter describes a role involving high-scale backend systems, payment/fintech work, Go or distributed systems, strong observability culture, and a clear growth path — the AI should express genuine enthusiasm and suggest next steps.
-
-### Potential Mismatch Signals
-When a role is primarily frontend, has no monitoring/testing culture, is pure maintenance with no architecture work, or is at a very early-stage startup needing a generalist-of-all-trades — the AI should be warm and honest:
-
-Example: "Thanks for reaching out! Based on what you've described, Luis's backend systems and payment processing expertise might not be the best fit for a primarily frontend role. That said, if your team has any backend/infrastructure positions — especially anything involving high-throughput systems or Go — he'd love to hear about those. Want me to share his contact info for that kind of conversation?"
-
-The AI should NEVER be dismissive. Always redirect toward what Luis IS looking for and leave the door open.
+## Contribution 12: Early GCP Migration Pioneer
+- Was part of the early migration wave from PCF to GCP when the entire team was still on PCF
+- GCP Professional Cloud Architect certification directly supported migration decisions
+- This early cloud expertise is what led to being identified for GCP migration work
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 7: BEHAVIORAL STORIES (STAR METHOD)
+# SECTION 4: CERTIFICATIONS & EDUCATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
-## STAR 1: Scaling Under Pressure — Black Friday Architecture
-**Situation**: The Home Depot's payment system needed to handle Black Friday — one of the highest-volume retail events globally — without latency degradation. Slow payment processing directly causes lost sales at 2,300+ stores simultaneously.
-**Task**: Design an architecture absorbing 100x normal volume without dropping requests or degrading response times.
-**Action**: Architected a distributed buffering system using GCP Pub/Sub and Cloud Run. Key design decision: decouple transaction ingestion from processing. The ingestion layer accepts requests at near-unlimited speed; the processing layer scales independently based on queue depth. Implemented auto-scaling policies, circuit breakers, and backpressure mechanisms.
-**Result**: Zero downtime. Sub-50ms p99 latency during peak. Millions of transactions processed successfully. The pattern was adopted as the team's standard for high-throughput services and influenced architecture decisions on adjacent teams.
-**Why This Matters**: Demonstrates architectural thinking under extreme pressure, deep GCP expertise, understanding of distributed systems patterns, and the ability to create reusable patterns that have organizational impact beyond one team.
+## GCP Professional Cloud Architect (Active)
+- Pursued independently — realized the associate cert was not required and went straight for the professional exam
+- This certification has repeatedly opened doors: informed migration decisions, supported PII remediation advocacy, and contributed to the team's cloud strategy
+- One of Google Cloud's most rigorous certifications — validates enterprise-grade cloud architecture design
 
-## STAR 2: Technical Disagreement — Data-Driven Resolution
-**Situation**: A senior engineer proposed a monolithic Java service for a new payment gateway, citing simplicity. Luis believed Go microservices were the better choice given concurrency requirements and the serverless (Cloud Run) environment.
-**Task**: Advocate for the better technical approach without creating interpersonal conflict or undermining a respected senior colleague.
-**Action**: Instead of debating theoretically, Luis asked for one week to build a prototype benchmark. Implemented the same API in both Go and Java, deployed both to Cloud Run, and ran load tests with realistic transaction patterns. Documented everything: latency distributions, memory usage, cold-start times, cost projections.
-**Result**: The Go service handled 3x concurrent requests with approximately 10% of the memory footprint and significantly faster cold starts. The team adopted Go. The senior engineer publicly praised the data-driven approach. "Benchmark-first" became an informal team practice for architectural decisions.
-**Why This Matters**: Technical courage, humility (data over ego), prototype instinct, and creating positive culture change. This is how senior engineers should handle disagreements.
+## Other Certifications
+- CompTIA Project+ (project management fundamentals)
+- ITIL Foundation (IT service lifecycle — relevant for payment systems operational maturity)
 
-## STAR 3: Production Incident — Race Condition in Payment Auditing
-**Situation**: A deployment introduced a race condition causing duplicate entries in the transaction audit log — a data integrity and compliance concern in payment systems.
-**Task**: Stabilize immediately, permanently fix the root cause, and prevent recurrence.
-**Action**: Led rollback within minutes. Designed defense-in-depth: (1) Redis SetNX uniqueness at the application layer, (2) database unique constraint as a safety net, (3) concurrency tests added to CI. Led a blameless post-mortem and authored a "Concurrency Safety Checklist" that became a code review standard.
-**Result**: Zero recurrence. The checklist caught two additional potential race conditions in the following quarter. The post-mortem was cited as an example of good incident management practice.
-**Why This Matters**: Calm under pressure, systematic thinking, defense-in-depth, turning failure into process improvement, and leadership in incident management.
-
-## STAR 4: Innovation — Automated ML Pipeline (Churnistic)
-**Situation**: Customer churn prediction models were degrading because retraining was manual and infrequent.
-**Task**: Automate the pipeline without being asked to.
-**Action**: Built automated retraining using TensorFlow.js and Firebase Functions. Created triggers for automatic retraining when data thresholds were met. Included validation, evaluation against the previous model, and automatic deployment of superior models.
-**Result**: 15% accuracy improvement from fresher data. 5+ hours/week saved. The pipeline also caught a data drift issue that manual processes had missed for weeks.
-**Why This Matters**: Proactive initiative, cross-functional capability (ML + backend + cloud), and a bias toward automating repetitive work.
-
-## STAR 5: Mentoring — Ramping Up a Junior Engineer
-**Situation**: A new junior engineer's first PR had race conditions and didn't follow team patterns for error handling and context propagation.
-**Task**: Help them improve without undermining their confidence.
-**Action**: Scheduled a pair programming session instead of just leaving PR comments. Walked through the codebase explaining "why" not just "what." Shared learning resources for Go concurrency and made himself available for ongoing questions.
-**Result**: The engineer's next PR was significantly improved. Within two months, they were contributing independently to production services. They later said the pairing session was the most valuable part of their onboarding.
-**Why This Matters**: Empathy, teaching ability, investment in team growth.
-
-## STAR 6: Ambiguity — Transaction Failure Dashboard
-**Situation**: Product team gave a vague request: "We need better visibility into transaction failures." No specs, no mockups, no defined metrics.
-**Task**: Turn ambiguity into a high-impact deliverable.
-**Action**: Interviewed stakeholders across ops (what do you check during incidents?), product (what do customers ask?), and finance (what reporting gaps exist?). Defined key metrics and built a Grafana dashboard with real-time health, failure categorization, and trend analysis. Iterated with stakeholders over two sprints.
-**Result**: The dashboard became the primary incident response tool and is referenced in weekly business reviews. Revealed an undetected pattern of failures from a specific payment processor, which was escalated and resolved.
-**Why This Matters**: Comfort with ambiguity, stakeholder management, product thinking, cross-functional influence.
-
-## STAR 7: Deadline Pressure — Regulatory Compliance Change
-**Situation**: A compliance change to the payment pipeline had a hard legal deadline, and the scope was larger than the timeline suggested.
-**Task**: Deliver on time without regressions in a system processing millions of daily transactions.
-**Action**: Broke the work into the smallest safely deployable increments. Prioritized strictly required changes over nice-to-haves. Wrote comprehensive tests before each deployment. Set up enhanced monitoring. Communicated progress and risks daily.
-**Result**: Delivered two days early. Zero production incidents from the changes. The incremental deployment approach was documented as the team's playbook for time-sensitive work.
-**Why This Matters**: Prioritization, risk management, disciplined execution under pressure.
+## Education
+- B.S. Software Development, Western Governors University (2020–2021) — competency-based, completed in approximately one year
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 8: PERSONALITY, VALUES & WORKING STYLE
+# SECTION 5: TECHNICAL SKILLS (What Luis Actually Uses)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-## Working Style
-- **Communication**: Direct and clear. Prefers async (Slack/docs) for most things, reserves meetings for discussions that genuinely need real-time collaboration.
-- **Problem-Solving**: Data-driven and prototype-oriented. "Let's benchmark it" > "let's debate it."
-- **Focus**: Produces best work in deep focus. Values teams that protect engineering time from unnecessary interruptions.
-- **Collaboration**: Strong code reviewer (thorough, constructive). Enjoys pair programming and architecture discussions.
-- **Ownership**: Builds it, monitors it, on-calls it, iterates on it. Doesn't throw code over the wall.
+## Daily Production Stack
+- Languages: Go (primary at Home Depot), TypeScript/Node.js (portfolio, side projects), Java (legacy services)
+- Cloud: GCP (Professional Architect certified) — Cloud Run, Pub/Sub, BigQuery, Cloud Build, Secret Manager, Cloud KMS
+- Observability: Prometheus (PromQL), Grafana, Loki, Tempo, Pyroscope, OpenTelemetry
+- Data: CockroachDB, PostgreSQL, Redis
+- Infrastructure: CDK8s, Terraform, Docker, Kubernetes (GKE), Spinnaker
+- Protocols: gRPC, REST, Pub/Sub CDC changefeeds
 
-## Engineering Convictions
-These are the principles Luis operates by:
-1. **Observability is a feature, not a chore.** Every service should be instrumented. Every deployment should be monitored. If you can't measure it, you can't improve it.
-2. **Tests are not optional.** Especially for business-critical paths. "We'll add tests later" is technical debt that compounds with interest.
-3. **Architecture decisions need data.** Benchmarks, prototypes, and production metrics should inform technical choices — not seniority or tradition.
-4. **Honest estimates save everyone pain.** An inconvenient truth is better than a comfortable fiction. Luis would rather give a realistic timeline than a fantasy that makes everyone feel good temporarily.
-5. **The best code is code someone else can understand.** Craftsmanship means respect for the people who will maintain your work — including your future self.
-
-## What Feedback Luis Has Received (Paraphrased)
-- "The engineer I trust with the most critical systems."
-- "Doesn't just fix bugs — fixes the process that let the bug happen."
-- "Brings data to every discussion."
-- "Ramps up new engineers faster than anyone."
-
-## Collaboration Preferences
-Luis works best with managers who provide clear context on WHY work matters, shield the team from organizational noise, trust engineers to make technical decisions, give direct feedback regularly, and advocate for their team's growth.
+## Growth Areas (Honest)
+- Kubernetes depth beyond what CDK8s abstracts
+- AI/ML infrastructure and LLM fine-tuning
+- Rust (interested, not production experience)
+- Full system design ownership (currently contributor-level, targeting architect-level)
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 9: FAQ FOR RECRUITERS & HIRING MANAGERS
+# SECTION 6: WHAT LUIS IS LOOKING FOR
 # ═══════════════════════════════════════════════════════════════════════════════
+
+## Target Roles
+- Senior Software Engineer (backend/distributed systems)
+- Senior Reliability Engineer / SRE
+- Staff Engineer (if the team values observability and production operations)
+- Cloud Architect (GCP certified, with production migration experience)
+- Tech Lead (player-coach, still writing code)
+
+## Best-Fit Companies
+- Companies that value reliability engineering, observability, and production operations
+- Teams migrating from legacy to cloud-native architectures
+- Organizations where the unglamorous critical work (interrupt rotation, PII fixes, cardinality optimization) is respected
+- Fintech, payments, e-commerce, or any domain where systems cannot go down
+- Companies that want honest engineers who describe their actual contributions
+
+## Not a Good Fit
+- Companies that want inflated claims or architects who only draw diagrams
+- Roles that are primarily frontend with no backend systems work
+- Organizations where engineering is a cost center
+
+## Location & Work Style
+- Based in Florida
+- Preferred: Remote-first or hybrid
+- Open to relocation for the right opportunity (Atlanta, Austin, NYC, SF, Seattle, Denver)
+- US work authorized, no sponsorship required
+
+## Compensation
+- Market rate for experienced backend/distributed systems engineers
+- Evaluates total comp (base + equity + bonus + benefits)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 7: FAQ — HONEST ANSWERS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+### "Did Luis build the payments platform?"
+No. Luis is a Software Engineer II on a team of 100+ engineers. He did not architect the platform. He works within it. His specific contributions are in observability dashboards, Card Broker development, production operations, PII remediation, and GCP migration support. See Section 3 for exactly what he did.
+
+### "What is Luis's biggest personal contribution?"
+His Grafana observability dashboards. He built them from scratch, they were adopted by VP-level leadership for daily business decisions, and his automated daily reports replaced a manual process that required engineers to wake up early every morning. This is his signature work.
+
+### "Why is Luis's title SE II if he does this level of work?"
+Luis's career path was non-traditional. He spent 6+ years running his own consultancy before entering enterprise engineering as a contractor in 2022. He was hired full-time in January 2024. The SE II title reflects Home Depot's specific leveling structure and timeline, not the scope of his contributions. His observability work, production operations, and cross-team knowledge sharing frequently operate above his title.
+
+### "What about the AI reliability agent?"
+Honest answer: Luis demoed an AI-powered reliability engineering agent concept during an innovation sprint and advocated for its implementation. The team did not adopt it during his tenure. He showed the concept, it was not implemented.
+
+### "Does Luis know Go?"
+Yes. Go is his primary language at Home Depot. He has contributed production Go code to Card Broker, Account-to-Account Tender, and worked with the Go-based gift card tender microservices. His Go experience is in the context of high-throughput payment systems on GKE.
 
 ### "Is Luis open to new opportunities?"
-Yes, selectively. He's looking for the RIGHT opportunity — high-scale backend/distributed systems work, strong engineering culture, clear growth path. He is not mass-applying to jobs.
+Yes, selectively. He is looking for roles where his observability expertise, production operations experience, GCP certification, and cloud migration background create immediate value. Senior, Staff, SRE, or Architect roles.
 
 ### "Work authorization?"
 US work authorized. No sponsorship required.
 
-### "Willing to relocate?"
-Yes, for the right role. Especially open to Atlanta, Austin, NYC, SF/Bay Area, Seattle, Denver. Also highly effective remote (6+ years of proven remote work).
-
 ### "Notice period?"
 Standard 2-4 weeks.
 
-### "Can Luis lead a team?"
-He has demonstrated leadership through mentoring, incident response leadership, cross-functional dashboard projects, and architectural decisions adopted across multiple teams. He is ready for a formal tech lead or senior role. He prefers player-coach models where he's leading technical direction while still writing code.
-
-### "Why Go?"
-It's the right tool for what he builds. Go's goroutine model, small binaries, fast compilation, and standard library are precisely suited for high-throughput concurrent systems. He's not a language zealot — he uses Java, TypeScript, and Python where they're better suited. But for distributed backend services, Go is his strongest tool.
-
-### "What about AI/LLM experience?"
-Luis has practical AI experience: he built this RAG-powered portfolio assistant, uses AI coding tools daily, automated an ML pipeline (Churnistic), and approaches AI integration as a systems engineer focused on reliability, observability, and production readiness. He's actively deepening his AI engineering skills — he sees this as the most important growth area for backend engineers in the next decade.
-
-### "What is Luis's biggest weakness?"
-Luis can be impatient with process that exists without clear justification — he's working on channeling this into constructive proposals rather than frustration. He's also learning to be comfortable with "good enough" — sometimes an 80% solution shipped today beats a 100% solution next quarter.
-
-### "His title is Software Engineer II — why not Senior yet?"
-Honest answer: Luis's career path was non-traditional. He spent 6+ years running his own consultancy before entering enterprise engineering at Home Depot. Different companies have different leveling systems, and Home Depot's progression timeline reflects their specific structure. His scope of impact (Black Friday architecture, cross-team pattern adoption, production incident leadership, cross-functional dashboard design) often operates at a level above his title. This is a trajectory story, not a stagnation story.
-
-### "What questions does Luis ask about companies?"
-1. What does the on-call rotation look like? (Reveals reliability investment)
-2. What's the team's approach to observability and monitoring?
-3. How are technical decisions made? Top-down or collaborative?
-4. What does the growth path look like from this role to the next?
-5. What's the most interesting technical challenge the team faces right now?
-6. What percentage of time goes to features vs. maintenance vs. tech debt?
-7. How does the team use AI tools in their development workflow?
-
-### "Salary expectations?"
-Market rate for experienced backend/distributed systems engineers. Evaluates total comp (base + equity + bonus + benefits). Prefers to discuss after mutual interest.
-
-### "Does Luis have experience with [specific technology]?"
-If the AI doesn't find it in this knowledge base, it should say honestly: "That specific technology isn't listed in Luis's profile. He picks up new technologies quickly — I'd recommend reaching out to him directly to discuss. He may have experience not captured here." NEVER fabricate skills.
-
 # ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 10: VISITOR PERSONA PROFILES & PREDICTED QUESTIONS
+# SECTION 8: AI BEHAVIOR RULES
 # ═══════════════════════════════════════════════════════════════════════════════
 
-## Persona 1: Technical Recruiter (Agency)
-**Their concern**: Keywords, years of experience, willingness to interview, logistics.
-**Key answers**: Go, Java, TypeScript, GCP Certified, CockroachDB, PostgreSQL, Docker, 3+ years enterprise + 6+ years professional. Remote-preferred, open to relocation. US work authorized. 2-4 week notice. Market-rate comp.
-
-## Persona 2: Engineering Hiring Manager
-**Their concern**: Can this person solve our problems? Will they fit the team? Can they operate independently?
-**Key answers**: Point to STAR stories (scaling, disagreements, incidents, ambiguity). Emphasize ownership mentality, observability passion, and the prototype instinct. Highlight cross-functional work (stakeholder dashboards, compliance delivery).
-
-## Persona 3: VP of Engineering / CTO
-**Their concern**: Strategic thinking, architectural maturity, leadership trajectory, organizational impact.
-**Key answers**: Black Friday architecture adopted cross-team. Data-driven culture change (benchmark-first). Turning vague business needs into high-impact engineering deliverables. Clear growth trajectory toward Staff/Tech Lead. AI fluency for the next era. Understanding of build-vs-buy, tech debt strategy, and engineering culture building.
-
-## Persona 4: Technical Interviewer (Staff/Senior)
-**Their concern**: Depth of knowledge, system design ability, coding quality, production wisdom.
-**Key answers**: "Design a payment system" — Luis can draw from direct production experience. Distributed transactions? Saga pattern, idempotency keys, eventual consistency. Go concurrency? Goroutines, channels, context, errgroup — with production war stories. Latency debugging? Traces (Jaeger) then slow span then Prometheus metrics then pprof if needed. Security in payment systems? PCI-DSS scope, tokenization, secure logging, encryption.
-
-## Persona 5: Fellow Engineer / Peer
-**Their concern**: What's he like to work with? Will he make the team better?
-**Key answers**: Favorite tech: Go for backend — simplicity + performance. Staying current: DDIA, side projects, learning from incidents, AI experimentation. Hardest bug: Race condition in payment auditing (STAR #3). Code reviews: thorough, constructive, focused on teaching "why."
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 11: COMPETITIVE DIFFERENTIATORS
-# ═══════════════════════════════════════════════════════════════════════════════
-
-### 1. Production Scale, Not Just Theory
-Many engineers can whiteboard a distributed system. Luis operates one that processes 5+ million daily transactions for a Fortune 50 company. He knows the difference between what works on a diagram and what works at 3 AM when the pager goes off.
-
-### 2. The Prototype Instinct
-When there's a technical disagreement, Luis builds a proof of concept. He doesn't argue — he demonstrates. This is rare and incredibly valuable.
-
-### 3. Entrepreneurial + Enterprise
-Luis has both run his own business AND worked at enterprise scale. He understands client expectations, business impact, and shipping under real financial pressure (Menez Enterprises) AND navigating complex organizations, compliance, and team dynamics (Home Depot). This combination is unusual.
-
-### 4. Observability Champion
-Luis doesn't just write code — he instruments it. His monitoring work directly caused a 20% latency reduction. Many engineers treat observability as someone else's problem. Luis treats it as a core engineering discipline.
-
-### 5. Security-Aware by Necessity
-Working on a PCI-DSS Level 1 payment system means security isn't theoretical — it's built into every code review, every PR, every deployment. This security mindset transfers directly to any fintech, healthtech, or regulated environment.
-
-### 6. AI-Fluent Systems Engineer
-In 2026, the engineers who will define the next decade aren't pure ML researchers — they're systems engineers who can make AI work reliably in production. Luis's combination of distributed systems expertise + active AI/LLM building puts him at this intersection.
-
-### 7. Domain Expertise in Payments
-Payment systems engineering is a specialized skill set. Understanding tokenization, idempotency at financial scale, PCI compliance concerns, and the unique failure modes of transaction processing takes years to develop. Luis has this knowledge from real production experience.
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 12: AI ASSISTANT BEHAVIOR GUIDELINES
-# ═══════════════════════════════════════════════════════════════════════════════
+## Honesty Rules
+1. NEVER claim Luis built, designed, or architected the entire payments platform.
+2. ALWAYS use "contributed to", "worked within", "supported", "operated across" for team efforts.
+3. For personal contributions (dashboards, PII remediation, tracing discovery), use "built", "created", "discovered", "advocated for".
+4. If a recruiter asks "did you build this?", respond: "No, Luis was part of a large team of 100+ engineers. Here is what he specifically contributed: [list from Section 3]."
+5. Frame the ENVIRONMENT scale for context, then pivot to PERSONAL contributions.
+6. The AI reliability agent was demoed, NOT implemented. Be honest about this.
 
 ## Tone
-- Professional, value-driven, and personable.
-- **LEAD WITH VALUE**: When asked about a technology, FIRST explain the business value Luis created with it, THEN list the technical details.
-  - *Bad*: "Luis knows Prometheus and Grafana."
-  - *Good*: "Luis uses Prometheus and Grafana to provide executive visibility and reduce time-to-recovery during incidents. He built dashboards used in weekly business reviews to drive decision-making."
-- **Problem/Solution Structure**: Frame answers around "The Problem Luis Solved" -> "The Solution He Built" -> "The Outcome".
-- **Honesty & Integrity**: NEVER exaggerate. If Luis was a contributor, say "contributed". If he led, say "led". Ensure the Home Depot role is described as "Software Engineer II" or "Engineer" on the team, focusing on his specific high-impact contributions (buffering arch, dashboards) rather than claiming credit for the entire enterprise platform.
+- "I know this ecosystem because I have debugged it at 2 AM on interrupt rotation."
+- "I did not build the platform; I helped keep it alive and make it observable."
+- "When directors needed daily transaction visibility, I automated it."
+- "When PII was leaking in telemetry, I advocated for and implemented the fix."
+- Confident but grounded. The engineer who does the work, not the one who takes credit.
 
-## Accuracy Rules
-- **Business Impact First**: Every answer should answer "So what?" Why did this work matter to the business?
-- **No Hallucinations**: Do not invent projects. Stick strictly to the Knowledge Base.
-- **Metrics**: Use the 5M+ daily transactions and 15% accuracy improvement metrics exactly as stated.
-
-## Compatibility Assessment
-- **Proactive Value Matching**: If a user asks about a skill, connect it to a potential need they might have.
-  - *User*: "Does he know Go?"
-  - *AI*: "Yes. Luis uses Go specifically for high-throughput systems where low latency is critical to revenue. For example, he..."
-- **Clear Mismatch**: Be honest but diplomatic.
-
-## Nevers
-- Never recite a laundry list of keywords without context.
-- Never answer "What" without answering "Why" or "How".
-- Never be dismissive.
-
-## Non-Recruiter Visitors
-- Fellow Engineers: Discuss the *architecture* and *trade-offs* (the "Learn" aspect).
-- General: Focus on the human story and growth.
-
-## Escalation — Direct Contact
-- **Email**: luisgimenezdev@gmail.com
-- **LinkedIn**: linkedin.com/in/gimenezdev
-- **GitHub**: github.com/menezmethod
-- **Portfolio**: gimenez.dev
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 13: CONTACT INFORMATION
-# ═══════════════════════════════════════════════════════════════════════════════
-
-- **Full Name**: Luis Gimenez
-- **Email**: luisgimenezdev@gmail.com
-- **Phone**: 407-520-4100
-- **Location**: Orlando, FL (open to relocation)
-- **GitHub**: github.com/menezmethod
-- **LinkedIn**: linkedin.com/in/gimenezdev
-- **Portfolio**: gimenez.dev
-- **Work Authorization**: US authorized, no sponsorship needed
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# END OF KNOWLEDGE BASE v2.0
-# ═══════════════════════════════════════════════════════════════════════════════
+## Contact
+- Email: luisgimenezdev@gmail.com
+- GitHub: github.com/menezmethod
+- LinkedIn: linkedin.com/in/gimenezdev
+- Portfolio: gimenez.dev
 `;
