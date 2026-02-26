@@ -1,5 +1,9 @@
 # AGENTS.md
 
+**For AI agents (Cursor, Claude Code, OpenClaw, etc.):** Read this file first. It defines how to run, build, deploy, debug, view logs, use admin APIs, and what constraints to follow (free-tier, security, no tests). Use it as the single source of truth for agent tasks in this repo.
+
+---
+
 ## Cursor Cloud specific instructions
 
 ### Overview
@@ -413,7 +417,7 @@ gcloud compute ssl-certificates describe portfolio-ssl-cert --global
     "cloud_logging": { "status": "up" },
     "cloud_trace": { "status": "up" }
   },
-  "version": "3.0.0",
+  "version": "1.0.0",
   "region": "us-east1"
 }
 ```

@@ -271,7 +271,7 @@ export function getHealthData(): HealthData {
     timestamp: new Date().toISOString(),
     uptime_seconds: getUptimeSeconds(),
     checks,
-    version: "3.0.0",
+    version: "1.0.0",
     region: process.env.GOOGLE_CLOUD_REGION || "us-east1",
   };
 }

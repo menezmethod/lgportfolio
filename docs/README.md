@@ -9,4 +9,5 @@ Additional project documentation. For quick start and main reference, see the ro
 | [DEBUGGING_CHAT.md](./DEBUGGING_CHAT.md) | Chat / RAG debugging notes |
 | [DECISIONS.md](./DECISIONS.md) | Architecture and product decisions |
 | [QUESTIONS.md](./QUESTIONS.md) | Open questions and follow-ups |
-| [PLAN-CHAT-LOGGING.md](./PLAN-CHAT-LOGGING.md) | Plan: log all chat sessions for analytics (not yet implemented) |
+| [PLAN-CHAT-LOGGING.md](./PLAN-CHAT-LOGGING.md) | Chat session logging (implemented): Firestore, memory, engagement, admin |
+| [CHAT-SECRETS.md](./CHAT-SECRETS.md) | GCP Secret Manager: Firebase + admin secret setup for chat |

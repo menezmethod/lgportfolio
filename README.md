@@ -46,6 +46,10 @@ A Next.js portfolio with an AI-powered chat. Built with Next.js 16, TypeScript, 
 | IaC            | Terraform                           | Cloud Run, LB, WAF, secrets                 |
 | CI/CD          | Cloud Build                         | Push to `main` → build → deploy to Cloud Run |
 
+## For AI agents
+
+**Cursor, Claude Code, OpenClaw, and other AI coding agents:** Start with **[AGENTS.md](./AGENTS.md)**. It contains run/deploy/debug steps, admin and log access (UI + CLI + API), security and rate-limit rules, and repo layout. Use it as the canonical guide for any agent task in this repo.
+
 ## Prerequisites
 
 - Node.js 20.9+ (see `engines` in `package.json`; Next.js 16 requires 20.9+)

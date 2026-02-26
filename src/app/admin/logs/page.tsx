@@ -33,8 +33,6 @@ export default function AdminLogsPage() {
     }
   }, []);
 
-  const authHeader = () => ({ 'X-Admin-Secret': storedSecret || secret });
-
   const fetchLogs = useCallback(async () => {
     const token = storedSecret || secret;
     if (!token) {
@@ -46,7 +44,9 @@ export default function AdminLogsPage() {
     try {
       const params = new URLSearchParams({ limit: '100', minutes: String(minutes) });
       if (severity) params.set('severity', severity);
-      const res = await fetch(`/api/admin/logs?${params}`, { headers: authHeader() });
+      const res = await fetch(`/api/admin/logs?${params}`, {
+        headers: { 'X-Admin-Secret': token },
+      });
       if (res.status === 401) {
         setError('Invalid secret');
         return;
@@ -68,6 +68,8 @@ export default function AdminLogsPage() {
 
   useEffect(() => {
     if (storedSecret && entries.length === 0 && !loading) fetchLogs();
+    // Intentionally only re-run when storedSecret changes (initial load); adding fetchLogs/loading/entries would re-fetch on every state change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storedSecret]);
 
   const logout = () => {
