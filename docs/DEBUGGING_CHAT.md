@@ -2,6 +2,18 @@
 
 ## Where to look
 
+### 0. War Room + Cloud Logging (when chat shows "Failed to get response")
+
+1. **War Room** (`/war-room`): The **Recent errors** section lists the last 20 server-recorded errors (endpoint, status, message, trace_id). Use **Explain with AI** on an error row to send it to the same Inferencia endpoint and get a plain-language explanation and fix suggestions.
+2. **Cloud Logging** (below): Use the trace_id from the error (or from the response header `X-Trace-Id`) to find the full request in Logs Explorer.
+
+In GCP Console → **Logging** → **Logs Explorer**, filter by:
+
+- `resource.type="cloud_run_revision"` and `resource.labels.service_name="lgportfolio"`
+- Add: `jsonPayload.endpoint="/api/chat"` or `textPayload=~"Chat"` to see chat requests and errors.
+
+Check for 429 (rate limit), 503 (LLM/config or inference error), and `severity=ERROR` for stack traces. Trace IDs are in `jsonPayload.trace_id` and in the response header `X-Trace-Id` for correlating with client errors.
+
 ### 1. Terminal (Next.js dev server)
 
 When you send a message, you should see logs like:

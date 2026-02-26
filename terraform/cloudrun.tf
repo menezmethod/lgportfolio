@@ -154,3 +154,10 @@ resource "google_cloud_run_v2_service_iam_member" "public" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
+# Allow Cloud Run service account to read logs (for admin /admin/logs UI)
+resource "google_project_iam_member" "portfolio_logging_viewer" {
+  project = var.project_id
+  role    = "roles/logging.viewer"
+  member  = "serviceAccount:${google_service_account.portfolio.email}"
+}
