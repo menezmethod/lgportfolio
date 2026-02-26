@@ -69,7 +69,7 @@ steps:
       - "--set-env-vars"
       - "NODE_ENV=production,NEXT_TELEMETRY_DISABLED=1,PORT=8080"
       - "--set-secrets"
-      - "INFERENCIA_API_KEY=inferencia-api-key:latest,INFERENCIA_BASE_URL=inferencia-base-url:latest"
+      - "INFERENCIA_API_KEY=inferencia-api-key:latest,INFERENCIA_BASE_URL=inferencia-base-url:latest,FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account:latest,ADMIN_SECRET=admin-secret:latest"
 
 substitutions:
   _REGION: us-east1
