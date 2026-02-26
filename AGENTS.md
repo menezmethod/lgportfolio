@@ -27,6 +27,8 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 - `npm run build` — production build (standalone output for Cloud Run)
 - `npm run lint` — ESLint (currently 0 errors, 0 warnings)
 
+**Verify before commit / after changes:** Run `npm run build`, `npm run lint`, and `cd terraform && terraform init -input=false && terraform validate`. All must pass.
+
 ### Key routes
 
 | Route | Type | Description |
@@ -140,15 +142,15 @@ Ensure **`GOOGLE_CLOUD_PROJECT`** is set in production so the logs API can call 
 
 ### Budget kill switch ($10)
 
-If spend approaches or passes **$10**, run the kill switch to stop traffic and avoid further cost:
+**Automatic (when budget is in Terraform):** If `billing_account_id` and `budget_alert_email` are set in `terraform.tfvars` and you apply, a **$10 budget** is created with email alerts at 50%, 90%, and 100%. Budget alerts are also published to Pub/Sub; a **Cloud Function** (`budget-kill`) subscribes and **automatically** sets Cloud Run **max-instances=0** when a threshold is exceeded. No manual step required — e.g. if you're away and traffic or abuse spikes, the function scales the service to zero and stops request-driven cost. See `terraform/budget.tf` and `terraform/budget-kill.tf`.
+
+**Manual:** If the budget isn't configured in Terraform, or you want to run the same action by hand:
 
 ```bash
 ./scripts/disable-project-spend.sh
 ```
 
-This sets Cloud Run **max instances to 0** (no more request-driven cost). The ALB and other resources remain; to stop **all** billing you must [unlink the project from the billing account](https://console.cloud.google.com/billing) (manual, Billing Admin only).
-
-- **Recommended:** Create a **$10 billing budget** with email alerts at 50%, 90%, and 100%. When you get the alert, run the script (or unlink billing for full stop). Optional Terraform: set `billing_account_id` in `terraform.tfvars` (get ID: `gcloud billing accounts list`) and apply — see `terraform/budget.tf`. Otherwise create a budget in [Console → Billing → Budgets](https://console.cloud.google.com/billing/budgets).
+This sets Cloud Run **max instances to 0**. The ALB and other resources remain; to stop **all** billing you must [unlink the project from the billing account](https://console.cloud.google.com/billing) (manual, Billing Admin only).
 
 ---
 

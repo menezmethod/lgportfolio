@@ -37,6 +37,10 @@ terraform {
       source  = "hashicorp/google-beta"
       version = "~> 5.0"
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.0"
+    }
   }
 }
 
@@ -59,6 +63,10 @@ locals {
     "secretmanager.googleapis.com",
     "compute.googleapis.com",
     "certificatemanager.googleapis.com",
+    "pubsub.googleapis.com",
+    "cloudfunctions.googleapis.com",
+    "eventarc.googleapis.com",
+    "cloudbuild.googleapis.com",
   ]
 }
 

@@ -71,11 +71,12 @@ steps:
       - "--set-secrets"
       - "INFERENCIA_API_KEY=inferencia-api-key:latest,INFERENCIA_BASE_URL=inferencia-base-url:latest,FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account:latest,ADMIN_SECRET=admin-secret:latest"
 
+# Set _GA_MEASUREMENT_ID in the Cloud Build trigger if you use Google Analytics 4.
 substitutions:
   _REGION: us-east1
   _SERVICE_NAME: lgportfolio
   _AR_REPO: portfolio
-  _GA_MEASUREMENT_ID: "G-5E53HSER91"
+  _GA_MEASUREMENT_ID: ""
 
 options:
   logging: CLOUD_LOGGING_ONLY
