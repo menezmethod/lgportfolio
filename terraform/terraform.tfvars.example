@@ -1,0 +1,8 @@
+# Copy this file to terraform.tfvars and fill in your values.
+# NEVER commit terraform.tfvars — it contains secrets.
+
+project_id          = "your-gcp-project-id"
+region              = "us-east1"
+domain              = "gimenez.dev"
+inferencia_api_key  = "your-inferencia-api-key"
+inferencia_base_url = "https://your-inferencia-endpoint.com/v1"

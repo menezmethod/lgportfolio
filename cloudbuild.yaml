@@ -30,7 +30,7 @@ steps:
       - "--all-tags"
       - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/app"
 
-  # Deploy to Cloud Run with free-tier-safe settings
+  # Deploy to Cloud Run (ingress restricted to ALB + internal only)
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: "gcloud"
     args:
@@ -44,6 +44,8 @@ steps:
       - "--platform"
       - "managed"
       - "--allow-unauthenticated"
+      - "--ingress"
+      - "internal-and-cloud-load-balancing"
       - "--memory"
       - "512Mi"
       - "--cpu"
