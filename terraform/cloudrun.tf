@@ -79,10 +79,7 @@ resource "google_cloud_run_v2_service" "portfolio" {
         container_port = 8080
       }
 
-      env {
-        name  = "PORT"
-        value = "8080"
-      }
+      # PORT is reserved; Cloud Run sets it automatically (8080).
       env {
         name  = "NODE_ENV"
         value = "production"
