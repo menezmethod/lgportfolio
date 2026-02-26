@@ -45,7 +45,7 @@ A Next.js portfolio with an AI-powered chat. Built with Next.js 16, TypeScript, 
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 20.9+ (see `engines` in `package.json`; Next.js 16 requires 20.9+)
 - **Chat:** Inferencia API key (contact admin or set up your own OpenAI-compatible endpoint). Required for `/api/chat`.
 - **Optional:** Google Gemini API key for RAG embeddings when using Supabase. Get one at https://aistudio.google.com/apikey
 - **Optional:** Supabase project for vector-backed RAG (otherwise the app uses the local knowledge file).
@@ -160,6 +160,14 @@ All deployment is **Cloud Build → Cloud Run**. Push to `main` triggers build a
 | `npm run build`| Production build   |
 | `npm run start`| Production server  |
 | `npm run lint` | ESLint             |
+
+## Production readiness
+
+- **Build:** `output: "standalone"` for minimal Cloud Run image; `npm run build` must pass.
+- **Security:** Security headers (CSP, HSTS, X-Frame-Options) in `next.config.ts`; rate limiting and prompt-injection defense in chat; secrets via GCP Secret Manager in prod.
+- **Health:** `/api/health` used by uptime checks; returns 503 when degraded.
+- **Telemetry:** Structured JSON logs to stdout (Cloud Logging); trace IDs for Cloud Trace; in-memory metrics for War Room.
+- **Node:** `engines.node` set to `>=20.9.0`; use same major in Cloud Run/Docker for consistency.
 
 ## Author
 

@@ -18,6 +18,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 
 ### Running the app
 
+- **Node:** 20.9+ required (see `engines` in `package.json`).
 - `npm run dev` — starts dev server on port 3000
 - `npm run build` — production build (standalone output for Cloud Run)
 - `npm run lint` — ESLint (currently 0 errors, 0 warnings)

@@ -38,11 +38,19 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# IDE
+# IDE / editors
 .idea/
 .vscode/
+.cursor/
+*.iml
+*.ipr
+*.iws
+*.sublime-project
+*.sublime-workspace
+.history/
 *.swp
 *.swo
+*~
 
 # Terraform
 terraform/.terraform/

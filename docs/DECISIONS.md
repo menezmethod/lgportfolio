@@ -1,12 +1,12 @@
 # Portfolio Rebuild Decisions
 
 ## Project Setup
-- **Framework:** Next.js 15 App Router with TypeScript
+- **Framework:** Next.js 16 App Router with TypeScript (Node 20.9+)
 - **Styling:** Tailwind CSS with original site colors preserved (#32c0f4 cyan, #e97124 orange)
-- **AI Chat:** Vercel AI SDK + Google Gemini 2.0 Flash (free tier)
+- **AI Chat:** AI SDK + Inferencia (OpenAI-compatible); optional Gemini/Anthropic fallbacks
 - **RAG:** Supabase pgvector scaffolded (optional - falls back to static context)
 - **Infrastructure:** GCP Cloud Run via Terraform
-- **CI/CD:** GitHub Actions with Workload Identity
+- **CI/CD:** Cloud Build (push to `main` → build & deploy to Cloud Run)
 
 ## Branch Strategy
 - Working branch: `main` (per directive)
@@ -14,12 +14,12 @@
 
 ## Key Decisions
 1. Used original site colors (#32c0f4 cyan for primary, #e97124 orange for secondary) adapted to dark theme
-2. Implemented Vercel AI SDK for streaming chat responses
-3. Created comprehensive rate limiting to stay within Gemini free tier (10 RPM, 1000 RPD)
+2. Implemented AI SDK for streaming chat (Inferencia API)
+3. Created comprehensive rate limiting (per-IP, session cap, daily budget)
 4. Pre-seeded cache for 9 common questions to avoid burning API calls
 5. Session-based message cap (20/session) to manage usage
 6. Architecture page as case study - showing RAG pipeline, cost breakdown, infrastructure diagrams
-7. Edge runtime for chat API for better performance
+7. Chat API uses Node.js runtime (full API access for RAG/inference)
 8. No maxTokens in streamText - relies on system prompt for length control
 9. String concatenation instead of template literals for cached responses (avoided parsing issues)
 
@@ -42,7 +42,7 @@
 - [x] Chat API with rate limiting and caching
 - [x] RAG pipeline scaffolded
 - [x] Terraform IaC complete
-- [x] GitHub Actions CI/CD configured
+- [x] Cloud Build CI/CD (push to main → deploy)
 - [x] Dockerfile for containerization
 - [x] Comprehensive README and SETUP.md
 
@@ -50,11 +50,11 @@
 - All Next.js app pages with dark theme
 - src/lib/rate-limit.ts - Rate limiting + response caching
 - src/lib/rag.ts - RAG retrieval logic
-- src/app/api/chat/route.ts - Gemini streaming API
+- src/app/api/chat/route.ts - Chat API (Inferencia)
 - src/app/api/rag/route.ts - RAG context retrieval
 - src/app/architecture/page.tsx - Architecture case study
 - terraform/main.tf - GCP Cloud Run IaC
-- .github/workflows/deploy.yml - CI/CD pipeline
+- cloudbuild.yaml - Cloud Build deploy
 - README.md - Comprehensive documentation
 - SETUP.md - Step-by-step setup instructions
 - QUESTIONS.md - Questions for Luis post-build
