@@ -41,7 +41,7 @@ const projects: Project[] = [
     challenge: 'Static portfolios fail to answer specific questions. Cloud LLM APIs are expensive at scale and leak context to third parties.',
     solution: 'Engineered a full RAG pipeline: local knowledge base, optional Supabase pgvector for semantic search, self-hosted inference via Inferencia (OpenAI-compatible). Deployed on GCP Cloud Run with Terraform IaC.',
     impact: 'Live production system demonstrating RAG architecture, edge-first AI thinking, and GCP deployment. Operational cost under $2/month.',
-    stack: ['Next.js 16', 'TypeScript', 'Vercel AI SDK', 'Supabase pgvector', 'Terraform', 'Cloud Run', 'Docker'],
+    stack: ['Next.js 16', 'TypeScript', 'AI SDK', 'Supabase pgvector', 'Terraform', 'Cloud Run', 'Docker'],
     architecture: 'RAG + Self-Hosted LLM on Cloud Run',
     gcp: 'Cloud Run, Artifact Registry, Secret Manager, Terraform',
     github: 'https://github.com/menezmethod/lgportfolio',

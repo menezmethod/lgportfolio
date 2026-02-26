@@ -1,6 +1,6 @@
 # Luis Gimenez Portfolio
 
-A Next.js portfolio with an AI-powered chat. Built with Next.js 16, TypeScript, and Tailwind. The chat is backed by an OpenAI-compatible API (Inferencia) with a RAG-style knowledge base, and the site showcases cloud architecture and deployment (GCP, Terraform, Docker).
+A Next.js portfolio with an AI-powered chat. Built with Next.js 16, TypeScript, and Tailwind. The chat is backed by an OpenAI-compatible API (Inferencia) with a RAG-style knowledge base. **Fully hosted on GCP Cloud Run** (no Vercel, Cloudflare, or other hosts).
 
 ## Target roles
 
@@ -16,11 +16,18 @@ A Next.js portfolio with an AI-powered chat. Built with Next.js 16, TypeScript, 
 - **Response caching:** Pre-seeded cache for common questions to reduce API usage.
 - **Architecture showcase:** Dedicated architecture page.
 - **Responsive design:** Mobile-first, dark theme.
-- **Infrastructure:** Terraform for GCP Cloud Run, Docker, Cloud Build (auto-deploy on push to main).
+- **Infrastructure:** 100% GCP — Terraform, Cloud Run (prod + preview), Cloud Build. No Vercel or Cloudflare.
+
+## Environments (Cloud Run)
+
+| Environment | URL / purpose |
+|-------------|----------------|
+| **Production** | https://gimenez.dev — main branch, Cloud Build deploy to Cloud Run behind ALB + Cloud Armor |
+| **Preview** | Optional Cloud Run preview revisions or branch deploys; configure in Cloud Build triggers if needed |
 
 ## Live site
 
-**URL:** https://gimenez.dev
+**Production:** https://gimenez.dev
 
 ## Tech stack
 
@@ -29,12 +36,12 @@ A Next.js portfolio with an AI-powered chat. Built with Next.js 16, TypeScript, 
 | Framework      | Next.js 16 (App Router)              | SSR/SSG, API routes, RSC                   |
 | Language       | TypeScript                          | Type safety                                |
 | Styling        | Tailwind CSS                        | Utility-first                              |
-| AI chat        | Vercel AI SDK + Inferencia API      | OpenAI-compatible; single provider         |
+| AI chat        | AI SDK + Inferencia API             | OpenAI-compatible; single provider         |
 | RAG / context  | Local knowledge + optional Supabase | File-based by default; pgvector optional  |
 | Embeddings     | Gemini text-embedding-004           | Only when Supabase RAG is configured       |
-| Hosting        | GCP Cloud Run                       | Scale-to-zero, Terraform                   |
-| IaC            | Terraform                           | Cloud Run, secrets, etc.                   |
-| CI/CD          | Cloud Build (auto-deploy)            | Push to `main` → build amd64 image, deploy with secrets |
+| Hosting        | GCP Cloud Run                       | Production + preview; scale-to-zero        |
+| IaC            | Terraform                           | Cloud Run, LB, WAF, secrets                 |
+| CI/CD          | Cloud Build                         | Push to `main` → build → deploy to Cloud Run |
 
 ## Prerequisites
 
@@ -73,7 +80,7 @@ Open [http://localhost:3000](http://localhost:3000). Chat is at [http://localhos
 | `CHAT_MAX_RPM_PER_IP` | No | Per-IP rate limit (default: 3) |
 | `CHAT_MAX_MESSAGES_PER_SESSION` | No | Session message cap (default: 20) |
 | `CHAT_DAILY_BUDGET` | No | Daily request budget (default: 900) |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Optional | Google Analytics 4 (no Vercel analytics) |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Optional | Google Analytics 4 |
 
 See `.env.example` for the full list. In production (Cloud Run), Inferencia keys come from GCP Secret Manager via the deploy step; see [AGENTS.md](./AGENTS.md) and [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md).
 
@@ -138,12 +145,11 @@ docker run -p 3000:3000 \
   lgportfolio
 ```
 
-## GCP deployment
+## Deployment (GCP Cloud Run only)
 
-Deployment is **Cloud Build only** (no GitHub Actions, Vercel, or Cloudflare). Push to `main` triggers Cloud Build → build image → deploy to Cloud Run. See [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md) and [AGENTS.md](./AGENTS.md).
+All deployment is **Cloud Build → Cloud Run**. Push to `main` triggers build and deploy to the production Cloud Run service (gimenez.dev). No GitHub Actions, Vercel, or Cloudflare — disconnect any such integrations from this repo so only Cloud Build runs.
 
-If you see Vercel or Cloudflare checks on PRs, disconnect those integrations in **GitHub → Settings → Integrations** (or in the Vercel/Cloudflare dashboards) so only GCP Cloud Build runs.
-
+- **Docs:** [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md), [AGENTS.md](./AGENTS.md)
 - **Terraform (infra only):** `cd terraform && terraform init && terraform plan -var="project_id=YOUR_PROJECT" && terraform apply`
 
 ## Scripts
