@@ -1,6 +1,6 @@
 # Plan: Log All Chat Sessions (Analytics)
 
-**Status:** Planning only — do not implement until reviewed.  
+**Status:** Implemented (February 2026).  
 **Goal:** Log all chat sessions for analytics while preserving security and privacy.  
 **Constraint:** Use only GCP-hosted services (no Supabase or other third-party DBs).
 
@@ -24,10 +24,16 @@ Recommendation: **Firestore for session records** (free tier, server-side only, 
 - Chat route logs: trace_id, latency, cache_hit, status. No full message content. Prompt-injection blocks are logged without user content (security fix applied).
 - War Room / telemetry: in-memory metrics only; no persistent session store.
 
-## Next steps
+## Implemented
 
-1. Decide scope: session-level only vs. message-level (and if message-level, what fields; still no content).
-2. Add Firestore (or chosen GCP DB) to Terraform; create collection/table and indexes.
-3. In chat route: after each request, write session summary to Firestore (and optionally log to Cloud Logging).
-4. Implement server-side only; no client-side analytics for chat content without consent.
-5. Document in privacy policy if any session data is stored.
+1. **Scope:** Session-level analytics (no message content in `chat_sessions`); conversation memory in `chat_memory` (role + content for context only).
+2. **Firestore:** `src/lib/firestore.ts` — collections `chat_sessions`, `chat_memory`. No Terraform (Firestore already in use); set `FIREBASE_SERVICE_ACCOUNT_JSON` from Secret Manager in Cloud Run.
+3. **Chat route:** Writes session summary after each request; appends user+assistant to memory for streaming responses; cache hits also persisted.
+4. **Server-side only;** client sends `session_id` (generated once per tab).
+5. **Engagement:** Dynamic session limits (default 10, up to 25 when engaged). Optional recruiter email capture via "Email me this conversation" and `/api/chat/save-email`.
+6. **Admin:** `/admin/conversations` — list sessions and view full conversation (read-only), protected by `ADMIN_SECRET`.
+
+## Next steps (optional)
+
+- Document in privacy policy that session metadata and conversation memory are stored (GCP Firestore).
+- Add Terraform for Firestore indexes if query patterns grow.

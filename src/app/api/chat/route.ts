@@ -16,6 +16,13 @@ import {
   increment,
   addEvent,
 } from "@/lib/telemetry";
+import {
+  getDb,
+  getSessionMemory,
+  getSessionStats,
+  appendSessionMemory,
+  writeSessionSummary,
+} from "@/lib/firestore";
 
 export const maxDuration = 30;
 
@@ -39,6 +46,67 @@ function jsonError(status: number, error: string, message: string, traceId?: str
   return new Response(JSON.stringify({ error, message }), {
     status,
     headers: SECURITY_HEADERS,
+  });
+}
+
+function wrapStreamForPersistence(
+  body: ReadableStream<Uint8Array>,
+  params: {
+    sessionId: string;
+    userContent: string;
+    totalDurationMs: number;
+    traceId: string;
+    ragDurationMs: number;
+  }
+): ReadableStream<Uint8Array> {
+  const decoder = new TextDecoder();
+  let buffer = "";
+  const reader = body.getReader();
+  return new ReadableStream({
+    async pull(controller) {
+      const { done, value } = await reader.read();
+      if (done) {
+        let assistantText = "";
+        const lines = buffer.split("\n");
+        for (const line of lines) {
+          if (line.startsWith("0:")) {
+            try {
+              const data = JSON.parse(line.slice(2)) as { text?: string };
+              if (data.text) assistantText += data.text;
+            } catch {
+              /* ignore */
+            }
+          }
+        }
+        if (!assistantText && buffer.trim()) assistantText = buffer.trim();
+        const db = getDb();
+        if (db && assistantText) {
+          appendSessionMemory(params.sessionId, [
+            { role: "user", content: params.userContent },
+            { role: "assistant", content: assistantText },
+          ]).catch(() => {});
+          getSessionStats(params.sessionId).then((stats) => {
+            writeSessionSummary({
+              sessionId: params.sessionId,
+              messageCount: stats.message_count + 1,
+              cacheHits: stats.cache_hits,
+              rateLimited: false,
+              status: "ok",
+              totalDurationMs: params.totalDurationMs,
+              traceId: params.traceId,
+              engagementScore: stats.message_count + 1,
+            }).catch(() => {});
+          });
+        }
+        controller.close();
+        return;
+      }
+      controller.enqueue(value);
+      buffer += decoder.decode(value, { stream: true });
+    },
+    cancel() {
+      reader.cancel();
+    },
   });
 }
 
@@ -75,11 +143,49 @@ export async function POST(req: Request) {
       return jsonError(400, "Bad request", "Invalid JSON body.", traceId);
     }
 
-    const { messages: rawMessages } = body as { messages: unknown };
+    const { messages: rawMessages, session_id: sessionId } = body as { messages: unknown; session_id?: string };
+
     const validation = validateMessages(rawMessages);
     if (!validation.safe || !validation.parsed) {
       recordRequest("/api/chat", "POST", 400, Date.now() - requestStart);
       return jsonError(400, "Bad request", validation.reason || "Invalid messages.", traceId);
+    }
+
+    const defaultSessionLimit = parseInt(process.env.CHAT_MAX_MESSAGES_PER_SESSION || "10", 10);
+    const engagedSessionLimit = parseInt(process.env.CHAT_ENGAGED_SESSION_LIMIT || "25", 10);
+    const engagementThreshold = parseInt(process.env.CHAT_ENGAGEMENT_THRESHOLD || "5", 10);
+
+    if (sessionId && getDb()) {
+      const stats = await getSessionStats(sessionId);
+      const atDefaultLimit = stats.message_count >= defaultSessionLimit;
+      const atEngagedLimit = stats.message_count >= engagedSessionLimit;
+      const isEngaged = stats.engagement_score >= engagementThreshold;
+      if (atEngagedLimit || (atDefaultLimit && !isEngaged)) {
+        recordRequest("/api/chat", "POST", 429, Date.now() - requestStart);
+        recordChatMetrics({ durationMs: 0, ragDurationMs: 0, cacheHit: false, rateLimited: true });
+        return jsonError(
+          429,
+          "Session limit",
+          `Session limit reached (${stats.message_count}/${isEngaged ? engagedSessionLimit : defaultSessionLimit}). Contact Luis at luisgimenezdev@gmail.com to continue.`,
+          traceId
+        );
+      }
+    }
+
+    let messagesForModel = validation.parsed.map((m) => ({
+      role: m.role as "user" | "assistant",
+      content: m.content,
+    }));
+
+    if (sessionId && getDb()) {
+      const memory = await getSessionMemory(sessionId);
+      if (memory.length > 0 && validation.parsed.length <= 2) {
+        const lastIncoming = validation.parsed[validation.parsed.length - 1];
+        const lastIsUser = lastIncoming?.role === "user";
+        if (lastIsUser) {
+          messagesForModel = [...memory.map((m) => ({ role: m.role, content: m.content })), ...messagesForModel];
+        }
+      }
     }
 
     const lastUserContent = validation.parsed.filter((m) => m.role === "user").pop()?.content || "";
@@ -105,6 +211,26 @@ export async function POST(req: Request) {
       const duration = Date.now() - requestStart;
       recordRequest("/api/chat", "POST", 200, duration);
       recordChatMetrics({ durationMs: duration, ragDurationMs: 0, cacheHit: true, rateLimited: false });
+      if (sessionId && getDb()) {
+        const userMsg = validation.parsed.filter((m) => m.role === "user").pop();
+        if (userMsg) {
+          appendSessionMemory(sessionId, [
+            { role: "user", content: userMsg.content },
+            { role: "assistant", content: cached },
+          ]).catch(() => {});
+          const stats = await getSessionStats(sessionId);
+          writeSessionSummary({
+            sessionId,
+            messageCount: stats.message_count + 1,
+            cacheHits: stats.cache_hits + 1,
+            rateLimited: false,
+            status: "ok",
+            totalDurationMs: duration,
+            traceId,
+            engagementScore: stats.message_count + 1,
+          }).catch(() => {});
+        }
+      }
       log("INFO", "Chat response (cache hit)", {
         trace_id: traceId,
         endpoint: "/api/chat",
@@ -116,9 +242,9 @@ export async function POST(req: Request) {
       });
     }
 
-    // RAG retrieval span
+    // RAG retrieval span (topK=8 for enterprise context)
     const ragStart = Date.now();
-    const context = await retrieveContext(sanitizedContent);
+    const context = await retrieveContext(sanitizedContent, 8);
     const ragDurationMs = Date.now() - ragStart;
     incrementDailyCount();
 
@@ -159,17 +285,12 @@ ${context}`;
     const model = process.env.INFERENCIA_CHAT_MODEL || DEFAULT_CHAT_MODEL;
     const openai = createOpenAI({ baseURL, apiKey });
 
-    const safeMessages = validation.parsed.map((m) => ({
-      role: m.role as "user" | "assistant",
-      content: m.content,
-    }));
-
     // Inference span
     const inferenceStart = Date.now();
     const result = await streamText({
       model: openai.chat(model),
       system: systemPrompt,
-      messages: safeMessages,
+      messages: messagesForModel,
       maxRetries: 1,
       maxOutputTokens: 500,
       temperature: 0.5,
@@ -198,7 +319,19 @@ ${context}`;
       cache_hit: false,
     });
 
-    return new Response(response.body, {
+    const userMsgForMemory = validation.parsed.filter((m) => m.role === "user").pop();
+    const streamBody =
+      sessionId && getDb() && userMsgForMemory
+        ? wrapStreamForPersistence(response.body, {
+            sessionId,
+            userContent: userMsgForMemory.content,
+            totalDurationMs: totalDuration,
+            traceId,
+            ragDurationMs,
+          })
+        : response.body;
+
+    return new Response(streamBody, {
       headers: {
         ...Object.fromEntries(response.headers.entries()),
         "X-Content-Type-Options": "nosniff",
