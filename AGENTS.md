@@ -6,6 +6,16 @@
 
 This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature and live War Room observability dashboard. Single Next.js process deployed on **GCP Cloud Run** behind a **Global External Application Load Balancer** with Cloud CDN and Cloud Armor.
 
+### Deployment (auto-deploy on)
+
+**Push to `main` = deploy.** Cloud Build is connected to the repo; each push to `main` triggers a build that:
+
+1. Builds the Docker image (Dockerfile uses `--platform=linux/amd64` for Cloud Run).
+2. Pushes to Artifact Registry (`portfolio/app`).
+3. Deploys to Cloud Run with `--set-secrets` for `INFERENCIA_API_KEY` and `INFERENCIA_BASE_URL` from Secret Manager.
+
+So: **code, docs, and build fixes → commit and push to main**; the next build will deploy. No need to run Terraform for app-only changes. Use Terraform only when changing infrastructure (LB, WAF, DNS, monitoring). Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`); no Vercel analytics.
+
 ### Running the app
 
 - `npm run dev` — starts dev server on port 3000
@@ -32,7 +42,8 @@ This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature 
 
 - Copy `.env.example` to `.env.local`. All portfolio pages work without API keys.
 - `INFERENCIA_API_KEY` + `INFERENCIA_BASE_URL` are needed for the AI chat. Without them, chat returns 503 but all pages work.
-- In production on Cloud Run, these are set via **GCP Secret Manager** (never in env vars directly).
+- In production on Cloud Run, these are set via **GCP Secret Manager** (never in env vars directly); `cloudbuild.yaml` passes them with `--set-secrets`.
+- Optional: `NEXT_PUBLIC_GA_MEASUREMENT_ID` for Google Analytics 4 (no Vercel analytics).
 - Optional: `GOOGLE_CLOUD_PROJECT` for Cloud Logging trace correlation.
 
 ### Security architecture
@@ -41,7 +52,7 @@ This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature 
 - **Rate limiting**: `src/lib/rate-limit.ts` — 2 RPM per IP, 10 msgs/session, 150 LLM reqs/day.
 - **Security headers**: CSP, HSTS, X-Frame-Options in `next.config.ts`.
 - **Cloud Armor WAF**: Edge-level rate limiting, scanner blocking, path traversal blocking, adaptive DDoS.
-- **Ingress restriction**: Cloud Run accepts traffic only from the ALB (`INGRESS_TRAFFIC_INTERNAL_AND_GCLB`).
+- **Ingress restriction**: Cloud Run accepts traffic only from the ALB (`INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER`).
 
 ### Telemetry
 
@@ -51,12 +62,49 @@ This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature 
 - Chat route is fully instrumented: per-span timing for RAG retrieval and inference.
 - Metrics reset on cold start (honest — the War Room dashboard shows this).
 
+### Analytics
+
+- **Google Analytics 4 only.** Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` in `.env.local` (and in Cloud Run env if you want GA in production). Component: `src/components/GoogleAnalytics.tsx`. No Vercel analytics or `/_vercel/` scripts.
+
 ### Gotchas
 
 - No automated test suite (no `test` script in `package.json`).
 - Rate limits are **enabled** in production (`RATE_LIMITS_DISABLED = false`).
 - War Room data API has a 10-second server-side cache to avoid excessive metric reads.
 - The chat route does NOT use Edge runtime — it uses Node.js runtime for full API access.
+
+---
+
+## Free-first & cost control
+
+**Default: use free features only.** If you add anything that incurs cost (e.g. new GCP services, higher quotas), **consult before enabling**.
+
+### What’s free vs paid
+
+| Free (use by default) | Paid (only if you explicitly choose) |
+|------------------------|--------------------------------------|
+| Cloud Run (scale-to-zero, free tier) | **ALB forwarding rule (~$18/mo)** — main fixed cost |
+| Cloud Logging (50 GB/mo), Trace (2.5M spans/mo), Monitoring, Uptime Checks, Error Reporting | Cloud CDN (cache egress; usually &lt;$1) |
+| Cloud Armor (standard tier with ALB) | Secret Manager (2 secrets ~$0.06/mo) |
+| Google-managed SSL | |
+
+### Rate limits (aligned with free tier)
+
+- **App** (`src/lib/rate-limit.ts`): 2 RPM per IP, 10 msgs/session, 150 LLM reqs/day. Keeps chat within free-tier usage.
+- **Cloud Armor**: 60/min global, 10/min for `/api/chat`. Edge protection and abuse control.
+- Do not relax these without a conscious decision; they cap usage and cost.
+
+### Budget kill switch ($10)
+
+If spend approaches or passes **$10**, run the kill switch to stop traffic and avoid further cost:
+
+```bash
+./scripts/disable-project-spend.sh
+```
+
+This sets Cloud Run **max instances to 0** (no more request-driven cost). The ALB and other resources remain; to stop **all** billing you must [unlink the project from the billing account](https://console.cloud.google.com/billing) (manual, Billing Admin only).
+
+- **Recommended:** Create a **$10 billing budget** with email alerts at 50%, 90%, and 100%. When you get the alert, run the script (or unlink billing for full stop). Optional Terraform: set `billing_account_id` in `terraform.tfvars` (get ID: `gcloud billing accounts list`) and apply — see `terraform/budget.tf`. Otherwise create a budget in [Console → Billing → Budgets](https://console.cloud.google.com/billing/budgets).
 
 ---
 
@@ -203,17 +251,19 @@ Save this IP — you need it for DNS.
 
 ### Step 7: Wait for SSL certificate
 
-Google-managed SSL certificates auto-provision once DNS points to the LB IP. This takes **5 minutes to 24 hours** (usually under 1 hour).
+Google-managed SSL certificates auto-provision once DNS points to the LB IP. This takes **5 minutes to 24 hours** (usually under 1 hour). **https://gimenez.dev will not work until status is ACTIVE.**
 
 Check status:
 ```bash
-gcloud compute ssl-certificates describe portfolio-ssl-cert --global
-# Look for: status: ACTIVE
+./scripts/check-ssl-cert.sh
 ```
+Or: `gcloud compute ssl-certificates describe portfolio-ssl-cert --global` — look for `status: ACTIVE`.
 
-### Step 8: Connect Cloud Build to GitHub
+### Step 8: Connect Cloud Build to GitHub (auto-deploy)
 
-**Option A: Cloud Run Console UI (recommended)**
+**If auto-deploy is already set:** Pushing to `main` deploys the app. Cloud Build runs `cloudbuild.yaml`: builds the image (amd64), pushes to Artifact Registry, deploys to Cloud Run with Inferencia secrets. No Terraform needed for code-only changes.
+
+**If not yet connected — Option A: Cloud Run Console UI (recommended)**
 1. Go to https://console.cloud.google.com/run
 2. Click on `lgportfolio` service
 3. Click "Set up continuous deployment"
@@ -282,7 +332,7 @@ gcloud monitoring uptime list-configs
 # Check Cloud Armor policy
 gcloud compute security-policies describe portfolio-waf-policy
 
-# Check SSL cert status
+# Check SSL cert status (or: ./scripts/check-ssl-cert.sh)
 gcloud compute ssl-certificates describe portfolio-ssl-cert --global
 ```
 
@@ -375,9 +425,17 @@ No `@google-cloud/*` packages needed. This is the recommended approach for Cloud
 
 ## Troubleshooting
 
+**Site not loading / gimenez.dev not visible**: Usually the SSL certificate is still PROVISIONING. Run `./scripts/check-ssl-cert.sh`; when it shows ACTIVE, https://gimenez.dev will work. If DNS is wrong, fix the A record first (see Step 6).
+
 **SSL certificate stuck in PROVISIONING**: DNS must point to the LB IP first. Check: `dig gimenez.dev` should return the static IP. Can take up to 24 hours but usually under 1 hour.
 
-**502 Bad Gateway**: Cloud Run service not responding. Check: `gcloud run services describe lgportfolio --region=us-east1` for revision status. Check Cloud Logging for errors.
+**Chat returns 503 (“LLM is not configured”)**: The running Cloud Run revision must have `INFERENCIA_API_KEY` and `INFERENCIA_BASE_URL` from Secret Manager. Ensure secrets exist and match your `.env.local` values, then redeploy so the new revision gets them: `cloudbuild.yaml` uses `--set-secrets=INFERENCIA_API_KEY=inferencia-api-key:latest,INFERENCIA_BASE_URL=inferencia-base-url:latest`. Verify secrets: `gcloud secrets versions access latest --secret=inferencia-api-key`. Check logs: `gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=lgportfolio" --limit=20 --format=json`.
+
+**Startup probe / “exec format error”**: Image was built for wrong CPU arch (e.g. ARM on Mac). Cloud Run needs linux/amd64. The Dockerfile uses `--platform=linux/amd64`; deploy via Cloud Build (amd64) or build locally with that platform, then deploy so the new revision has both the correct image and secrets.
+</think>
+Checking Cloud Build SA permissions for Secret Manager (needed for --set-secrets):
+<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
+WebSearch
 
 **Cloud Build trigger not firing**: Verify the trigger is connected to the right branch (`^main$`). Check Cloud Build history at https://console.cloud.google.com/cloud-build/builds.
 

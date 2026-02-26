@@ -6,3 +6,6 @@ region              = "us-east1"
 domain              = "gimenez.dev"
 inferencia_api_key  = "your-inferencia-api-key"
 inferencia_base_url = "https://your-inferencia-endpoint.com/v1"
+
+# Optional: $10 budget with email alerts. Get ID: gcloud billing accounts list
+# billing_account_id = "012345-6789AB-CDEF01"

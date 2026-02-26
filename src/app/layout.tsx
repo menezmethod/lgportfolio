@@ -3,7 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { Github, Linkedin, Twitter, Mail } from "lucide-react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import { Analytics } from "@vercel/analytics/react";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const inter = Inter({ subsets: ["latin"] });
 const jetbrainsMono = JetBrains_Mono({
@@ -84,7 +84,7 @@ export default function RootLayout({
           <Mail className="w-5 h-5" />
           <span className="hidden sm:inline">Connect</span>
         </a>
-        <Analytics />
+        <GoogleAnalytics />
       </body>
     </html>
   );

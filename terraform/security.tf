@@ -70,37 +70,36 @@ resource "google_compute_security_policy" "default" {
     priority = 2000
     match {
       expr {
-        expression = "request.headers['user-agent'].matches('(?i)(sqlmap|nikto|nessus|masscan|zgrab|nuclei|httpx|dirbuster|gobuster|wfuzz|ffuf|whatweb|shodan|censys|nmap)')"
+        expression = "request.headers['user-agent'].matches('(?:sqlmap|nikto|nessus|masscan|zgrab|nuclei|httpx|dirbuster|gobuster|wfuzz|ffuf|whatweb|shodan|censys|nmap)')"
       }
     }
     description = "Block known vulnerability scanners"
   }
 
-  # ── Rule 4: Block path traversal and common attack patterns ─────────────
-
+  # ── Rule 4a: Block path traversal (max 5 expressions per rule)
   rule {
     action   = "deny(403)"
     priority = 3000
     match {
       expr {
-        expression = "request.path.matches('(?i)(\\.\\./|\\.\\.\\\\|/etc/passwd|/proc/|wp-admin|wp-login|phpmyadmin|xmlrpc\\.php|\\.env$|\\.git/)')"
+        expression = "request.path.contains('../') || request.path.contains('..\\\\') || request.path.contains('/etc/passwd') || request.path.contains('wp-admin') || request.path.contains('.git/')"
       }
     }
-    description = "Block path traversal and common exploit paths"
+    description = "Block path traversal and exploit paths"
   }
-
-  # ── Rule 5: Block requests with suspiciously large bodies ───────────────
-
+  # ── Rule 4b: Block more exploit paths
   rule {
-    action   = "deny(413)"
-    priority = 4000
+    action   = "deny(403)"
+    priority = 3001
     match {
       expr {
-        expression = "int(request.headers['content-length'] ?? '0') > 65536"
+        expression = "request.path.contains('wp-login') || request.path.contains('phpmyadmin') || request.path.contains('.env') || request.path.contains('/proc/') || request.path.contains('xmlrpc')"
       }
     }
-    description = "Block request bodies larger than 64KB"
+    description = "Block wp-login, phpmyadmin, .env, etc."
   }
+
+  # ── Rule 5: Large body block removed (CEL header checks limited); rely on app/CDN ──
 
   # ── Default Rule: Allow ─────────────────────────────────────────────────
 

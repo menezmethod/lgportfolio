@@ -34,7 +34,7 @@ A Next.js portfolio with an AI-powered chat. Built with Next.js 16, TypeScript, 
 | Embeddings     | Gemini text-embedding-004           | Only when Supabase RAG is configured       |
 | Hosting        | GCP Cloud Run                       | Scale-to-zero, Terraform                   |
 | IaC            | Terraform                           | Cloud Run, secrets, etc.                   |
-| CI/CD          | GitHub Actions → Cloud Build        | Deploy on push                             |
+| CI/CD          | Cloud Build (auto-deploy)            | Push to `main` → build amd64 image, deploy with secrets |
 
 ## Prerequisites
 
@@ -73,8 +73,9 @@ Open [http://localhost:3000](http://localhost:3000). Chat is at [http://localhos
 | `CHAT_MAX_RPM_PER_IP` | No | Per-IP rate limit (default: 3) |
 | `CHAT_MAX_MESSAGES_PER_SESSION` | No | Session message cap (default: 20) |
 | `CHAT_DAILY_BUDGET` | No | Daily request budget (default: 900) |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Optional | Google Analytics 4 (no Vercel analytics) |
 
-See `.env.example` for the full list (Analytics, GCP project, etc.).
+See `.env.example` for the full list. In production (Cloud Run), Inferencia keys come from GCP Secret Manager via the deploy step; see [AGENTS.md](./AGENTS.md) and [DEPLOY-CLOUDRUN.md](./DEPLOY-CLOUDRUN.md).
 
 **Security:** Do not commit `.env.local` or any file containing API keys or secrets. They are gitignored; use your host’s secret manager or environment variables for production.
 
@@ -100,8 +101,9 @@ lgportfolio/
 │   │   ├── rag.ts                # RAG retrieval (local or Supabase)
 │   │   └── rate-limit.ts         # Rate limits + response cache
 │   └── app/                      # Global layout, styles
-├── terraform/                    # GCP Cloud Run IaC
-├── .github/workflows/            # CI/CD
+├── terraform/                    # GCP Cloud Run IaC (LB, WAF, DNS)
+├── cloudbuild.yaml              # Cloud Build: push to main → build & deploy
+├── .github/workflows/           # Optional CI
 ├── Dockerfile
 └── SETUP.md
 ```
@@ -124,6 +126,8 @@ lgportfolio/
 | Secret Manager | Typically &lt;$1/mo                  |
 
 ## Docker
+
+Locally the app listens on 3000 (Next.js default when PORT is unset). On Cloud Run it uses 8080.
 
 ```bash
 docker build -t lgportfolio .

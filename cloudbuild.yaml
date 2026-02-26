@@ -59,8 +59,12 @@ steps:
       - "--timeout"
       - "30"
       - "--cpu-throttling"
+      - "--port"
+      - "8080"
       - "--set-env-vars"
-      - "NODE_ENV=production,NEXT_TELEMETRY_DISABLED=1"
+      - "NODE_ENV=production,NEXT_TELEMETRY_DISABLED=1,PORT=8080"
+      - "--set-secrets"
+      - "INFERENCIA_API_KEY=inferencia-api-key:latest,INFERENCIA_BASE_URL=inferencia-base-url:latest"
 
 substitutions:
   _REGION: us-east1

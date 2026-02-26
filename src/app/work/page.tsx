@@ -25,7 +25,7 @@ const projects: Project[] = [
     title: 'Payment Card Tender System',
     company: 'The Home Depot',
     description: 'Backend architecture for the critical path processing every credit, debit, and gift card transaction across 2,300+ stores.',
-    challenge: 'Black Friday traffic spikes (100x load) with zero margin for error. Legacy monolithic services failing silently under load.',
+    challenge: 'Black Friday traffic spikes (order-of-magnitude load) with zero margin for error. Legacy monoliths failing under load with inadequate observability.',
     solution: 'Designed a distributed buffering architecture using Pub/Sub & Cloud Run to decouple ingestion. Built OpenTelemetry tracing pipelines to make the entire payment path observable. Led zero-downtime GCT migration to type-safe Go microservices.',
     impact: 'Zero downtime during peak volume (5M+ daily transactions). Sub-50ms p99 latency. 20% latency reduction from observability-driven optimization.',
     stack: ['Go', 'GCP Cloud Run', 'Pub/Sub', 'CockroachDB', 'Redis', 'OpenTelemetry', 'Prometheus', 'Grafana'],

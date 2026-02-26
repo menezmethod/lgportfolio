@@ -67,7 +67,7 @@ resource "google_secret_manager_secret_iam_member" "base_url_accessor" {
 resource "google_cloud_run_v2_service" "portfolio" {
   name     = "lgportfolio"
   location = var.region
-  ingress  = "INGRESS_TRAFFIC_INTERNAL_AND_GCLB"
+  ingress  = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
 
   template {
     service_account = google_service_account.portfolio.email
@@ -76,9 +76,13 @@ resource "google_cloud_run_v2_service" "portfolio" {
       image = "${var.region}-docker.pkg.dev/${var.project_id}/portfolio/app:latest"
 
       ports {
-        container_port = 3000
+        container_port = 8080
       }
 
+      env {
+        name  = "PORT"
+        value = "8080"
+      }
       env {
         name  = "NODE_ENV"
         value = "production"
@@ -117,12 +121,12 @@ resource "google_cloud_run_v2_service" "portfolio" {
 
       startup_probe {
         http_get {
-          path = "/"
-          port = 3000
+          path = "/api/health"
+          port = 8080
         }
-        initial_delay_seconds = 5
-        period_seconds        = 5
-        failure_threshold     = 3
+        initial_delay_seconds = 20
+        period_seconds        = 10
+        failure_threshold     = 12
       }
     }
 

@@ -80,6 +80,24 @@ function normalizeAssistantContent(text: string): string {
   return out.trim();
 }
 
+/** Remove duplicated block if the model repeated the same content twice (e.g. full answer copy-pasted). */
+function dedupeRepeatedResponse(text: string): string {
+  if (!text || text.length < 300) return text;
+  const half = Math.floor(text.length / 2);
+  const first = text.slice(0, half).trim();
+  const second = text.slice(half).trim();
+  // Exact duplicate: second half equals first half
+  if (first === second) return first;
+  // Common pattern: same intro sentence then full repeat — take content up to start of repeat
+  const intro = "Luis has worked on several distributed-systems services";
+  const idx = text.indexOf(intro);
+  if (idx > 0) {
+    const fromSecond = text.indexOf(intro, idx + 1);
+    if (fromSecond > idx + 100) return text.slice(0, fromSecond).trim();
+  }
+  return text;
+}
+
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -138,10 +156,8 @@ export default function Chat() {
       const contentType = response.headers.get('content-type');
       if (contentType?.includes('text/plain')) {
         const text = await response.text();
-        setMessages((prev) => [
-          ...prev,
-          { id: Date.now().toString(), role: 'assistant', content: normalizeAssistantContent(cleanAssistantContent(text) || text) },
-        ]);
+        const cleaned = dedupeRepeatedResponse(normalizeAssistantContent(cleanAssistantContent(text) || text));
+        setMessages((prev) => [...prev, { id: Date.now().toString(), role: 'assistant', content: cleaned }]);
       } else {
         const reader = response.body?.getReader();
         if (!reader) throw new Error('No response body');
@@ -254,7 +270,7 @@ export default function Chat() {
                     )}
                   >
                     {message.role === 'assistant' ? (
-                      <ChatMarkdown content={normalizeAssistantContent(cleanAssistantContent(message.content))} />
+                      <ChatMarkdown content={dedupeRepeatedResponse(normalizeAssistantContent(cleanAssistantContent(message.content)))} />
                     ) : (
                       <div className="whitespace-pre-wrap break-words">{message.content}</div>
                     )}

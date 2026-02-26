@@ -28,3 +28,16 @@ variable "inferencia_base_url" {
   sensitive   = true
   default     = ""
 }
+
+# Optional: set to enable a $10 budget with email alerts (free). Get ID: gcloud billing accounts list
+variable "billing_account_id" {
+  description = "Billing account ID for budget alerts (e.g. 012345-6789AB-CDEF01). Leave empty to skip."
+  type        = string
+  default     = ""
+}
+
+variable "budget_alert_email" {
+  description = "Email for budget alerts (required if billing_account_id is set)."
+  type        = string
+  default     = ""
+}

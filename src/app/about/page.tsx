@@ -37,7 +37,7 @@ export default function About() {
               My work sits at the intersection of{' '}
               <span className="text-foreground">reliability, observability, and performance</span>.
               I design high-throughput Go microservices on Google Cloud Platform that absorb
-              Black Friday traffic spikes without degradation. When systems fail silently,
+              Black Friday–scale traffic spikes without degradation. When systems fail under load,
               I build the tracing infrastructure that makes failures visible.
             </p>
 

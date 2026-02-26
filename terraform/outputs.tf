@@ -15,9 +15,9 @@ output "service_account_email" {
   value       = google_service_account.portfolio.email
 }
 
-output "ssl_certificate_status" {
-  description = "SSL certificate provisioning status"
-  value       = google_compute_managed_ssl_certificate.default.managed[0].status
+output "ssl_certificate_name" {
+  description = "SSL certificate name (check status in Console or: gcloud compute ssl-certificates describe portfolio-ssl-cert --global)"
+  value       = google_compute_managed_ssl_certificate.default.name
 }
 
 output "namecheap_dns_instructions" {

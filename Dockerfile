@@ -1,11 +1,11 @@
-# Stage 1: Install dependencies
-FROM node:20-alpine AS deps
+# Stage 1: Install dependencies (linux/amd64 for Cloud Run; omit for local ARM)
+FROM --platform=linux/amd64 node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci --ignore-scripts && npm cache clean --force
 
 # Stage 2: Build the application
-FROM node:20-alpine AS builder
+FROM --platform=linux/amd64 node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -13,7 +13,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Stage 3: Production runner (minimal attack surface)
-FROM node:20-alpine AS runner
+FROM --platform=linux/amd64 node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -29,12 +29,13 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-EXPOSE 3000
-ENV PORT=3000
+# Production (Cloud Run): PORT=8080 is set by Terraform/Cloud Build.
+# Local docker run: PORT is unset so Next.js defaults to 3000; use -p 3000:3000.
 ENV HOSTNAME="0.0.0.0"
+EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider "http://localhost:${PORT:-8080}/" || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "server.js"]
