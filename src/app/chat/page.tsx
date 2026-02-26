@@ -17,11 +17,11 @@ interface Message {
 }
 
 const SUGGESTED_PROMPTS = [
-  "What distributed systems has Luis built?",
-  "Describe the payment architecture at Home Depot",
-  "What is Luis's observability approach?",
-  "Tell me about the Edge AI work",
-  "How does Luis handle zero-downtime migrations?",
+  "What's Luis's experience with high-scale payment systems?",
+  "How does Luis handle production incidents and on-call?",
+  "What's his biggest technical contribution in the last year?",
+  "Why is Luis looking for a new role?",
+  "What does Luis bring to a senior or staff engineering team?",
 ];
 
 function cleanAssistantContent(raw: string): string {
