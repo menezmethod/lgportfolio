@@ -1,4 +1,4 @@
-# Stage 1: Install dependencies (linux/amd64 for Cloud Run; omit for local ARM)
+# Stage 1: Install dependencies (linux/amd64 for Cloud Run; Next.js 16 requires Node 20.9+)
 FROM --platform=linux/amd64 node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
