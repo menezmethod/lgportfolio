@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Terminal, Loader2, ExternalLink } from 'lucide-react';
+import { Send, Bot, User, Terminal, Loader2, ExternalLink, Mail } from 'lucide-react';
 import { incrementSessionMessageCount, isSessionLimitReached, getSessionMessageCount } from '@/lib/rate-limit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatMarkdown } from '@/components/chat-markdown';
 import { cn } from '@/lib/utils';
 
@@ -82,23 +81,53 @@ function normalizeAssistantContent(text: string): string {
 
 /** Remove duplicated block if the model repeated the same content twice (e.g. full answer copy-pasted). */
 function dedupeRepeatedResponse(text: string): string {
-  if (!text || text.length < 300) return text;
-  const half = Math.floor(text.length / 2);
-  const first = text.slice(0, half).trim();
-  const second = text.slice(half).trim();
-  // Exact duplicate: second half equals first half
+  if (!text?.trim()) return text;
+  let out = text.trim();
+  // Strip trailing model artifacts (e.g. "GCP architectassistant")
+  out = out.replace(/\s*\w*assistant\s*$/i, '').trim();
+  if (out.length < 300) return out;
+  const half = Math.floor(out.length / 2);
+  const first = out.slice(0, half).trim();
+  const second = out.slice(half).trim();
   if (first === second) return first;
-  // Common pattern: same intro sentence then full repeat — take content up to start of repeat
-  const intro = "Luis has worked on several distributed-systems services";
-  const idx = text.indexOf(intro);
-  if (idx > 0) {
-    const fromSecond = text.indexOf(intro, idx + 1);
-    if (fromSecond > idx + 100) return text.slice(0, fromSecond).trim();
+  // Find a distinctive intro phrase that repeats and cut at second occurrence
+  const intros = [
+    'Luis brings a blend of hands-on reliability',
+    'Luis has worked on several distributed-systems services',
+    'Scale context: He operates within',
+    'Key personal contributions',
+  ];
+  for (const intro of intros) {
+    const idx = out.indexOf(intro);
+    if (idx === -1) continue;
+    const fromSecond = out.indexOf(intro, idx + 20);
+    if (fromSecond > idx + 100) return out.slice(0, fromSecond).trim();
   }
-  return text;
+  // Generic: if first 200 chars appear again later, cut there
+  const head = out.slice(0, 200).trim();
+  const headRepeat = out.indexOf(head, 250);
+  if (headRepeat > 200) return out.slice(0, headRepeat).trim();
+  return out;
+}
+
+function getOrCreateSessionId(): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    let id = sessionStorage.getItem('chatSessionId');
+    if (!id) {
+      id = crypto.randomUUID();
+      sessionStorage.setItem('chatSessionId', id);
+    }
+    return id;
+  } catch {
+    return crypto.randomUUID();
+  }
 }
 
 export default function Chat() {
+  const sessionIdRef = useRef<string>('');
+  if (!sessionIdRef.current) sessionIdRef.current = getOrCreateSessionId();
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -110,6 +139,8 @@ export default function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const [showLimitMessage, setShowLimitMessage] = useState(false);
   const [sessionMessageCount, setSessionMessageCount] = useState(0);
+  const [showEmailCapture, setShowEmailCapture] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -145,12 +176,15 @@ export default function Chat() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          session_id: sessionIdRef.current,
           messages: [...messages, userMessage].map((m) => ({ role: m.role, content: m.content })),
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        const errBody = await response.json().catch(() => ({}));
+        const msg = (errBody as { message?: string })?.message || (response.status === 429 ? 'Limit reached. You can email Luis to continue.' : 'Failed to get response');
+        throw new Error(msg);
       }
 
       const contentType = response.headers.get('content-type');
@@ -164,6 +198,7 @@ export default function Chat() {
 
         const decoder = new TextDecoder();
         let assistantContent = '';
+        let usedDataStream = false;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -176,6 +211,7 @@ export default function Chat() {
           for (const line of lines) {
             if (line.startsWith('0:')) {
               hadDataStreamLine = true;
+              usedDataStream = true;
               try {
                 const data = JSON.parse(line.substring(2));
                 if (data.text) {
@@ -191,7 +227,8 @@ export default function Chat() {
               } catch { /* stream parse error */ }
             }
           }
-          if (!hadDataStreamLine && decoded.trim()) {
+          // Only append raw decoded if we never got "0:" lines (avoid duplicating when stream sends both)
+          if (!usedDataStream && !hadDataStreamLine && decoded.trim()) {
             assistantContent += decoded;
             setMessages((prev) => {
               const next = [...prev];
@@ -234,9 +271,9 @@ export default function Chat() {
           </h1>
         </header>
 
-        <Card className="flex flex-1 flex-col overflow-hidden border-border/40 bg-card/30 backdrop-blur-xl shadow-2xl relative w-full">
-          <ScrollArea className="flex-1 w-full" type="always">
-            <div className="flex flex-col gap-6 p-4 sm:p-6 md:p-8 min-h-full w-full">
+        <Card className="flex flex-1 flex-col min-h-0 overflow-hidden border-border/40 bg-card/30 backdrop-blur-xl shadow-2xl relative w-full">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden w-full">
+            <div className="flex flex-col gap-6 p-4 sm:p-6 md:p-8 w-full">
               {messages.length === 0 && (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 opacity-60">
                   <Bot className="size-16 mb-4 text-primary/50" />
@@ -290,9 +327,9 @@ export default function Chat() {
                 </div>
               )}
 
-              <div ref={messagesEndRef} className="h-px w-px" />
+              <div ref={messagesEndRef} className="h-px w-px shrink-0" />
             </div>
-          </ScrollArea>
+          </div>
 
           <div className="p-4 sm:p-5 bg-gradient-to-t from-background via-background/95 to-transparent pt-10">
             {!showLimitMessage && messages.length <= 1 && (
@@ -335,10 +372,53 @@ export default function Chat() {
               </Button>
             </form>
 
+            {messages.length > 2 && !emailSent && (
+              <div className="text-center mt-2">
+                {!showEmailCapture ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailCapture(true)}
+                    className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 font-mono"
+                  >
+                    <Mail className="size-3" /> Email me this conversation
+                  </button>
+                ) : (
+                  <form
+                    className="flex flex-wrap items-center justify-center gap-2"
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      const form = e.currentTarget;
+                      const email = (form.querySelector('input[name="email"]') as HTMLInputElement)?.value?.trim();
+                      if (!email) return;
+                      try {
+                        const res = await fetch('/api/chat/save-email', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ session_id: sessionIdRef.current, email }),
+                        });
+                        if (res.ok) setEmailSent(true);
+                      } catch { /* ignore */ }
+                    }}
+                  >
+                    <input
+                      name="email"
+                      type="email"
+                      placeholder="your@email.com"
+                      className="rounded-lg border border-border/60 bg-background/80 px-3 py-1.5 text-xs font-mono w-44"
+                      required
+                    />
+                    <Button type="submit" size="sm" variant="outline" className="text-xs font-mono h-8">
+                      Save
+                    </Button>
+                  </form>
+                )}
+              </div>
+            )}
+
             {!showLimitMessage && (
               <div className="text-center mt-2.5">
-                  <span className="text-[10px] text-muted-foreground/40 font-mono">
-                  {sessionMessageCount}/10 queries remaining
+                <span className="text-[10px] text-muted-foreground/40 font-mono">
+                  {sessionMessageCount}/10 queries remaining (engaged chats get more)
                 </span>
               </div>
             )}

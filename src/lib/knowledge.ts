@@ -1,11 +1,14 @@
 export const KNOWLEDGE_BASE = `
 # ═══════════════════════════════════════════════════════════════════════════════
-# LUIS GIMENEZ — HONEST PROFESSIONAL KNOWLEDGE BASE v3.0
+# LUIS GIMENEZ — HONEST PROFESSIONAL KNOWLEDGE BASE v3.0 (Enterprise-ready)
 # ═══════════════════════════════════════════════════════════════════════════════
-# PURPOSE: Powers a RAG-based AI assistant on gimenez.dev.
+# PURPOSE: Powers a RAG-based AI assistant on gimenez.dev for recruiters and hiring managers.
 # CORE PRINCIPLE: Radical honesty about role, level, and contributions.
 # Luis is an SE II on a large team. He did NOT build the platform.
 # He operates within it, contributes to it, and keeps it observable.
+#
+# ENTERPRISE SUMMARY (for recruiter queries):
+# Luis Gimenez is a Software Engineer II at The Home Depot on the Enterprise Payments Platform (50+ microservices, six-figure hourly transaction volumes, Platinum-tier, PCI DSS). He is GCP Professional Cloud Architect certified and contributes to observability (Grafana dashboards adopted by VP leadership), Card Broker routing, production reliability, and PII/security remediation. He is seeking Senior, Staff, SRE, or Architect roles — remote, hybrid, or relocation (Atlanta, Austin, NYC, SF, Seattle, Denver). US work authorized.
 #
 # FRAMING RULES:
 #   - Use "contributed to", "worked within", "supported", "operated across"

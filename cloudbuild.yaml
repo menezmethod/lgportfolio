@@ -11,6 +11,9 @@
 # Secrets (set via Secret Manager, referenced in Cloud Run service config):
 #   INFERENCIA_API_KEY
 #   INFERENCIA_BASE_URL
+# Optional (chat logging & admin): create secrets then add to --set-secrets:
+#   FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account:latest
+#   ADMIN_SECRET=admin-secret:latest
 
 steps:
   # Build the Docker image (GA4: pass _GA_MEASUREMENT_ID in trigger to enable analytics)
@@ -66,7 +69,7 @@ steps:
       - "--set-env-vars"
       - "NODE_ENV=production,NEXT_TELEMETRY_DISABLED=1,PORT=8080"
       - "--set-secrets"
-      - "INFERENCIA_API_KEY=inferencia-api-key:latest,INFERENCIA_BASE_URL=inferencia-base-url:latest"
+      - "INFERENCIA_API_KEY=inferencia-api-key:latest,INFERENCIA_BASE_URL=inferencia-base-url:latest,FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account:latest,ADMIN_SECRET=admin-secret:latest"
 
 substitutions:
   _REGION: us-east1
