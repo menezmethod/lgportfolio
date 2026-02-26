@@ -39,6 +39,22 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 // Import our file-based context
 import { KNOWLEDGE_BASE } from "./knowledge";
 
+/** Deduplicate context so the same paragraph/block never appears twice. Prevents the model from echoing duplicates. */
+function deduplicateContext(context: string): string {
+  const chunkSeparator = "\n\n---\n\n";
+  const chunks = context.split(chunkSeparator).map((b) => b.trim()).filter(Boolean);
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const chunk of chunks) {
+    const normalized = chunk.replace(/\s+/g, " ").trim();
+    if (normalized.length < 20) continue; // skip tiny fragments
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    out.push(chunk);
+  }
+  return out.join(chunkSeparator);
+}
+
 export async function retrieveContext(query: string, topK = 5): Promise<string> {
   // If no Supabase (or just for testing), use our local file first
   if (!supabase) {
@@ -61,12 +77,13 @@ export async function retrieveContext(query: string, topK = 5): Promise<string> 
       return KNOWLEDGE_BASE;
     }
 
-    return data
+    const raw = data
       .map(
         (doc: { content: string; metadata: { source: string } }) =>
           `[Source: ${doc.metadata?.source || "unknown"}] ${doc.content}`
       )
       .join("\n\n---\n\n");
+    return deduplicateContext(raw);
   } catch (err) {
     console.error("RAG retrieval error:", err);
     // On error, always fallback to the file

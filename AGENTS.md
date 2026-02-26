@@ -14,7 +14,7 @@ This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature 
 2. Pushes to Artifact Registry (`portfolio/app`).
 3. Deploys to Cloud Run with `--set-secrets` for `INFERENCIA_API_KEY` and `INFERENCIA_BASE_URL` from Secret Manager.
 
-So: **code, docs, and build fixes → commit and push to main**; the next build will deploy. **You do not need to run `docker build` / `docker push` / `gcloud run services update` manually** when auto-deploy is on. Use that manual flow only if the Cloud Build trigger isn't connected or you need a one-off deploy without pushing. No need to run Terraform for app-only changes. Use Terraform only when changing infrastructure (LB, WAF, DNS, monitoring). Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`); no Vercel analytics.
+So: **code, docs, and build fixes → commit and push to main**; the next build will deploy. **You do not need to run `docker build` / `docker push` / `gcloud run services update` manually** when auto-deploy is on. Use that manual flow only if the Cloud Build trigger isn't connected or you need a one-off deploy without pushing. No need to run Terraform for app-only changes. Use Terraform only when changing infrastructure (LB, WAF, DNS, monitoring). Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`).
 
 ### Running the app
 
@@ -44,7 +44,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 - Copy `.env.example` to `.env.local`. All portfolio pages work without API keys.
 - `INFERENCIA_API_KEY` + `INFERENCIA_BASE_URL` are needed for the AI chat. Without them, chat returns 503 but all pages work.
 - In production on Cloud Run, these are set via **GCP Secret Manager** (never in env vars directly); `cloudbuild.yaml` passes them with `--set-secrets`.
-- Optional: `NEXT_PUBLIC_GA_MEASUREMENT_ID` for Google Analytics 4 (no Vercel analytics).
+- Optional: `NEXT_PUBLIC_GA_MEASUREMENT_ID` for Google Analytics 4.
 - Optional: `GOOGLE_CLOUD_PROJECT` for Cloud Logging trace correlation.
 
 ### Security architecture
@@ -65,7 +65,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 
 ### Analytics
 
-- **Google Analytics 4 only.** Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` in `.env.local` (and in Cloud Run env if you want GA in production). Component: `src/components/GoogleAnalytics.tsx`. No Vercel analytics or `/_vercel/` scripts.
+- **Google Analytics 4 only.** Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` in `.env.local` (and in Cloud Run env if you want GA in production). Component: `src/components/GoogleAnalytics.tsx`. No third-party analytics or deploy-provider scripts.
 
 ### Repo layout
 

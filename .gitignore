@@ -31,7 +31,7 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
-# Vercel
+# Local deploy / CLI config (e.g. .vercel if ever used)
 .vercel
 
 # TypeScript

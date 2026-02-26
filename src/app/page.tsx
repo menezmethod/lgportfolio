@@ -57,27 +57,27 @@ function PortfolioContent() {
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4 border-l-2 border-primary/50 pl-6 text-left">
               <strong className="text-foreground">Available for Senior, Staff &amp; Architect roles.</strong>{' '}
               I fix broken distributed systems and integrate local AI pipelines.
-              Currently scaling payment infrastructure at The Home Depot&mdash;
-              <strong className="text-foreground">5M+ daily transactions, 99.99% uptime, sub-50ms p99</strong>.
+              Currently on the payments platform at a Fortune 50 retailer&mdash;
+              <strong className="text-foreground">high-throughput, mission-critical availability</strong>.
             </p>
           ) : (
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
               I fix broken distributed systems and build local AI pipelines.
-              Currently engineering mission-critical payment infrastructure at{' '}
-              <strong className="text-foreground">The Home Depot</strong>&mdash;
-              <strong className="text-foreground">5M+ daily transactions</strong>{' '}
-              processed through Go microservices on GCP with 99.99% availability.
+              Currently engineering mission-critical payment infrastructure at a{' '}
+              <strong className="text-foreground">Fortune 50 retailer</strong>&mdash;
+              <strong className="text-foreground">high-throughput</strong>{' '}
+              Go microservices on GCP.
             </p>
           )}
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 py-8 border-y border-white/5 my-8 font-mono">
             <div className="text-center">
-              <div className="text-2xl md:text-4xl font-bold text-foreground">5M+</div>
-              <div className="text-xs text-muted-foreground mt-1">txn/day</div>
+              <div className="text-2xl md:text-4xl font-bold text-foreground">High</div>
+              <div className="text-xs text-muted-foreground mt-1">throughput</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-4xl font-bold text-foreground">99.99%</div>
-              <div className="text-xs text-muted-foreground mt-1">uptime</div>
+              <div className="text-2xl md:text-4xl font-bold text-foreground">Platinum</div>
+              <div className="text-xs text-muted-foreground mt-1">tier SLO</div>
             </div>
             <div className="text-center">
               <div className="text-2xl md:text-4xl font-bold text-foreground">&lt;50ms</div>
