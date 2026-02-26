@@ -1,6 +1,6 @@
 # Optional: $10 budget with email alerts at 50%, 90%, 100% (free).
 # Set terraform.tfvars: billing_account_id and budget_alert_email.
-# When you get the alert, run: ./scripts/disable-project-spend.sh
+# When threshold is exceeded: email alert + Pub/Sub → Cloud Function automatically scales Cloud Run to 0 (see budget-kill.tf).
 
 resource "google_monitoring_notification_channel" "budget_email" {
   count = var.billing_account_id != "" && var.budget_alert_email != "" ? 1 : 0
@@ -46,5 +46,9 @@ resource "google_billing_budget" "portfolio" {
     monitoring_notification_channels = [
       google_monitoring_notification_channel.budget_email[0].id
     ]
+    pubsub_topic   = google_pubsub_topic.budget_alerts[0].id
+    schema_version = "1.0"
   }
+
+  depends_on = [google_pubsub_topic_iam_member.billing_publisher]
 }

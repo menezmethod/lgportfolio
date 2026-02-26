@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
 # Budget kill switch: stop request-driven spend by scaling Cloud Run to zero.
-# Run this when you hit your budget (e.g. $10) to disable the bleeding.
+# Manual fallback; when Terraform budget is configured (billing_account_id + budget_alert_email),
+# the same action runs automatically via Pub/Sub → budget-kill Cloud Function.
 #
 # Usage: ./scripts/disable-project-spend.sh [PROJECT_ID] [REGION]
 # Defaults: PROJECT_ID=lgportfolio, REGION=us-east1

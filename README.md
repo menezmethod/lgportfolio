@@ -1,208 +1,175 @@
-# Luis Gimenez Portfolio
+# Luis Gimenez — Portfolio & Production System
 
-A Next.js portfolio with an AI-powered chat. Built with Next.js 16, TypeScript, and Tailwind. The chat is backed by an OpenAI-compatible API (Inferencia) with a RAG-style knowledge base. **Fully hosted on GCP Cloud Run.**
+**Live site:** [gimenez.dev](https://gimenez.dev) · **War Room:** [gimenez.dev/war-room](https://gimenez.dev/war-room)
 
-## Target roles
+A **production Next.js portfolio** on GCP Cloud Run with an AI-powered recruiter chat, live observability (War Room), session analytics, and infra-as-code. Built to demonstrate the same engineering practices used in high-availability systems: observability, security, rate limiting, and cost control.
 
-- **Senior**, **Staff**, and **Architect** (e.g. GCP Cloud Architect, AI/ML Architect, Cloud Solutions Architect)
-- Accepting interviews; open to remote and select relocation markets.
+---
 
-## Features
+## What this repo is
 
-- **Modern stack:** Next.js 16 App Router, TypeScript, Tailwind CSS
-- **AI chat:** Interactive chat powered by the Inferencia API (OpenAI-compatible). Single provider, no client-side model config.
-- **RAG-style context:** Local file-based knowledge base by default; optional Supabase pgvector for vector search (uses Gemini embeddings when configured).
-- **Rate limiting:** Per-IP, session cap, and daily budget to protect free tiers.
-- **Response caching:** Pre-seeded cache for common questions to reduce API usage.
-- **War Room:** Live observability dashboard — see status, errors, latency, and recent events in real time. When something breaks, you see it here first.
-- **Architecture showcase:** Dedicated architecture page.
-- **Responsive design:** Mobile-first, dark theme.
-- **Infrastructure:** 100% GCP — Terraform, Cloud Run (prod + preview), Cloud Build.
+- **Portfolio** — Professional site (about, work, architecture case study, contact). Responsive, dark theme.
+- **AI chat** — RAG-backed assistant for recruiters; answers from a structured knowledge base. Rate-limited, prompt-injection hardened, with optional conversation memory and session analytics (Firestore).
+- **War Room** — Real-time dashboard: health tiles, latency charts, error feed, “Explain with AI” for errors. Same mindset as production NOC dashboards.
+- **Infrastructure** — Single Next.js app on Cloud Run behind a Global External ALB, Cloud CDN, and Cloud Armor (WAF). Terraform for all GCP resources. Push to `main` → Cloud Build → deploy. Optional **automatic budget kill switch**: when a $10 budget threshold is exceeded, a Cloud Function scales Cloud Run to zero so cost stops even if you’re not online.
 
-## Environments (Cloud Run)
+No placeholder content. The site is live; the chat, health checks, and War Room are wired to real endpoints and (in prod) to GCP.
 
-| Environment | URL / purpose |
-|-------------|----------------|
-| **Production** | https://gimenez.dev — main branch, Cloud Build deploy to Cloud Run behind ALB + Cloud Armor |
-| **Preview** | Optional Cloud Run preview revisions or branch deploys; configure in Cloud Build triggers if needed |
+---
+
+## What it demonstrates
+
+| Area | What’s in this repo |
+|------|----------------------|
+| **Cloud & IaC** | GCP Cloud Run, ALB, CDN, Armor, Secret Manager, Terraform (services, LB, WAF, monitoring, budget + Pub/Sub → function). |
+| **Observability** | In-app War Room (metrics, errors, events), structured JSON logs, trace IDs, uptime checks, alert policy. |
+| **Security** | CSP/HSTS/X-Frame-Options, rate limiting (app + Cloud Armor), prompt-injection defense (OWASP LLM01/07), secrets in Secret Manager, ingress only from ALB. |
+| **AI / LLM** | RAG over a local knowledge base, streaming chat (OpenAI-compatible API), response caching, token/message limits. |
+| **Reliability & cost** | Health checks, scale-to-zero, optional $10 budget with **automatic** kill switch (Pub/Sub → function sets Cloud Run max-instances=0). |
+
+**Target roles:** Senior / Staff / SRE / Cloud Architect — backend, distributed systems, observability, GCP. Open to remote and select markets.
+
+---
 
 ## Live site
 
-**Production:** https://gimenez.dev  
+| Link | Description |
+|------|--------------|
+| [gimenez.dev](https://gimenez.dev) | Homepage |
+| [gimenez.dev/war-room](https://gimenez.dev/war-room) | Live observability dashboard |
+| [gimenez.dev/architecture](https://gimenez.dev/architecture) | Cloud Run architecture write-up |
+| [gimenez.dev/chat](https://gimenez.dev/chat) | AI chat (rate-limited) |
 
-**War Room (live telemetry):** https://gimenez.dev/war-room — status, errors, and metrics in one place.
+---
+
+## Features
+
+- **Next.js 16** — App Router, React 19, TypeScript, Tailwind. Standalone output for Cloud Run.
+- **AI chat** — Inferencia (OpenAI-compatible). RAG from a file-based knowledge base; optional Supabase pgvector. Per-IP and session rate limits, daily budget, response cache. Prompt-injection checks; conversation memory and session analytics in Firestore when configured.
+- **War Room** — Status tiles (inference, RAG, rate limiter, logging, trace), P50/P95 latency, request/error volume, recent events (errors, cold starts, rate limits). “Explain with AI” sends error context to the same LLM for plain-language explanation.
+- **Admin** — `/admin/conversations` (chat sessions) and `/admin/logs` (Cloud Run logs with trace links). Protected by admin secret; same secret for UI and API.
+- **Infrastructure** — Terraform: Cloud Run, Artifact Registry, Secret Manager, global static IP, serverless NEG, backend + CDN, Cloud Armor (rate limits, scanner block, path traversal, adaptive DDoS), URL map, HTTPS redirect, managed SSL, uptime checks, alert policy. Optional: $10 billing budget with email + Pub/Sub; Cloud Function subscribes and sets Cloud Run `max-instances=0` when threshold is exceeded.
+- **CI/CD** — Cloud Build on push to `main`: build image (linux/amd64), push to Artifact Registry, deploy to Cloud Run with secrets.
+
+---
 
 ## Tech stack
 
-| Component      | Technology                          | Notes                                      |
-|----------------|-------------------------------------|--------------------------------------------|
-| Framework      | Next.js 16 (App Router)              | SSR/SSG, API routes, RSC                   |
-| Language       | TypeScript                          | Type safety                                |
-| Styling        | Tailwind CSS                        | Utility-first                              |
-| AI chat        | AI SDK + Inferencia API             | OpenAI-compatible; single provider         |
-| RAG / context  | Local knowledge + optional Supabase | File-based by default; pgvector optional  |
-| Embeddings     | Gemini text-embedding-004           | Only when Supabase RAG is configured       |
-| Hosting        | GCP Cloud Run                       | Production + preview; scale-to-zero        |
-| IaC            | Terraform                           | Cloud Run, LB, WAF, secrets                 |
-| CI/CD          | Cloud Build                         | Push to `main` → build → deploy to Cloud Run |
+| Layer | Technology |
+|-------|------------|
+| App | Next.js 16, React 19, TypeScript, Tailwind |
+| AI | Vercel AI SDK, Inferencia (OpenAI-compatible), local RAG; optional Supabase + Gemini embeddings |
+| Data | Firestore (chat sessions, memory, analytics when configured) |
+| Hosting | GCP Cloud Run (scale-to-zero, 1 max instance) |
+| Edge | Global External ALB, Cloud CDN, Cloud Armor |
+| IaC | Terraform (Run, LB, WAF, Pub/Sub, Cloud Function for budget kill) |
+| CI/CD | Cloud Build; secrets from Secret Manager |
+| Observability | In-memory telemetry → War Room; stdout JSON → Cloud Logging; trace IDs → Cloud Trace; uptime checks + alert |
 
-## For AI agents
-
-**Cursor, Claude Code, OpenClaw, and other AI coding agents:** Start with **[AGENTS.md](./AGENTS.md)**. It contains run/deploy/debug steps, admin and log access (UI + CLI + API), security and rate-limit rules, and repo layout. Use it as the canonical guide for any agent task in this repo.
-
-## Prerequisites
-
-- Node.js 20.9+ (see `engines` in `package.json`; Next.js 16 requires 20.9+)
-- **Chat:** Inferencia API key (contact admin or set up your own OpenAI-compatible endpoint). Required for `/api/chat`.
-- **Optional:** Google Gemini API key for RAG embeddings when using Supabase. Get one at https://aistudio.google.com/apikey
-- **Optional:** Supabase project for vector-backed RAG (otherwise the app uses the local knowledge file).
-
-## Quick start
-
-```bash
-git clone https://github.com/menezmethod/lgportfolio.git
-cd lgportfolio
-
-npm install
-
-# Chat requires Inferencia
-cp .env.example .env.local
-# Set INFERENCIA_BASE_URL and INFERENCIA_API_KEY in .env.local (see .env.example for variable names; do not commit real values)
-
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000). Chat is at [http://localhost:3000/chat](http://localhost:3000/chat).
-
-## Environment variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `INFERENCIA_BASE_URL` | **Yes for chat** | OpenAI-compatible API base URL (set in `.env.local` or Secret Manager; not documented here for security) |
-| `INFERENCIA_API_KEY` | **Yes for chat** | API key for Inferencia. Chat returns 503 if missing. |
-| `INFERENCIA_CHAT_MODEL` | No | Chat model ID (optional override; set via env if needed) |
-| `GOOGLE_API_KEY` | Optional | For Gemini embeddings when Supabase RAG is used |
-| `NEXT_PUBLIC_SUPABASE_URL` | Optional | Supabase project URL for vector RAG |
-| `SUPABASE_SERVICE_ROLE_KEY` | Optional | Supabase service role key |
-| `CHAT_MAX_RPM_PER_IP` | No | Per-IP rate limit (default: 3) |
-| `CHAT_MAX_MESSAGES_PER_SESSION` | No | Session message cap (default: 20) |
-| `CHAT_DAILY_BUDGET` | No | Daily request budget (default: 900) |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Optional | Google Analytics 4 |
-
-See `.env.example` for the full list. In production (Cloud Run), Inferencia keys come from GCP Secret Manager via the deploy step; see [AGENTS.md](./AGENTS.md) and [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md).
-
-**Security:** Do not commit `.env.local` or any file containing API keys or secrets. They are gitignored; use your host’s secret manager or environment variables for production. Default API base URLs and model names are not documented here to reduce abuse surface (set them in env or see your deployment docs).
+---
 
 ## Project structure
 
 ```
 lgportfolio/
 ├── src/
-│   ├── app/
-│   │   ├── page.tsx              # Home (hero, roles, CTAs)
-│   │   ├── about/page.tsx        # About + skills
-│   │   ├── work/page.tsx         # Projects
-│   │   ├── architecture/page.tsx # Architecture case study
-│   │   ├── contact/page.tsx      # Contact + resume
-│   │   ├── chat/page.tsx         # AI chat UI
-│   │   ├── war-room/page.tsx     # Live observability dashboard
-│   │   └── api/
-│   │       ├── chat/route.ts     # Chat API (Inferencia only)
-│   │       ├── health/route.ts   # Health check (uptime checks)
-│   │       ├── war-room/data/route.ts # War Room metrics JSON
-│   │       └── rag/route.ts      # RAG/embeddings (optional)
+│   ├── app/                    # Routes
+│   │   ├── page.tsx            # Home
+│   │   ├── about/, work/, contact/, architecture/
+│   │   ├── chat/page.tsx       # AI chat UI
+│   │   ├── war-room/page.tsx   # Observability dashboard
+│   │   ├── admin/              # conversations, logs (admin secret)
+│   │   └── api/                # chat, health, war-room/data, rag, admin/*
 │   ├── components/
-│   │   └── Navbar.tsx
-│   ├── lib/
-│   │   ├── knowledge.ts          # Local knowledge base (RAG source)
-│   │   ├── rag.ts                # RAG retrieval (local or Supabase)
-│   │   └── rate-limit.ts         # Rate limits + response cache
-│   └── app/                      # Global layout, styles
-├── terraform/                    # GCP Cloud Run IaC (LB, WAF, DNS)
-├── cloudbuild.yaml              # Cloud Build: push to main → build & deploy (no GitHub Actions)
-├── docs/                        # Additional documentation
-├── Dockerfile
-└── README.md
+│   └── lib/                    # knowledge, rag, rate-limit, security, telemetry, firestore
+├── functions/budget-kill/      # Cloud Function: budget alert → scale Run to 0
+├── terraform/                  # GCP: Cloud Run, LB, WAF, budget, Pub/Sub, function
+├── docs/                       # Deploy, setup, debugging, decisions
+├── scripts/                    # deploy-cloudrun, check-ssl-cert, disable-project-spend
+├── Dockerfile                  # Multi-stage, linux/amd64 for Cloud Run
+├── cloudbuild.yaml             # Build + push + deploy on push to main
+└── AGENTS.md                   # Run, deploy, debug, and constraints (for AI agents)
 ```
-
-## War Room (live observability)
-
-The **War Room** is a live dashboard that shows how this portfolio is running — the same kind of observability you’d use for production payment systems, applied here so you can see health and errors at a glance.
-
-**Where:** [https://gimenez.dev/war-room](https://gimenez.dev/war-room) (also linked from the nav). It auto-refreshes every 10 seconds.
-
-**Why it matters:** When something goes wrong — a chat error, rate limit, or API failure — you don’t have to open Cloud Logging first. The War Room shows:
-
-- **Status tiles** — Overall health plus per-component checks (inference API, RAG, rate limiter, Cloud Logging, Cloud Trace). Green = up, amber = degraded, red = down.
-- **Key metrics** — Uptime, request count, P95 latency, error rate (1h), chat cache hit rate, and daily chat budget remaining.
-- **Charts** — Request latency (P50/P95) and request/error volume over the last hour, in 10-second buckets.
-- **Recent events** — A live feed of what just happened: errors, cold starts, rate limits, cache hits, health checks. If you hit an error and open the War Room, you’ll see it here with a timestamp and type (e.g. error, rate_limit).
-- **Infrastructure** — Runtime (Node version), uptime, cold start count, boot time.
-
-Data comes from the same in-memory telemetry engine that feeds `/api/health`. Metrics reset on cold start (scale-to-zero); the dashboard is honest about that. For long-term retention and alerting, use GCP Cloud Logging, Cloud Monitoring, and the uptime checks configured in Terraform.
-
-## AI chat behavior
-
-- **Provider:** One backend only, Inferencia (OpenAI-compatible). No fallbacks or client-side model switching.
-- **Rate limiting:** Per-IP token bucket, session message cap, and a daily budget. Cached responses for common questions don’t count against the budget.
-- **Context:** System prompt includes RAG context from the local knowledge base (or Supabase when configured).
-- **When limits are hit:** Cached answer if available, otherwise a clear message and contact info.
-
-## Cost (indicative)
-
-| Service        | Notes                    |
-|----------------|--------------------------|
-| Cloud Run      | Scale-to-zero, low traffic ≈ $0–5/mo |
-| Inferencia     | Depends on your instance/plan       |
-| Supabase       | Free tier available                  |
-| Gemini (optional) | Free tier for embeddings         |
-| Secret Manager | Typically &lt;$1/mo                  |
-
-## Docker
-
-Locally the app listens on 3000 (Next.js default when PORT is unset). On Cloud Run it uses 8080.
-
-```bash
-docker build -t lgportfolio .
-
-docker run -p 3000:3000 \
-  -e INFERENCIA_API_KEY=your-key \
-  -e INFERENCIA_BASE_URL=https://your-llm-endpoint.example.com/v1 \
-  lgportfolio
-```
-
-## Deployment (GCP Cloud Run only)
-
-All deployment is **Cloud Build → Cloud Run**. Push to `main` triggers build and deploy to the production Cloud Run service (gimenez.dev). Ensure only Cloud Build is connected to this repo for deploys.
-
-- **Docs:** [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md), [AGENTS.md](./AGENTS.md)
-- **Terraform (infra only):** `cd terraform && terraform init && terraform plan -var="project_id=YOUR_PROJECT" && terraform apply`
-
-## Scripts
-
-| Command         | Description        |
-|----------------|--------------------|
-| `npm run dev`  | Dev server         |
-| `npm run build`| Production build   |
-| `npm run start`| Production server  |
-| `npm run lint` | ESLint             |
-
-## Production readiness
-
-- **Build:** `output: "standalone"` for minimal Cloud Run image; `npm run build` must pass.
-- **Security:** Security headers (CSP, HSTS, X-Frame-Options) in `next.config.ts`; rate limiting and prompt-injection defense in chat; secrets via GCP Secret Manager in prod.
-- **Health:** `/api/health` used by uptime checks; returns 503 when degraded.
-- **Telemetry:** Structured JSON logs to stdout (Cloud Logging); trace IDs for Cloud Trace; in-memory metrics for War Room.
-- **Node:** `engines.node` set to `>=20.9.0`; use same major in Cloud Run/Docker for consistency.
-
-## Author
-
-**Luis Gimenez**
-- Email: luisgimenezdev@gmail.com
-- GitHub: [@menezmethod](https://github.com/menezmethod)
-- LinkedIn: [linkedin.com/in/gimenezdev](https://www.linkedin.com/in/gimenezdev)
-- Twitter: [@menezmethod](https://twitter.com/menezmethod)
 
 ---
 
-Built with care; this repo is also a small case study in cloud and AI integration.
+## Quick start
+
+```bash
+git clone https://github.com/menezmethod/lgportfolio.git
+cd lgportfolio
+npm install
+cp .env.example .env.local   # Set INFERENCIA_* for chat (see below)
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). Chat: [http://localhost:3000/chat](http://localhost:3000/chat).  
+**Node:** 20.9+ (see `engines` in `package.json`).
+
+---
+
+## Environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `INFERENCIA_BASE_URL` | For chat | OpenAI-compatible API base URL |
+| `INFERENCIA_API_KEY` | For chat | API key; without it, chat returns 503 |
+| `INFERENCIA_CHAT_MODEL` | No | Model override (optional) |
+| `CHAT_MAX_RPM_PER_IP`, `CHAT_MAX_MESSAGES_PER_SESSION`, `CHAT_DAILY_BUDGET` | No | Rate limits (defaults in code) |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | No | Google Analytics 4 |
+| Optional RAG | `GOOGLE_API_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Supabase + Gemini for vector RAG |
+
+See `.env.example` for the full list. **Do not commit secrets.** Production uses GCP Secret Manager (see [AGENTS.md](./AGENTS.md) and [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md)).
+
+---
+
+## Deployment
+
+- **App:** Push to `main` → Cloud Build builds the image, pushes to Artifact Registry, deploys to Cloud Run with secrets. No manual deploy needed when the trigger is connected.
+- **Infrastructure:** `cd terraform && terraform init && terraform plan && terraform apply`. Use `terraform.tfvars` for `project_id`, `region`, optional `billing_account_id` / `budget_alert_email` for budget and automatic kill switch.
+
+Details: [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md), [AGENTS.md](./AGENTS.md).
+
+**Scripts:** `npm run dev` · `npm run build` · `npm run start` · `npm run lint`  
+**Docker:** `docker build -t lgportfolio .` then run with `-e INFERENCIA_API_KEY` and `-e INFERENCIA_BASE_URL`; see `Dockerfile` for platform (linux/amd64).
+
+### Verify (build, lint, Terraform)
+
+Run these before pushing or to confirm the repo is healthy:
+
+```bash
+npm run build          # Production build (must succeed for Cloud Run)
+npm run lint           # ESLint (0 errors, 0 warnings)
+cd terraform && terraform init -input=false && terraform validate   # IaC valid
+```
+
+---
+
+## Production readiness
+
+- **Build** — `output: "standalone"`; `npm run build` and `npm run lint` (0 errors).
+- **Security** — CSP, HSTS, X-Frame-Options; rate limiting (app + Cloud Armor); prompt-injection defense; secrets in Secret Manager; Cloud Run ingress only from ALB.
+- **Health** — `/api/health` for uptime checks; 503 when degraded.
+- **Telemetry** — Structured JSON logs, trace IDs, in-memory metrics for the War Room; metrics reset on cold start (documented).
+- **Cost control** — Optional $10 budget; when configured in Terraform, a Cloud Function automatically scales Cloud Run to 0 on threshold breach. Manual fallback: `./scripts/disable-project-spend.sh`.
+
+---
+
+## For AI agents
+
+**Cursor, Claude Code, OpenClaw, etc.:** Use **[AGENTS.md](./AGENTS.md)** as the single source of truth for run, deploy, debug, admin, logs, and repo constraints.
+
+---
+
+## Author
+
+**Luis Gimenez**  
+Software Engineer II (Enterprise Payments Platform, observability & reliability). GCP Professional Cloud Architect. Looking for Senior / Staff / SRE / Architect roles.
+
+- **Email:** luisgimenezdev@gmail.com  
+- **LinkedIn:** [linkedin.com/in/gimenezdev](https://www.linkedin.com/in/gimenezdev)  
+- **GitHub:** [@menezmethod](https://github.com/menezmethod)
+
+---
+
+*This repo is public and maintained as both a portfolio and a reference implementation for cloud-native apps, observability, and safe AI integration.*
