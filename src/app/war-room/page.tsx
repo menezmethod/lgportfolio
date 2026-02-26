@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Activity, Cpu, Zap, Shield, Database, Radio, Clock, AlertTriangle, Loader2, BarChart3, Wifi } from 'lucide-react';
+import { Activity, Cpu, Zap, Shield, Database, Radio, Clock, AlertTriangle, Loader2, BarChart3, Wifi, Bot, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -39,6 +39,7 @@ interface WarRoomData {
     boot_time: string;
   };
   recent_events: Array<{ timestamp: string; type: string; message: string }>;
+  recent_errors: Array<{ timestamp: string; endpoint: string; status_code: number; message: string; trace_id?: string }>;
   timeseries: {
     latency_1h: Array<{ t: number; p50: number; p95: number }>;
     requests_1h: Array<{ t: number; count: number; errors: number }>;
@@ -91,6 +92,56 @@ function formatTime(ts: number | string): string {
 
 function labelFormatter(label: unknown): string {
   return formatTime(Number(label));
+}
+
+function RecentErrorRow({ error }: { error: { timestamp: string; endpoint: string; status_code: number; message: string; trace_id?: string } }) {
+  const [expanded, setExpanded] = useState(false);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleExplain = async () => {
+    if (loading || explanation) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/war-room/explain-error', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error_text: `${error.endpoint} ${error.status_code}: ${error.message}${error.trace_id ? ` (trace_id: ${error.trace_id})` : ''}` }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setExplanation((data as { explanation?: string }).explanation || 'No explanation returned.');
+    } catch (e) {
+      setExplanation(e instanceof Error ? e.message : 'Failed to get explanation.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="px-4 py-3 hover:bg-white/[0.02] transition-colors">
+      <div className="flex flex-wrap items-start gap-2">
+        <span className="text-xs font-mono text-gray-600 min-w-[80px]">{new Date(error.timestamp).toLocaleTimeString()}</span>
+        <span className="text-xs font-mono text-red-400">{error.endpoint}</span>
+        <span className="text-xs font-mono text-amber-400">{error.status_code}</span>
+        <span className="text-sm text-gray-300 flex-1 min-w-0 truncate" title={error.message}>{error.message}</span>
+        <button
+          type="button"
+          onClick={() => { setExpanded(!expanded); if (!expanded && !explanation && !loading) handleExplain(); }}
+          className="flex items-center gap-1.5 text-xs font-mono text-blue-400 hover:text-blue-300 shrink-0"
+        >
+          <Bot className="size-3.5" />
+          {loading ? 'Asking AI...' : explanation ? (expanded ? 'Hide' : 'Show') + ' explanation' : 'Explain with AI'}
+          {expanded ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+        </button>
+      </div>
+      {expanded && (explanation || loading) && (
+        <div className="mt-3 pl-0 md:pl-20 border-l-2 border-blue-500/30 bg-black/20 rounded-r p-3 text-sm text-gray-300 whitespace-pre-wrap">
+          {loading ? <span className="text-gray-500">Calling Inferencia...</span> : explanation}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function WarRoom() {
@@ -313,7 +364,23 @@ export default function WarRoom() {
           </div>
         </section>
 
-        {/* ── ROW 5: RECENT EVENTS ── */}
+        {/* ── ROW 5: RECENT ERRORS (with Explain with AI) ── */}
+        {(d.recent_errors ?? []).length > 0 && (
+          <section className="mb-8">
+            <h3 className="text-xs font-mono text-gray-500 uppercase mb-4 flex items-center gap-2">
+              <AlertTriangle className="size-3.5 text-red-400" /> Recent Errors
+            </h3>
+            <div className="rounded-lg border border-red-400/20 bg-[#161b22] overflow-hidden">
+              <div className="divide-y divide-white/5">
+                {(d.recent_errors ?? []).slice(0, 10).map((err, i) => (
+                  <RecentErrorRow key={i} error={err} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── ROW 6: RECENT EVENTS ── */}
         <section className="mb-8">
           <h3 className="text-xs font-mono text-gray-500 uppercase mb-4 flex items-center gap-2">
             <Radio className="size-3.5 text-emerald-400" /> Recent Events
@@ -338,7 +405,7 @@ export default function WarRoom() {
           </div>
         </section>
 
-        {/* ── ROW 6: GCP PRODUCTS ── */}
+        {/* ── ROW 7: GCP PRODUCTS ── */}
         <section>
           <h3 className="text-xs font-mono text-gray-500 uppercase mb-4">Observability Stack</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">

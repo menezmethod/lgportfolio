@@ -152,9 +152,12 @@ export default function Chat() {
   }, [messages]);
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    const el = messagesEndRef.current;
+    if (!el) return;
+    const id = requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    });
+    return () => cancelAnimationFrame(id);
   }, [messages.length, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -183,7 +186,13 @@ export default function Chat() {
 
       if (!response.ok) {
         const errBody = await response.json().catch(() => ({}));
-        const msg = (errBody as { message?: string })?.message || (response.status === 429 ? 'Limit reached. You can email Luis to continue.' : 'Failed to get response');
+        const apiMsg = (errBody as { message?: string })?.message;
+        const msg =
+          response.status === 429
+            ? apiMsg || 'Rate limit reached. Wait a minute or email luisgimenezdev@gmail.com.'
+            : response.status >= 500
+              ? 'Server temporarily unavailable. Please try again in a moment.'
+              : apiMsg || 'Something went wrong. Please try again.';
         throw new Error(msg);
       }
 
@@ -244,14 +253,12 @@ export default function Chat() {
       incrementSessionMessageCount();
       if (isSessionLimitReached()) setShowLimitMessage(true);
     } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: error instanceof Error ? error.message : 'Service unavailable. Try again later.',
-        },
-      ]);
+      const errMsg = error instanceof Error ? error.message : 'Service unavailable. Try again later.';
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === 'assistant' && last.content === errMsg) return prev;
+        return [...prev, { id: Date.now().toString(), role: 'assistant', content: errMsg }];
+      });
     } finally {
       setIsLoading(false);
     }
@@ -272,7 +279,10 @@ export default function Chat() {
         </header>
 
         <Card className="flex flex-1 flex-col min-h-0 overflow-hidden border-border/40 bg-card/30 backdrop-blur-xl shadow-2xl relative w-full">
-          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden w-full">
+          <div
+            className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain"
+            style={{ maxHeight: 'min(calc(100vh - 20rem), 100%)' }}
+          >
             <div className="flex flex-col gap-6 p-4 sm:p-6 md:p-8 w-full">
               {messages.length === 0 && (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 opacity-60">

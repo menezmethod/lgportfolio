@@ -38,6 +38,11 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 | `/api/health` | Dynamic | Health check (used by uptime checks) |
 | `/api/war-room/data` | Dynamic | War Room metrics JSON (10s cache) |
 | `/api/rag` | Dynamic | RAG retrieval endpoint |
+| `/admin/conversations` | Static | Admin: list/view chat sessions (requires `ADMIN_SECRET`) |
+| `/admin/logs` | Static | Admin: view Cloud Run logs (requires `ADMIN_SECRET`) |
+| `/api/admin/sessions` | Dynamic | Admin API: list sessions (header `X-Admin-Secret`) |
+| `/api/admin/sessions/[id]` | Dynamic | Admin API: session + messages (header `X-Admin-Secret`) |
+| `/api/admin/logs` | Dynamic | Admin API: recent Cloud Run logs (header `X-Admin-Secret`) |
 
 ### Environment variables
 
@@ -73,6 +78,33 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 - **docs/** — Secondary documentation: `DEPLOY-CLOUDRUN.md`, `SETUP.md`, `DEBUGGING_CHAT.md`, `DECISIONS.md`, `QUESTIONS.md`, `our_domain.md`. See `docs/README.md` for index.
 - **scripts/** — `deploy-cloudrun.sh`, `check-ssl-cert.sh`, `disable-project-spend.sh`.
 - **terraform/** — GCP IaC (Cloud Run, LB, WAF, monitoring). No legacy CRA files in `src/` (removed; see .gitignore).
+
+### Admin & viewing logs
+
+Admin pages and APIs are protected by **`ADMIN_SECRET`** (env or Secret Manager). Use the same secret for both UI and API.
+
+**View logs (humans and agents):**
+
+- **UI:** Open `/admin/logs`, enter the admin secret, then use the table (filter by time range and severity). Trace IDs link to GCP Logs Explorer. From `/admin/conversations` you can click “Logs” to get to the logs page.
+- **CLI:** Use `gcloud logging read` to query Cloud Logging from the terminal or scripts:
+  ```bash
+  # Recent logs for the Cloud Run service (replace PROJECT_ID)
+  gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.service_name="lgportfolio"' \
+    --project=PROJECT_ID --limit=50 --format=json
+
+  # Filter by severity
+  gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.service_name="lgportfolio" AND severity>=ERROR' \
+    --project=PROJECT_ID --limit=20 --format=json
+  ```
+- **API (for agents/automation):** `GET /api/admin/logs?limit=100&minutes=60&severity=ERROR` with header `X-Admin-Secret: <ADMIN_SECRET>`. Returns JSON `{ entries: [...], project_id }`. Each entry has `timestamp`, `severity`, `message`, `trace_id`, `endpoint`.
+
+**View chat sessions:**
+
+- **UI:** `/admin/conversations` — list sessions and open one to see the full thread.
+- **CLI:** No direct gcloud command for Firestore chat data; use the admin API or Firebase console.
+- **API:** `GET /api/admin/sessions?limit=50` and `GET /api/admin/sessions/<id>` with `X-Admin-Secret`.
+
+Ensure **`GOOGLE_CLOUD_PROJECT`** is set in production so the logs API can call Cloud Logging. The Cloud Run service account must have **`roles/logging.viewer`** (Terraform: `google_project_iam_member.portfolio_logging_viewer` in `terraform/cloudrun.tf`).
 
 ### Gotchas
 

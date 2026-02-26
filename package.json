@@ -16,6 +16,7 @@
     "@ai-sdk/google": "^3.0.29",
     "@ai-sdk/openai": "^3.0.29",
     "@ai-sdk/react": "^3.0.88",
+    "@google-cloud/logging": "^11.2.1",
     "@google/generative-ai": "^0.24.1",
     "@supabase/postgrest-js": "^2.95.3",
     "@supabase/supabase-js": "^2.95.3",

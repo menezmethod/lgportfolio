@@ -15,6 +15,7 @@ import {
   recordChatMetrics,
   increment,
   addEvent,
+  recordError,
 } from "@/lib/telemetry";
 import {
   getDb,
@@ -116,7 +117,9 @@ export async function POST(req: Request) {
   const apiKey = process.env.INFERENCIA_API_KEY;
 
   if (!apiKey) {
-    recordRequest("/api/chat", "POST", 503, Date.now() - requestStart);
+    const t = Date.now() - requestStart;
+    recordRequest("/api/chat", "POST", 503, t);
+    recordError({ endpoint: "/api/chat", status_code: 503, message: "LLM is not configured", trace_id: traceId });
     return jsonError(503, "Service unavailable", "LLM is not configured.", traceId);
   }
 
@@ -344,6 +347,12 @@ ${context}`;
     recordRequest("/api/chat", "POST", 503, duration);
     increment("errors_total{type=\"inference\"}");
     addEvent("error", `Chat API error: ${msg}`);
+    recordError({
+      endpoint: "/api/chat",
+      status_code: 503,
+      message: msg,
+      trace_id: traceId,
+    });
     log("ERROR", "Chat API error", { trace_id: traceId, error: msg, latency_ms: duration });
     return jsonError(503, "Service unavailable", "The AI is temporarily unavailable. Try again later or email luisgimenezdev@gmail.com.");
   }

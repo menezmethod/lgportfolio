@@ -25,6 +25,7 @@ const BOOT_TIME = Date.now();
 const MAX_OBSERVATIONS = 2000;
 const MAX_TIMESERIES_POINTS = 360; // 1h at 10s intervals
 const MAX_EVENTS = 50;
+const MAX_RECENT_ERRORS = 20;
 
 // ── Counters ────────────────────────────────────────────────────────────────
 
@@ -126,6 +127,38 @@ const events: TelemetryEvent[] = [];
 export function addEvent(type: TelemetryEvent["type"], message: string): void {
   events.push({ timestamp: new Date().toISOString(), type, message });
   if (events.length > MAX_EVENTS) events.shift();
+}
+
+// ── Recent errors (for War Room display + AI explain) ────────────────────────
+
+export interface RecentError {
+  timestamp: string;
+  endpoint: string;
+  status_code: number;
+  message: string;
+  trace_id?: string;
+}
+
+const recentErrors: RecentError[] = [];
+
+export function recordError(details: {
+  endpoint: string;
+  status_code: number;
+  message: string;
+  trace_id?: string;
+}): void {
+  recentErrors.push({
+    timestamp: new Date().toISOString(),
+    endpoint: details.endpoint,
+    status_code: details.status_code,
+    message: details.message,
+    trace_id: details.trace_id,
+  });
+  if (recentErrors.length > MAX_RECENT_ERRORS) recentErrors.shift();
+}
+
+export function getRecentErrors(): RecentError[] {
+  return [...recentErrors].reverse();
 }
 
 // Record cold start on module load
@@ -268,6 +301,7 @@ export interface WarRoomData {
     boot_time: string;
   };
   recent_events: TelemetryEvent[];
+  recent_errors: RecentError[];
   timeseries: {
     latency_1h: Array<{ t: number; p50: number; p95: number }>;
     requests_1h: Array<{ t: number; count: number; errors: number }>;
@@ -314,6 +348,7 @@ export function getWarRoomData(): WarRoomData {
       boot_time: new Date(BOOT_TIME).toISOString(),
     },
     recent_events: [...events].reverse(),
+    recent_errors: getRecentErrors(),
     timeseries: {
       latency_1h: timeSeriesBuckets
         .filter((b) => b.t > Date.now() - 3600000)
