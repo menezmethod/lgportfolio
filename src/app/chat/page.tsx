@@ -248,6 +248,18 @@ export default function Chat() {
             });
           }
         }
+        // Final cleanup so stored message has no [Reasoning] blocks or duplicates
+        if (assistantContent) {
+          const cleaned = dedupeRepeatedResponse(normalizeAssistantContent(cleanAssistantContent(assistantContent)) || assistantContent);
+          if (cleaned !== assistantContent) {
+            setMessages((prev) => {
+              const next = [...prev];
+              const last = next[next.length - 1];
+              if (last?.role === 'assistant') last.content = cleaned;
+              return next;
+            });
+          }
+        }
       }
 
       incrementSessionMessageCount();
@@ -363,6 +375,7 @@ export default function Chat() {
               className="relative flex items-center gap-2 rounded-xl border border-border/60 bg-muted/30 p-1.5 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all shadow-lg w-full max-w-4xl mx-auto"
             >
               <Input
+                data-testid="chat-input"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about architecture, systems, or projects..."
@@ -370,6 +383,7 @@ export default function Chat() {
                 disabled={isLoading || showLimitMessage}
               />
               <Button
+                data-testid="chat-send"
                 type="submit"
                 size="icon"
                 className={cn(

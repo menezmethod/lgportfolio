@@ -1,5 +1,16 @@
 # Chat debugging guide
 
+## Quick API test (curl)
+
+To verify the chat API without the UI (e.g. after rate limits or to check answer content):
+
+```bash
+curl -s -X POST http://localhost:3000/api/chat -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"What is Luis good at?"}]}'
+```
+
+Expect a 200 response with plain text or streamed chunks. The UI strips `[Reasoning]` and `[Answer]` markers and shows only the answer. For 429, wait a minute (rate limit) or use a different IP.
+
 ## Where to look
 
 ### 0. War Room + Cloud Logging (when chat shows "Failed to get response")

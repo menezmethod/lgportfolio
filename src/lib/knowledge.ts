@@ -34,7 +34,7 @@ His title is SE II. His scope of impact — particularly in observability, produ
 ## Career Trajectory — The Real Story
 Luis started at The Home Depot in July 2022 as a contractor through Daugherty Business Solutions. He joined during the development of Card Broker (the primary credit/debit card routing service) before it was deployed to any stores.
 
-Over approximately two years, he contributed code, testing, rollout support, interrupt rotation, and observability work as Card Broker deployed across a nationwide store footprint.
+Over approximately four years, he contributed code, testing, rollout support, interrupt rotation, and observability work as Card Broker deployed across 2400+ stores (nationwide footprint).
 
 In January 2024, Home Depot broke their contract with Daugherty to hire Luis full-time — they saw enough value to poach him from his own contracting firm. Daugherty counter-offered with a substantial raise, GCP certification bonus, and a fully paid trip to AWS re:Invent. Luis chose Home Depot.
 
@@ -99,10 +99,11 @@ This is Luis's most visible individual contribution to the payments platform.
 - This work gave Luis visibility across the organization and demonstrated his ability to translate technical telemetry into business intelligence
 
 ## Contribution 2: Card Broker — Core Payment Routing (Major Contributor)
-Card Broker was Luis's primary project for approximately two years, from pre-deployment through production stabilization.
+Card Broker was Luis's primary project for approximately four years, from pre-deployment through production stabilization.
 
 - Contributed production code to Card Broker, the primary credit/debit card routing service
-- Supported the full lifecycle: development, testing, rollout across a nationwide store footprint, interrupt rotation, observability
+- Contributed production Go code to the primary credit-card routing service, participating in rollout across 2400+ stores and authoring operational runbooks for interrupt rotation
+- Supported the full lifecycle: development, testing, rollout across 2400+ stores, interrupt rotation, observability
 - Created operational runbooks for Card Broker support procedures
 - This is the foundational work that proved Luis's value and led to his full-time hire
 - To be clear: Luis did not design Card Broker. He was a contributor on the team that built and deployed it.

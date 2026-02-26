@@ -9,9 +9,10 @@
  *   LLM10 — Unbounded Consumption: length limits + message count caps
  */
 
-const MAX_MESSAGE_LENGTH = 1500;
+const MAX_USER_MESSAGE_LENGTH = 1500;
+const MAX_ASSISTANT_MESSAGE_LENGTH = 8000; // RAG answers can be long; only user input kept strict
 const MAX_MESSAGES_IN_CONTEXT = 8;
-const MAX_TOTAL_CHARS = 8000;
+const MAX_TOTAL_CHARS = 24000;
 
 const INJECTION_PATTERNS: RegExp[] = [
   /ignore\s+(all\s+)?(previous|prior|above|system)\s+(instructions|prompts|rules)/i,
@@ -71,10 +72,10 @@ export function sanitizeInput(content: string): SecurityCheckResult {
     return { safe: false, reason: "Invalid input." };
   }
 
-  if (content.length > MAX_MESSAGE_LENGTH) {
+  if (content.length > MAX_USER_MESSAGE_LENGTH) {
     return {
       safe: false,
-      reason: `Message too long. Please keep it under ${MAX_MESSAGE_LENGTH} characters.`,
+      reason: `Message too long. Please keep it under ${MAX_USER_MESSAGE_LENGTH} characters.`,
     };
   }
 
@@ -139,7 +140,8 @@ export function validateMessages(messages: unknown): SecurityCheckResult & { par
       return { safe: false, reason: "Invalid message content." };
     }
 
-    if (m.content.length > MAX_MESSAGE_LENGTH) {
+    const maxLen = m.role === "user" ? MAX_USER_MESSAGE_LENGTH : MAX_ASSISTANT_MESSAGE_LENGTH;
+    if (m.content.length > maxLen) {
       return { safe: false, reason: "Individual message too long." };
     }
 
