@@ -1,8 +1,8 @@
 # Cloud Run deployment checklist (lgportfolio)
 
-**Free-first:** Default setup uses free-tier features; the only significant fixed cost is the ALB (~$18/mo). See [AGENTS.md](./AGENTS.md) § Free-first & cost control. **Budget kill switch:** `./scripts/disable-project-spend.sh` if spend hits $10.
+**Free-first:** Default setup uses free-tier features; the only significant fixed cost is the ALB (~$18/mo). See [AGENTS.md](../AGENTS.md) § Free-first & cost control. **Budget kill switch:** `./scripts/disable-project-spend.sh` if spend hits $10.
 
-You’re authenticated and the project is set. Follow these in order. Full details are in [AGENTS.md](./AGENTS.md).
+You’re authenticated and the project is set. Follow these in order. Full details are in [AGENTS.md](../AGENTS.md).
 
 ## 1. Environment tag (done)
 
@@ -76,4 +76,4 @@ Auto-deploy is enabled: **push to `main`** triggers Cloud Build, which builds th
 
 ---
 
-**Quick reference:** [AGENTS.md](./AGENTS.md) — full architecture, endpoints, troubleshooting, cost (~$18–20/mo).
+**Quick reference:** [AGENTS.md](../AGENTS.md) — full architecture, endpoints, troubleshooting, cost (~$18–20/mo).

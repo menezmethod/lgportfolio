@@ -10,6 +10,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# GA4: inlined at build time (optional; set via --build-arg in Cloud Build)
+ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
+ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID}
 RUN npm run build
 
 # Stage 3: Production runner (minimal attack surface)

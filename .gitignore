@@ -53,6 +53,10 @@ terraform/*.tfplan
 terraform/tfplan
 terraform/.terraform.lock.hcl
 
-# Legacy files (old CRA app)
+# Legacy files (old CRA app — do not re-add)
 /src/components/*.js
 /src/utils/analytics.js
+/src/App.js
+/src/App.css
+/src/index.js
+/src/index.css
