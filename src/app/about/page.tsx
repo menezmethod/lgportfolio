@@ -103,7 +103,7 @@ export default function About() {
                   bugs&mdash;fixes the process that let the bug happen.&quot;
                 </p>
                 <footer className="text-sm font-bold text-foreground flex items-center gap-2">
-                  &mdash; Senior Engineering Lead <span className="text-muted-foreground font-normal">@ The Home Depot</span>
+                  &mdash; Senior Engineering Lead
                 </footer>
               </blockquote>
 

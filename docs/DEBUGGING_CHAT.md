@@ -10,7 +10,7 @@ When you send a message, you should see logs like:
 - `[chat] rateLimit check` — `allowed` should be `true` if limits are disabled
 - `[chat] lastMessage length` / `messages count`
 - `[chat] cache HIT` — only if the query was cached (then no model is called)
-- `[chat] models order` — e.g. `['local', 'tunnel']` (localhost first when not on Vercel)
+- `[chat] models order` — e.g. `['local', 'tunnel']` (localhost first when running locally)
 - `[chat] trying provider local baseURL http://localhost:11973/v1 attempt 1`
 - `[chat] first chunk received` — `done`, `size`; if you see this, the provider responded
 - `[chat] response from: local` — success path
@@ -53,7 +53,7 @@ So you should see a reply in the UI when the API returns either format.
    - In `src/lib/rate-limit.ts`, `RATE_LIMITS_DISABLED` should be `true` so `checkRateLimit` and related checks don’t block.
 
 3. **Tunnel offline (ngrok 404)**
-   - The route tries local first when not on Vercel. If the local server is not running, it then tries the tunnel; if the tunnel is offline, you get 503 and the “AI model temporarily unavailable” message in the chat.
+   - The route tries local first when running locally. If the local server is not running, it then tries the tunnel; if the tunnel is offline, you get 503 and the “AI model temporarily unavailable” message in the chat.
 
 ## Remove logs later
 

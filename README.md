@@ -1,6 +1,6 @@
 # Luis Gimenez Portfolio
 
-A Next.js portfolio with an AI-powered chat. Built with Next.js 16, TypeScript, and Tailwind. The chat is backed by an OpenAI-compatible API (Inferencia) with a RAG-style knowledge base. **Fully hosted on GCP Cloud Run** (no Vercel, Cloudflare, or other hosts).
+A Next.js portfolio with an AI-powered chat. Built with Next.js 16, TypeScript, and Tailwind. The chat is backed by an OpenAI-compatible API (Inferencia) with a RAG-style knowledge base. **Fully hosted on GCP Cloud Run.**
 
 ## Target roles
 
@@ -14,9 +14,10 @@ A Next.js portfolio with an AI-powered chat. Built with Next.js 16, TypeScript, 
 - **RAG-style context:** Local file-based knowledge base by default; optional Supabase pgvector for vector search (uses Gemini embeddings when configured).
 - **Rate limiting:** Per-IP, session cap, and daily budget to protect free tiers.
 - **Response caching:** Pre-seeded cache for common questions to reduce API usage.
+- **War Room:** Live observability dashboard — see status, errors, latency, and recent events in real time. When something breaks, you see it here first.
 - **Architecture showcase:** Dedicated architecture page.
 - **Responsive design:** Mobile-first, dark theme.
-- **Infrastructure:** 100% GCP — Terraform, Cloud Run (prod + preview), Cloud Build. No Vercel or Cloudflare.
+- **Infrastructure:** 100% GCP — Terraform, Cloud Run (prod + preview), Cloud Build.
 
 ## Environments (Cloud Run)
 
@@ -27,7 +28,9 @@ A Next.js portfolio with an AI-powered chat. Built with Next.js 16, TypeScript, 
 
 ## Live site
 
-**Production:** https://gimenez.dev
+**Production:** https://gimenez.dev  
+
+**War Room (live telemetry):** https://gimenez.dev/war-room — status, errors, and metrics in one place.
 
 ## Tech stack
 
@@ -60,7 +63,7 @@ npm install
 
 # Chat requires Inferencia
 cp .env.example .env.local
-# Set INFERENCIA_BASE_URL and INFERENCIA_API_KEY in .env.local
+# Set INFERENCIA_BASE_URL and INFERENCIA_API_KEY in .env.local (see .env.example for variable names; do not commit real values)
 
 npm run dev
 ```
@@ -71,9 +74,9 @@ Open [http://localhost:3000](http://localhost:3000). Chat is at [http://localhos
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `INFERENCIA_BASE_URL` | No (has default) | OpenAI-compatible API base URL (default: `https://llm.menezmethod.com/v1`) |
+| `INFERENCIA_BASE_URL` | **Yes for chat** | OpenAI-compatible API base URL (set in `.env.local` or Secret Manager; not documented here for security) |
 | `INFERENCIA_API_KEY` | **Yes for chat** | API key for Inferencia. Chat returns 503 if missing. |
-| `INFERENCIA_CHAT_MODEL` | No | Chat model ID (default: `mlx-community/gpt-oss-20b-MXFP4-Q8`) |
+| `INFERENCIA_CHAT_MODEL` | No | Chat model ID (optional override; set via env if needed) |
 | `GOOGLE_API_KEY` | Optional | For Gemini embeddings when Supabase RAG is used |
 | `NEXT_PUBLIC_SUPABASE_URL` | Optional | Supabase project URL for vector RAG |
 | `SUPABASE_SERVICE_ROLE_KEY` | Optional | Supabase service role key |
@@ -84,7 +87,7 @@ Open [http://localhost:3000](http://localhost:3000). Chat is at [http://localhos
 
 See `.env.example` for the full list. In production (Cloud Run), Inferencia keys come from GCP Secret Manager via the deploy step; see [AGENTS.md](./AGENTS.md) and [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md).
 
-**Security:** Do not commit `.env.local` or any file containing API keys or secrets. They are gitignored; use your host’s secret manager or environment variables for production.
+**Security:** Do not commit `.env.local` or any file containing API keys or secrets. They are gitignored; use your host’s secret manager or environment variables for production. Default API base URLs and model names are not documented here to reduce abuse surface (set them in env or see your deployment docs).
 
 ## Project structure
 
@@ -98,8 +101,11 @@ lgportfolio/
 │   │   ├── architecture/page.tsx # Architecture case study
 │   │   ├── contact/page.tsx      # Contact + resume
 │   │   ├── chat/page.tsx         # AI chat UI
+│   │   ├── war-room/page.tsx     # Live observability dashboard
 │   │   └── api/
 │   │       ├── chat/route.ts     # Chat API (Inferencia only)
+│   │       ├── health/route.ts   # Health check (uptime checks)
+│   │       ├── war-room/data/route.ts # War Room metrics JSON
 │   │       └── rag/route.ts      # RAG/embeddings (optional)
 │   ├── components/
 │   │   └── Navbar.tsx
@@ -114,6 +120,22 @@ lgportfolio/
 ├── Dockerfile
 └── README.md
 ```
+
+## War Room (live observability)
+
+The **War Room** is a live dashboard that shows how this portfolio is running — the same kind of observability you’d use for production payment systems, applied here so you can see health and errors at a glance.
+
+**Where:** [https://gimenez.dev/war-room](https://gimenez.dev/war-room) (also linked from the nav). It auto-refreshes every 10 seconds.
+
+**Why it matters:** When something goes wrong — a chat error, rate limit, or API failure — you don’t have to open Cloud Logging first. The War Room shows:
+
+- **Status tiles** — Overall health plus per-component checks (inference API, RAG, rate limiter, Cloud Logging, Cloud Trace). Green = up, amber = degraded, red = down.
+- **Key metrics** — Uptime, request count, P95 latency, error rate (1h), chat cache hit rate, and daily chat budget remaining.
+- **Charts** — Request latency (P50/P95) and request/error volume over the last hour, in 10-second buckets.
+- **Recent events** — A live feed of what just happened: errors, cold starts, rate limits, cache hits, health checks. If you hit an error and open the War Room, you’ll see it here with a timestamp and type (e.g. error, rate_limit).
+- **Infrastructure** — Runtime (Node version), uptime, cold start count, boot time.
+
+Data comes from the same in-memory telemetry engine that feeds `/api/health`. Metrics reset on cold start (scale-to-zero); the dashboard is honest about that. For long-term retention and alerting, use GCP Cloud Logging, Cloud Monitoring, and the uptime checks configured in Terraform.
 
 ## AI chat behavior
 
@@ -141,13 +163,13 @@ docker build -t lgportfolio .
 
 docker run -p 3000:3000 \
   -e INFERENCIA_API_KEY=your-key \
-  -e INFERENCIA_BASE_URL=https://llm.menezmethod.com/v1 \
+  -e INFERENCIA_BASE_URL=https://your-llm-endpoint.example.com/v1 \
   lgportfolio
 ```
 
 ## Deployment (GCP Cloud Run only)
 
-All deployment is **Cloud Build → Cloud Run**. Push to `main` triggers build and deploy to the production Cloud Run service (gimenez.dev). No GitHub Actions, Vercel, or Cloudflare — disconnect any such integrations from this repo so only Cloud Build runs.
+All deployment is **Cloud Build → Cloud Run**. Push to `main` triggers build and deploy to the production Cloud Run service (gimenez.dev). Ensure only Cloud Build is connected to this repo for deploys.
 
 - **Docs:** [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md), [AGENTS.md](./AGENTS.md)
 - **Terraform (infra only):** `cd terraform && terraform init && terraform plan -var="project_id=YOUR_PROJECT" && terraform apply`
