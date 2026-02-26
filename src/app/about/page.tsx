@@ -8,7 +8,7 @@ const skills: Record<string, string[]> = {
   'languages': ['Go (primary)', 'TypeScript', 'Java', 'Rust', 'Python'],
   'observability': ['OpenTelemetry', 'Prometheus', 'Grafana', 'Jaeger / Tempo', 'PromQL'],
   'data': ['CockroachDB', 'PostgreSQL', 'Redis', 'pgvector'],
-  'edge ai': ['llama.cpp', 'GGUF Quantization', 'RAG Pipelines', 'OpenClaw', 'picoCLAW'],
+  'local ai & rag': ['Self-hosted LLM', 'Apple Silicon', 'GGUF Quantization', 'RAG Pipelines', 'llama.cpp'],
 };
 
 export default function About() {
@@ -82,10 +82,10 @@ export default function About() {
                     <Cpu className="size-5" />
                   </div>
                   <div>
-                    <span className="text-foreground font-semibold block text-lg mb-1">Push AI to the Edge</span>
+                    <span className="text-foreground font-semibold block text-lg mb-1">Local AI &amp; RAG</span>
                     <p className="text-muted-foreground">
-                      I build and test local RAG pipelines and optimize LLM inference for edge compute
-                      devices like the Raspberry Pi. Not every inference call needs to leave your network.
+                      I build and test local RAG pipelines. The LLM behind this site runs on my MacBook Pro M4 Max
+                      (128GB)&mdash;self-hosted inference, no cloud required. Not every call needs to leave your network.
                     </p>
                   </div>
                 </div>

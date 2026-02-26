@@ -256,16 +256,15 @@ service:
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <Cpu className="size-5 text-primary" />
-            <span className="font-mono text-sm text-muted-foreground">edge-ai.md</span>
+            <span className="font-mono text-sm text-muted-foreground">local-ai.md</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
             Edge AI <span className="text-primary">&amp; Local RAG</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl leading-relaxed mb-12">
-            Cloud inference is a solved problem. Running LLMs on a Raspberry Pi with
-            512MB of RAM&mdash;that&apos;s where the real engineering happens. I build and test
-            local RAG pipelines optimized for edge compute, because not every inference
-            call should leave your network.
+            Cloud inference is a solved problem. Running a self-hosted LLM and local RAG on your own
+            hardware&mdash;for example, a MacBook Pro M4 Max with 128GB RAM&mdash;keeps inference off the
+            cloud when it matters. I build and test local RAG pipelines so not every call has to leave your network.
           </p>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -273,19 +272,19 @@ service:
               {[
                 {
                   title: 'Local RAG Pipeline Architecture',
-                  desc: 'End-to-end retrieval-augmented generation running entirely on local hardware. Vector embeddings, semantic search, and context-aware LLM responses without cloud dependency.',
+                  desc: 'End-to-end retrieval-augmented generation on your own hardware. Vector embeddings, semantic search, and context-aware LLM responses without cloud dependency.',
                 },
                 {
-                  title: 'Model Sanitization & Optimization',
-                  desc: 'Using OpenClaw and picoCLAW to sanitize, quantize, and optimize models for constrained environments. GGUF quantization, KV-cache tuning, and memory-mapped inference.',
+                  title: 'Model Optimization for Local Inference',
+                  desc: 'Quantization and optimization for local serving: GGUF, KV-cache tuning, memory-mapped inference. Models that run well on high-end Apple Silicon.',
                 },
                 {
-                  title: 'Edge Compute Targets',
-                  desc: 'Optimizing LLM/AI workflows for Raspberry Pi Zero W 2 (512MB) and Raspberry Pi 5 (8GB). Real inference on real hardware, not cloud abstractions.',
+                  title: 'Self-Hosted Inference',
+                  desc: 'The LLM backing this site runs on a MacBook Pro M4 Max (128GB). Real inference on real hardware—no Raspberry Pis, no cloud required for the model.',
                 },
                 {
                   title: 'Hardware/Software Integration',
-                  desc: 'Bridging the gap between ML models and physical compute constraints. Custom inference servers, thermal management, and power-efficient batch processing.',
+                  desc: 'Bridging ML models and local compute. Custom inference servers (e.g. Inferencia, OpenAI-compatible APIs) and efficient batch processing on Apple Silicon.',
                 },
               ].map((item) => (
                 <div key={item.title} className="p-5 rounded-lg bg-card/40 border border-border/50 hover:border-primary/30 transition-colors">
@@ -300,43 +299,28 @@ service:
                 <div className="size-3 rounded-full bg-red-500/60" />
                 <div className="size-3 rounded-full bg-yellow-500/60" />
                 <div className="size-3 rounded-full bg-green-500/60" />
-                <span className="ml-2 text-xs text-muted-foreground font-mono">edge-rag.sh</span>
+                <span className="ml-2 text-xs text-muted-foreground font-mono">local-inference.sh</span>
               </div>
               <pre className="p-5 text-xs sm:text-sm font-mono text-muted-foreground overflow-x-auto leading-relaxed">
 {`#!/bin/bash
-# Edge RAG Pipeline — Raspberry Pi 5
-# Target: 8GB RAM, ARM64
+# Local RAG / inference — MacBook Pro M4 Max 128GB
+# OpenAI-compatible API (e.g. Inferencia) + RAG on your own hardware
 
-# Quantize model for edge deployment
-picoCLAW quantize \\
-  --model mistral-7b-instruct \\
-  --format gguf-q4_k_m \\
-  --target-ram 4096 \\
-  --output /opt/models/
+# Start local inference server (OpenAI-compatible)
+# Serves the model that backs gimenez.dev/chat
+inferencia serve \\
+  --model /path/to/model \\
+  --port 8080
 
-# Sanitize training artifacts
-openClaw sanitize \\
-  --input /opt/models/mistral-q4.gguf \\
-  --strip-pii \\
-  --verify-checksums
-
-# Start local inference server
-llama-server \\
-  --model /opt/models/mistral-q4.gguf \\
-  --ctx-size 4096 \\
-  --threads 4 \\
-  --port 8080 \\
-  --embedding
-
-# Benchmark: 12 tok/s on Pi 5 (8GB)
-# Benchmark: 2.1 tok/s on Pi Zero W 2
-echo "Edge inference ready."`}
+# RAG: embeddings + retrieval + context
+# This site: knowledge base + optional pgvector, no cloud LLM required
+echo "Local inference ready."`}
               </pre>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-3 mt-10">
-            {['Raspberry Pi 5', 'Raspberry Pi Zero W 2', 'GGUF Quantization', 'OpenClaw', 'picoCLAW', 'llama.cpp', 'Local RAG', 'Edge Compute', 'ARM64'].map((tag) => (
+            {['Apple Silicon', 'M4 Max', 'Self-hosted LLM', 'GGUF Quantization', 'llama.cpp', 'Local RAG', 'Inferencia', 'OpenAI-compatible API'].map((tag) => (
               <span key={tag} className="px-3 py-1.5 text-xs font-mono bg-card/60 border border-border/50 rounded-lg text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors">
                 {tag}
               </span>
