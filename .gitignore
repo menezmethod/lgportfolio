@@ -32,6 +32,10 @@ yarn-error.log*
 .env.production.local
 *service*account*.json
 *-firebase*.json
+.secrets/
+.secret/
+*.key
+.env.secret
 
 # Local deploy / CLI config (e.g. .vercel if ever used)
 .vercel

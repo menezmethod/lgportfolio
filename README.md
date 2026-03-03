@@ -11,7 +11,7 @@ A **production Next.js portfolio** on GCP Cloud Run with an AI-powered recruiter
 - **Portfolio** — Professional site (about, work, architecture case study, contact). Responsive, dark theme.
 - **AI chat** — RAG-backed assistant for recruiters; answers from a structured knowledge base. Rate-limited, prompt-injection hardened, with optional conversation memory and session analytics (Firestore).
 - **War Room** — Real-time dashboard: health tiles, latency charts, error feed, “Explain with AI” for errors. Same mindset as production NOC dashboards.
-- **Infrastructure** — Single Next.js app on Cloud Run behind a Global External ALB, Cloud CDN, and Cloud Armor (WAF). Terraform for all GCP resources. Push to `main` → Cloud Build → deploy. Optional **automatic budget kill switch**: when a $10 budget threshold is exceeded, a Cloud Function scales Cloud Run to zero so cost stops even if you’re not online.
+- **Infrastructure** — Single Next.js app on Cloud Run behind a Global External ALB, Cloud CDN, and Cloud Armor (WAF). Terraform for all GCP resources. Push to `main` → Cloud Build → deploy. Optional **$20 budget kill switch**: when the threshold is exceeded, a Cloud Function scales Cloud Run to zero so cost stops even if you’re not online. Free tier used wherever possible (scale-to-zero, file-based RAG by default, CDN caching).
 
 No placeholder content. The site is live; the chat, health checks, and War Room are wired to real endpoints and (in prod) to GCP.
 
@@ -25,7 +25,7 @@ No placeholder content. The site is live; the chat, health checks, and War Room 
 | **Observability** | In-app War Room (metrics, errors, events), structured JSON logs, trace IDs, uptime checks, alert policy. |
 | **Security** | CSP/HSTS/X-Frame-Options, rate limiting (app + Cloud Armor), prompt-injection defense (OWASP LLM01/07), secrets in Secret Manager, ingress only from ALB. |
 | **AI / LLM** | RAG over a local knowledge base, streaming chat (OpenAI-compatible API), response caching, token/message limits. |
-| **Reliability & cost** | Health checks, scale-to-zero, optional $10 budget with **automatic** kill switch (Pub/Sub → function sets Cloud Run max-instances=0). |
+| **Reliability & cost** | Health checks, scale-to-zero, optional **$20 budget kill switch** (Pub/Sub → function sets Cloud Run max-instances=0). Free tier first; CDN caching. |
 
 **Target roles:** Senior / Staff / SRE / Cloud Architect — backend, distributed systems, observability, GCP. Open to remote and select markets.
 
@@ -45,10 +45,10 @@ No placeholder content. The site is live; the chat, health checks, and War Room 
 ## Features
 
 - **Next.js 16** — App Router, React 19, TypeScript, Tailwind. Standalone output for Cloud Run.
-- **AI chat** — Inferencia (OpenAI-compatible). RAG from a file-based knowledge base; optional Supabase pgvector. Per-IP and session rate limits, daily budget, response cache. Prompt-injection checks; conversation memory and session analytics in Firestore when configured.
+- **AI chat** — Inferencia (OpenAI-compatible). RAG from a file-based knowledge base or **GCP Cloud SQL (PostgreSQL + pgvector)** for vector search. Per-IP and session rate limits, daily budget, response cache. Prompt-injection checks; conversation memory and session analytics in Firestore when configured.
 - **War Room** — Status tiles (inference, RAG, rate limiter, logging, trace), P50/P95 latency, request/error volume, recent events (errors, cold starts, rate limits). “Explain with AI” sends error context to the same LLM for plain-language explanation.
 - **Admin** — **Administration Board** at `/admin` or `/admin/board`: single pane with System (War Room), Recruiters (sessions + emails + conversation drill-down), Logs (Cloud Run logs with trace links), and Metrics (Prometheus exposition). Also `/admin/conversations` and `/admin/logs` as deep links. Protected by admin secret; same secret for UI and API.
-- **Infrastructure** — Terraform: Cloud Run, Artifact Registry, Secret Manager, global static IP, serverless NEG, backend + CDN, Cloud Armor (rate limits, scanner block, path traversal, adaptive DDoS), URL map, HTTPS redirect, managed SSL, uptime checks, alert policy. Optional: $10 billing budget with email + Pub/Sub; Cloud Function subscribes and sets Cloud Run `max-instances=0` when threshold is exceeded.
+- **Infrastructure** — Terraform: Cloud Run, Artifact Registry, Secret Manager, global static IP, serverless NEG, backend + CDN, Cloud Armor (rate limits, scanner block, path traversal, adaptive DDoS), URL map, HTTPS redirect, managed SSL, uptime checks, alert policy. Optional: **$20** billing budget with email + Pub/Sub; Cloud Function subscribes and sets Cloud Run `max-instances=0` when threshold is exceeded.
 - **CI/CD** — Cloud Build on push to `main`: build image (linux/amd64), push to Artifact Registry, deploy to Cloud Run with secrets.
 
 ---
@@ -58,7 +58,7 @@ No placeholder content. The site is live; the chat, health checks, and War Room 
 | Layer | Technology |
 |-------|------------|
 | App | Next.js 16, React 19, TypeScript, Tailwind |
-| AI | Vercel AI SDK, Inferencia (OpenAI-compatible), local RAG; optional Supabase + Gemini embeddings |
+| AI | Vercel AI SDK, Inferencia (OpenAI-compatible), local RAG; optional **Cloud SQL + pgvector** + Gemini embeddings |
 | Data | Firestore (chat sessions, memory, analytics when configured) |
 | Hosting | GCP Cloud Run (scale-to-zero, 1 max instance) |
 | Edge | Global External ALB, Cloud CDN, Cloud Armor |
@@ -117,7 +117,7 @@ Open [http://localhost:3000](http://localhost:3000). Chat: [http://localhost:300
 | `INFERENCIA_CHAT_MODEL` | No | Model override (optional) |
 | `CHAT_MAX_RPM_PER_IP`, `CHAT_MAX_MESSAGES_PER_SESSION`, `CHAT_DAILY_BUDGET` | No | Rate limits (defaults in code) |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | No | Google Analytics 4 |
-| Optional RAG | `GOOGLE_API_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Supabase + Gemini for vector RAG |
+| Optional RAG | `GOOGLE_API_KEY`; on GCP, Terraform sets Cloud SQL (pgvector) env; locally use Cloud SQL Proxy + `RAG_DB_*` | File-based RAG by default; vector RAG when Cloud SQL is configured |
 
 See `.env.example` for the full list. **Do not commit secrets.** Production uses GCP Secret Manager (see [AGENTS.md](./AGENTS.md) and [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md)).
 
@@ -151,7 +151,7 @@ cd terraform && terraform init -input=false && terraform validate   # IaC valid
 - **Security** — CSP, HSTS, X-Frame-Options; rate limiting (app + Cloud Armor); prompt-injection defense; secrets in Secret Manager; Cloud Run ingress only from ALB.
 - **Health** — `/api/health` for uptime checks; 503 when degraded.
 - **Telemetry** — Structured JSON logs, trace IDs, in-memory metrics for the War Room; metrics reset on cold start (documented).
-- **Cost control** — Optional $10 budget; when configured in Terraform, a Cloud Function automatically scales Cloud Run to 0 on threshold breach. Manual fallback: `./scripts/disable-project-spend.sh`.
+- **Cost control** — Optional **$20** budget kill switch; when configured in Terraform (`billing_account_id`, `budget_alert_email`), a Cloud Function automatically scales Cloud Run to 0 on threshold breach. Manual fallback: `./scripts/disable-project-spend.sh`. See [docs/CHECKLIST-FINAL-SWEEP.md](./docs/CHECKLIST-FINAL-SWEEP.md) for a full sweep checklist.
 
 ---
 

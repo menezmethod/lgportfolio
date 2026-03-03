@@ -29,8 +29,8 @@
    - Should we use a specific service account, or create a new one?
    - What's your preferred GCP region? (Currently set to us-central1)
 
-7. **Supabase (Optional)**
-   - Do you want to set up the RAG pipeline with Supabase pgvector?
+7. **RAG vector search (Optional)**
+   - Do you want to set up the RAG pipeline with GCP Cloud SQL (PostgreSQL + pgvector)?
    - This would give the AI more accurate, dynamic responses based on your content
 
 ## Deployment Questions
@@ -82,7 +82,7 @@
 
 - [ ] Add GitHub Secrets (GCP_PROJECT_ID, GCP_SA_KEY, GEMINI_API_KEY)
 - [ ] Configure GCP Cloud Run domain mapping for gimenez.dev
-- [ ] (Optional) Set up Supabase project for RAG
+- [ ] (Optional) Set up Cloud SQL + pgvector for RAG (Terraform + seed script)
 - [ ] (Optional) Add Google Analytics Measurement ID
 - [ ] Review all content for accuracy
 - [ ] Test AI chat responses
@@ -95,7 +95,7 @@
 - The site builds successfully with zero errors
 - All content pages are implemented: Home, About, Work, Contact, Chat
 - AI chat works with Gemini API (requires API key)
-- RAG pipeline scaffolded but optional (requires Supabase)
+- RAG pipeline: file-based by default; optional Cloud SQL + pgvector
 - Terraform IaC ready for GCP Cloud Run
 - GitHub Actions CI/CD configured
 - Dockerfile for containerization complete

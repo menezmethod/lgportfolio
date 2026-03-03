@@ -1,6 +1,6 @@
 # Cloud Run deployment checklist (lgportfolio)
 
-**Free-first:** Default setup uses free-tier features; the only significant fixed cost is the ALB (~$18/mo). See [AGENTS.md](../AGENTS.md) § Free-first & cost control. **Budget kill switch:** `./scripts/disable-project-spend.sh` if spend hits $10.
+**Free-first:** Default setup uses free-tier features; the only significant fixed cost is the ALB (~$18/mo). See [AGENTS.md](../AGENTS.md) § Free-first & cost control. **Budget kill switch:** $20 budget in Terraform; when exceeded, Pub/Sub → Cloud Function scales Cloud Run to 0. Manual: `./scripts/disable-project-spend.sh`.
 
 You’re authenticated and the project is set. Follow these in order. Full details are in [AGENTS.md](../AGENTS.md).
 

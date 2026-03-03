@@ -4,7 +4,7 @@ import { Eye, Shield, Cpu, Code2 } from 'lucide-react';
 
 const skills: Record<string, string[]> = {
   'systems & architecture': ['Distributed Systems', 'Event-Driven Architecture', 'Microservices', 'Domain-Driven Design', 'System Design'],
-  'cloud (gcp certified)': ['Cloud Run', 'Pub/Sub', 'BigQuery', 'Cloud Build', 'Terraform', 'Cloud Armor'],
+  'cloud (gcp certified)': ['GKE', 'Cloud Run', 'BigQuery', 'Terraform', 'Cloud Armor'],
   'languages': ['Go (primary)', 'TypeScript', 'Java', 'Rust', 'Python'],
   'observability': ['OpenTelemetry', 'Prometheus', 'Grafana', 'Jaeger / Tempo', 'PromQL'],
   'data': ['CockroachDB', 'PostgreSQL', 'Redis', 'pgvector'],

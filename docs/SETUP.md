@@ -5,7 +5,7 @@
 - Node.js 20+
 - npm or yarn
 - Google Cloud Platform account
-- Supabase account (optional, for RAG)
+- GCP Cloud SQL (optional, for RAG — Terraform can create it)
 
 ## Quick Start
 
@@ -31,9 +31,11 @@ Edit `.env.local` with your values:
 # Required: Get from https://aistudio.google.com/apikey
 GOOGLE_API_KEY=your-gemini-api-key-here
 
-# Optional: For RAG vector search (get from Supabase dashboard)
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+# Optional: For RAG vector search (Cloud SQL + pgvector; on GCP Terraform sets these)
+# Locally: run Cloud SQL Proxy, then set RAG_DB_HOST=127.0.0.1 and DB credentials
+# RAG_DB_NAME=rag
+# RAG_DB_USER=ragapp
+# RAG_DB_PASSWORD=...
 ```
 
 ### 3. Run Development Server
@@ -53,50 +55,16 @@ npm run start
 
 ---
 
-## Supabase RAG Setup (Optional)
+## RAG with Cloud SQL (Optional)
 
-For the AI chat to use vector search instead of static context:
+For the AI chat to use vector search instead of static file-based context:
 
-1. Create a Supabase project at https://supabase.com
-2. Go to SQL Editor and run:
+1. In Terraform, set `enable_rag_cloud_sql = true` (default) in `terraform.tfvars`. Run `terraform apply` to create the Cloud SQL instance (PostgreSQL + pgvector), database `rag`, and user. Credentials are stored in Secret Manager and wired to Cloud Run.
+2. Apply the schema once (e.g. via Cloud SQL Proxy locally): `psql "host=127.0.0.1 dbname=rag user=ragapp" -f scripts/init-rag-db.sql`
+3. Seed the knowledge base and embeddings: `GOOGLE_API_KEY=... npx tsx scripts/seed-rag-db.ts` (use same DB credentials; with proxy, set `RAG_DB_HOST=127.0.0.1` in `.env.local`).
+4. After seeding, create the IVFFlat index for faster search: `CREATE INDEX knowledge_chunks_embedding_idx ON knowledge_chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);`
 
-```sql
--- Enable pgvector
-CREATE EXTENSION IF NOT EXISTS vector;
-
--- Create documents table
-CREATE TABLE documents (
-  id BIGSERIAL PRIMARY KEY,
-  content TEXT NOT NULL,
-  metadata JSONB DEFAULT '{}',
-  embedding VECTOR(768),
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Create index for similarity search
-CREATE INDEX ON documents USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
-
--- Create match function
-CREATE OR REPLACE FUNCTION match_documents(
-  query_embedding VECTOR(768),
-  match_threshold FLOAT DEFAULT 0.7,
-  match_count INT DEFAULT 5
-)
-RETURNS TABLE (id BIGINT, content TEXT, metadata JSONB, similarity FLOAT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  RETURN QUERY
-  SELECT d.id, d.content, d.metadata, 1 - (d.embedding <=> query_embedding) AS similarity
-  FROM documents d
-  WHERE 1 - (d.embedding <=> query_embedding) > match_threshold
-  ORDER BY d.embedding <=> query_embedding
-  LIMIT match_count;
-END;
-$$;
-```
-
-3. Add your Supabase credentials to `.env.local`
+On Cloud Run, env vars are set by Terraform. For local dev, run [Cloud SQL Proxy](https://cloud.google.com/sql/docs/postgres/connect-auth-proxy) and set `RAG_DB_HOST=127.0.0.1`, `RAG_DB_NAME`, `RAG_DB_USER`, `RAG_DB_PASSWORD` in `.env.local`.
 
 ---
 
@@ -158,7 +126,7 @@ terraform apply -var="project_id=your-project"
 | Service | Cost |
 |---------|------|
 | Cloud Run | $0-5/mo |
-| Supabase | $0 (free tier) |
+| Cloud SQL (RAG) | ~\$7–10/mo db-f1-micro, or 30-day free trial |
 | Gemini API | $0-3/mo (free tier) |
 | **Total** | **$1-11/mo** |
 

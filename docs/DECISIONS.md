@@ -4,7 +4,7 @@
 - **Framework:** Next.js 16 App Router with TypeScript (Node 20.9+)
 - **Styling:** Tailwind CSS with original site colors preserved (#32c0f4 cyan, #e97124 orange)
 - **AI Chat:** AI SDK + Inferencia (OpenAI-compatible); optional Gemini/Anthropic fallbacks
-- **RAG:** Supabase pgvector scaffolded (optional - falls back to static context)
+- **RAG:** GCP Cloud SQL (PostgreSQL + pgvector) optional; falls back to file-based knowledge
 - **Infrastructure:** GCP Cloud Run via Terraform
 - **CI/CD:** Cloud Build (push to `main` → build & deploy to Cloud Run)
 
@@ -25,13 +25,13 @@
 
 ## Assumptions
 - Luis will provide GOOGLE_API_KEY as GitHub Secret
-- Supabase optional - static fallback works without it
+- Cloud SQL for RAG optional - file-based fallback works without it
 - Using Workload Identity instead of service account keys for better security
 - Dark theme only - no light mode
 
 ## Cost Optimization
 - Cloud Run scale-to-0: $0-5/mo
-- Supabase free tier: $0
+- Cloud SQL (RAG): ~$7–10/mo smallest instance or 30-day trial
 - Gemini API free tier: $0-3/mo
 - Total estimated: $1-11/month
 

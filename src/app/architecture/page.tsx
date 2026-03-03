@@ -125,7 +125,7 @@ export default function Architecture() {
                   </tr>
                   <tr className="hover:bg-muted/10 transition-colors">
                     <td className="p-4 md:p-6 font-medium">Vector Database</td>
-                    <td className="p-4 md:p-6 text-muted-foreground text-sm">Supabase free tier. Local file fallback for zero cost.</td>
+                    <td className="p-4 md:p-6 text-muted-foreground text-sm">Cloud SQL (PostgreSQL + pgvector) or file-based RAG. GCP-native.</td>
                     <td className="p-4 md:p-6 text-primary font-mono font-medium">$0.00</td>
                   </tr>
                   <tr className="hover:bg-muted/10 transition-colors">

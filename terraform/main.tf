@@ -24,6 +24,12 @@
 #   Total:                          ~$18-20/month
 #
 # This is the reference architecture for a GCP Professional Cloud Architect.
+#
+# Terraform best practices (terraform-best-practices.com):
+#   - Pin provider versions (~> 5.0)
+#   - Sensitive variables: sensitive = true, never in tfvars committed
+#   - Use terraform.tfvars (gitignored) for local values; tfvars.example for templates
+#   - Optional: remote backend (GCS) for state locking — uncomment in backend.tf.example
 # ═══════════════════════════════════════════════════════════════════════════════
 
 terraform {
@@ -44,6 +50,10 @@ terraform {
     time = {
       source  = "hashicorp/time"
       version = "~> 0.9"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.5"
     }
   }
 }
@@ -72,6 +82,7 @@ locals {
     "eventarc.googleapis.com",
     "cloudbuild.googleapis.com",
     "logging.googleapis.com",
+    "sqladmin.googleapis.com",
   ]
 }
 

@@ -7,9 +7,12 @@ domain              = "gimenez.dev"
 inferencia_api_key  = "your-inferencia-api-key"
 inferencia_base_url = "https://your-inferencia-endpoint.com/v1"
 
-# Optional: $10 budget with email alerts. Get ID: gcloud billing accounts list
+# Optional: $20 budget kill switch (email + Pub/Sub → scale Cloud Run to 0). Get ID: gcloud billing accounts list
 # billing_account_id = "012345-6789AB-CDEF01"
 # budget_alert_email = "you@example.com"
 
 # Optional: email for portfolio alerts (recruiter left email, spam/abuse, high errors)
 # portfolio_alert_email = "you@example.com"
+
+# Optional: Cloud SQL (PostgreSQL + pgvector) for RAG vector search. Default true. Set to false to use file-based RAG only.
+# enable_rag_cloud_sql = true
