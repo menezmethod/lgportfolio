@@ -41,6 +41,10 @@ terraform {
       source  = "hashicorp/archive"
       version = "~> 2.0"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9"
+    }
   }
 }
 
@@ -67,6 +71,7 @@ locals {
     "cloudfunctions.googleapis.com",
     "eventarc.googleapis.com",
     "cloudbuild.googleapis.com",
+    "logging.googleapis.com",
   ]
 }
 

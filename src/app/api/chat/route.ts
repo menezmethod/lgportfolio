@@ -8,6 +8,7 @@ import {
 } from "@/lib/rate-limit";
 import { retrieveContext } from "@/lib/rag";
 import { sanitizeInput, validateMessages } from "@/lib/security";
+import { getTraceIdFromRequest } from "@/lib/trace-context";
 import {
   log,
   generateTraceId,
@@ -113,7 +114,7 @@ function wrapStreamForPersistence(
 
 export async function POST(req: Request) {
   const requestStart = Date.now();
-  const traceId = generateTraceId();
+  const traceId = getTraceIdFromRequest(req) ?? generateTraceId();
   const apiKey = process.env.INFERENCIA_API_KEY;
 
   if (!apiKey) {

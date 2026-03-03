@@ -1,4 +1,5 @@
 import { setRecruiterEmail } from "@/lib/firestore";
+import { getTraceIdFromRequest } from "@/lib/trace-context";
 import { log, recordRequest } from "@/lib/telemetry";
 
 const SECURITY_HEADERS = {
@@ -11,6 +12,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: Request) {
   const start = Date.now();
+  const traceId = getTraceIdFromRequest(req);
   try {
     const body = await req.json().catch(() => ({}));
     const { session_id: sessionId, email } = body as { session_id?: string; email?: string };
@@ -26,7 +28,7 @@ export async function POST(req: Request) {
     }
 
     await setRecruiterEmail(sessionId, trimmed);
-    log("INFO", "Chat session email captured", { session_id: sessionId });
+    log("INFO", "Chat session email captured", { session_id: sessionId, ...(traceId && { trace_id: traceId }) });
     recordRequest("/api/chat/save-email", "POST", 200, Date.now() - start);
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers: SECURITY_HEADERS });
   } catch {

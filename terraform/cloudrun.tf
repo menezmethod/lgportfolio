@@ -88,6 +88,10 @@ resource "google_cloud_run_v2_service" "portfolio" {
         name  = "NEXT_TELEMETRY_DISABLED"
         value = "1"
       }
+      env {
+        name  = "GOOGLE_CLOUD_PROJECT"
+        value = var.project_id
+      }
 
       env {
         name = "INFERENCIA_API_KEY"

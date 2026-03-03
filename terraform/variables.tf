@@ -41,3 +41,10 @@ variable "budget_alert_email" {
   type        = string
   default     = ""
 }
+
+# Optional: email for portfolio alerts (recruiter detected, spam/abuse, high errors). Leave empty to create policies without notifications.
+variable "portfolio_alert_email" {
+  description = "Email for portfolio alerts (recruiter, rate limit abuse, errors). Leave empty to skip notification channel."
+  type        = string
+  default     = ""
+}
