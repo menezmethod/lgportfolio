@@ -50,14 +50,33 @@ export async function GET(req: Request) {
     const out = (entries || []).map((e: { metadata?: Record<string, unknown> }) => {
       const meta = (e?.metadata || {}) as Record<string, unknown>;
       const json = meta.jsonPayload as Record<string, unknown> | undefined;
-      const trace = meta["logging.googleapis.com/trace"] as string | undefined;
-      const traceId = typeof trace === "string" ? trace.split("/").pop() : "";
+      const httpReq = meta.httpRequest as Record<string, unknown> | undefined;
+      const trace = (meta["logging.googleapis.com/trace"] ?? meta.trace) as string | undefined;
+      const traceId = typeof trace === "string" ? trace.split("/").pop() ?? "" : "";
+      // Message: app logs use jsonPayload.message or textPayload; request logs often have only httpRequest
+      let message = (meta.message as string) || (json?.message as string) || "";
+      if (!message && httpReq) {
+        const method = (httpReq.requestMethod as string) || "";
+        const url = (httpReq.requestUrl as string) || "";
+        const path = url ? new URL(url, "https://x").pathname : "";
+        const status = httpReq.status !== undefined ? String(httpReq.status) : "";
+        message = [method, path, status].filter(Boolean).join(" ") || "HTTP request";
+      }
+      // Endpoint: from app jsonPayload or from httpRequest.requestUrl path
+      let endpoint = (json?.endpoint as string) || "";
+      if (!endpoint && httpReq?.requestUrl) {
+        try {
+          endpoint = new URL(httpReq.requestUrl as string).pathname;
+        } catch {
+          endpoint = String(httpReq.requestUrl).slice(0, 80);
+        }
+      }
       return {
         timestamp: meta.timestamp,
         severity: meta.severity,
-        message: (meta.message as string) || (json?.message as string) || "",
+        message,
         trace_id: (json?.trace_id as string) || traceId || "",
-        endpoint: (json?.endpoint as string) || "",
+        endpoint,
         ...(json && typeof json === "object" ? { fields: json } : {}),
       };
     });
