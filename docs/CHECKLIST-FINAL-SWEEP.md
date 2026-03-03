@@ -97,11 +97,11 @@
 
 ## 8. Browser verification (recommended)
 
-- [ ] Open `/` — Hero and sections load.
-- [ ] Open `/work` — Payment Card Tender (GKE, no Pub/Sub); portfolio (Cloud SQL pgvector).
-- [ ] Open `/chat` — Send a message; no 503 if Inferencia + env are set.
-- [ ] Open `/war-room` — Tiles and charts.
-- [ ] Open `/admin` — Redirect to board; enter admin secret; check System, Recruiters, Logs, Metrics tabs.
+- [x] Open `/` — Hero and sections load (verified in-sweep).
+- [x] Open `/work` — Payment Card Tender (GKE, no Pub/Sub); portfolio (Cloud SQL pgvector) (verified).
+- [x] Open `/chat` — Send a message; AI responded with knowledge-base answer (verified).
+- [x] Open `/war-room` — Tiles and charts load (verified).
+- [ ] Open `/admin` — Redirect to board; enter admin secret; check System, Recruiters, Logs, Metrics tabs (do when you have ADMIN_SECRET).
 - [ ] Open `/architecture` — Case study and RAG line (Cloud SQL / file-based).
 
 ---
