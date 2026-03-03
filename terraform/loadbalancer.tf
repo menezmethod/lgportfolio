@@ -43,7 +43,7 @@ resource "google_compute_backend_service" "default" {
     group = google_compute_region_network_endpoint_group.cloudrun_neg.id
   }
 
-  # Cloud CDN
+  # Cloud CDN (free-tier: edge cache reduces Cloud Run requests when traffic spikes)
   enable_cdn = true
   cdn_policy {
     cache_mode                   = "CACHE_ALL_STATIC"
@@ -56,6 +56,17 @@ resource "google_compute_backend_service" "default" {
       include_host         = true
       include_protocol     = true
       include_query_string = false
+    }
+
+    # Negative caching: 429/404 at edge so burst doesn't hammer origin
+    negative_caching = true
+    negative_caching_policy {
+      code = 404
+      ttl  = 30
+    }
+    negative_caching_policy {
+      code = 429
+      ttl  = 30
     }
   }
 

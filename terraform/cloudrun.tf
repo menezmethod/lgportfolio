@@ -62,6 +62,29 @@ resource "google_secret_manager_secret_iam_member" "base_url_accessor" {
   member    = "serviceAccount:${google_service_account.portfolio.email}"
 }
 
+# Admin and Firebase secrets (created manually; see docs/CHAT-SECRETS.md)
+data "google_secret_manager_secret" "admin_secret" {
+  secret_id = "admin-secret"
+  project   = var.project_id
+}
+
+data "google_secret_manager_secret" "firebase_service_account" {
+  secret_id = "firebase-service-account"
+  project   = var.project_id
+}
+
+resource "google_secret_manager_secret_iam_member" "admin_secret_accessor" {
+  secret_id = data.google_secret_manager_secret.admin_secret.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.portfolio.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "firebase_sa_accessor" {
+  secret_id = data.google_secret_manager_secret.firebase_service_account.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.portfolio.email}"
+}
+
 # ── Cloud Run Service ────────────────────────────────────────────────────────
 
 resource "google_cloud_run_v2_service" "portfolio" {
@@ -126,6 +149,25 @@ resource "google_cloud_run_v2_service" "portfolio" {
         value_source {
           secret_key_ref {
             secret  = google_secret_manager_secret.inferencia_base_url.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "ADMIN_SECRET"
+        value_source {
+          secret_key_ref {
+            secret  = data.google_secret_manager_secret.admin_secret.secret_id
+            version = "latest"
+          }
+        }
+      }
+      env {
+        name = "FIREBASE_SERVICE_ACCOUNT_JSON"
+        value_source {
+          secret_key_ref {
+            secret  = data.google_secret_manager_secret.firebase_service_account.secret_id
             version = "latest"
           }
         }
@@ -201,6 +243,13 @@ resource "google_cloud_run_v2_service" "portfolio" {
     google_secret_manager_secret_version.inferencia_api_key,
     google_secret_manager_secret_version.inferencia_base_url,
   ]
+
+  # Let Cloud Build be the sole deployer of the app image. Terraform manages
+  # env, secrets, scaling; it must not overwrite the image and roll back to an
+  # older revision when apply runs after a Cloud Build deploy.
+  lifecycle {
+    ignore_changes = [template[0].containers[0].image]
+  }
 }
 
 resource "google_cloud_run_v2_service_iam_member" "public" {
