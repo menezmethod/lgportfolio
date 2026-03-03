@@ -1,6 +1,6 @@
-# Optional: $10 budget with email alerts at 50%, 90%, 100% (free).
+# Optional: $20 budget kill switch — email alerts at 50%, 90%, 100% (free).
 # Set terraform.tfvars: billing_account_id and budget_alert_email.
-# When threshold is exceeded: email alert + Pub/Sub → Cloud Function automatically scales Cloud Run to 0 (see budget-kill.tf).
+# When threshold exceeded: email + Pub/Sub → Cloud Function scales Cloud Run to 0 (budget-kill.tf).
 
 resource "google_monitoring_notification_channel" "budget_email" {
   count = var.billing_account_id != "" && var.budget_alert_email != "" ? 1 : 0
@@ -16,7 +16,7 @@ resource "google_billing_budget" "portfolio" {
   count = var.billing_account_id != "" && var.budget_alert_email != "" ? 1 : 0
 
   billing_account = var.billing_account_id
-  display_name    = "portfolio-$10-kill-switch"
+  display_name    = "portfolio-$20-kill-switch"
 
   budget_filter {
     projects = ["projects/${var.project_id}"]
@@ -25,7 +25,7 @@ resource "google_billing_budget" "portfolio" {
   amount {
     specified_amount {
       currency_code = "USD"
-      units         = "10"
+      units         = "20"
     }
   }
 

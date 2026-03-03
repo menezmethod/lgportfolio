@@ -72,11 +72,30 @@ resource "google_cloud_run_v2_service" "portfolio" {
   template {
     service_account = google_service_account.portfolio.email
 
+    # Cloud SQL socket for RAG (pgvector); only when enable_rag_cloud_sql = true
+    dynamic "volumes" {
+      for_each = var.enable_rag_cloud_sql ? [1] : []
+      content {
+        name = "cloudsql"
+        cloud_sql_instance {
+          instances = [google_sql_database_instance.rag[0].connection_name]
+        }
+      }
+    }
+
     containers {
       image = "${var.region}-docker.pkg.dev/${var.project_id}/portfolio/app:latest"
 
       ports {
         container_port = 8080
+      }
+
+      dynamic "volume_mounts" {
+        for_each = var.enable_rag_cloud_sql ? [1] : []
+        content {
+          name       = "cloudsql"
+          mount_path = "/cloudsql"
+        }
       }
 
       # PORT is reserved; Cloud Run sets it automatically (8080).
@@ -108,6 +127,41 @@ resource "google_cloud_run_v2_service" "portfolio" {
           secret_key_ref {
             secret  = google_secret_manager_secret.inferencia_base_url.secret_id
             version = "latest"
+          }
+        }
+      }
+
+      # RAG: Cloud SQL (pgvector) connection; only when enable_rag_cloud_sql = true
+      dynamic "env" {
+        for_each = var.enable_rag_cloud_sql ? [1] : []
+        content {
+          name  = "CLOUD_SQL_CONNECTION_NAME"
+          value = google_sql_database_instance.rag[0].connection_name
+        }
+      }
+      dynamic "env" {
+        for_each = var.enable_rag_cloud_sql ? [1] : []
+        content {
+          name  = "RAG_DB_NAME"
+          value = google_sql_database.rag[0].name
+        }
+      }
+      dynamic "env" {
+        for_each = var.enable_rag_cloud_sql ? [1] : []
+        content {
+          name  = "RAG_DB_USER"
+          value = google_sql_user.rag[0].name
+        }
+      }
+      dynamic "env" {
+        for_each = var.enable_rag_cloud_sql ? [1] : []
+        content {
+          name = "RAG_DB_PASSWORD"
+          value_source {
+            secret_key_ref {
+              secret  = google_secret_manager_secret.rag_db_password[0].secret_id
+              version = "latest"
+            }
           }
         }
       }

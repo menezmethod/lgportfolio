@@ -289,7 +289,7 @@ Unglamorous, critical work: interrupt rotation, production debugging, observabil
 ## Tech Stack
 - Next.js 16 (App Router), React 19, TypeScript, Tailwind. Deployed on GCP Cloud Run (scale-to-zero, single region us-east1).
 - Global External Application Load Balancer, Cloud CDN, Cloud Armor (WAF), Google-managed SSL. Terraform for all infrastructure.
-- This chat: RAG over the knowledge base you are reading; optional Supabase pgvector for semantic search. Inference via OpenAI-compatible API (e.g. self-hosted Inferencia). Rate limiting, prompt-injection defense, session analytics in Firestore.
+- This chat: RAG over the knowledge base you are reading; optional Cloud SQL (pgvector) for semantic search. Inference via OpenAI-compatible API (e.g. self-hosted Inferencia). Rate limiting, prompt-injection defense, session analytics in Firestore.
 - Observability: in-memory metrics, War Room dashboard, Prometheus /api/metrics, structured logs to Cloud Logging, trace correlation for Cloud Trace. Admin board for recruiter sessions and logs.
 
 ## Why It Matters for Recruiters

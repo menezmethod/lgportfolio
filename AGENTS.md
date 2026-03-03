@@ -59,6 +59,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 
 - Copy `.env.example` to `.env.local`. All portfolio pages work without API keys.
 - `INFERENCIA_API_KEY` + `INFERENCIA_BASE_URL` are needed for the AI chat. Without them, chat returns 503 but all pages work.
+- **RAG:** By default the chat uses the file-based knowledge base. For vector search, use GCP Cloud SQL (PostgreSQL + pgvector): set `enable_rag_cloud_sql = true` in Terraform; apply schema (`scripts/init-rag-db.sql`) and seed (`npx tsx scripts/seed-rag-db.ts`). Cloud Run gets `CLOUD_SQL_CONNECTION_NAME`, `RAG_DB_*` from Terraform when enabled.
 - In production on Cloud Run, these are set via **GCP Secret Manager** (never in env vars directly); `cloudbuild.yaml` passes them with `--set-secrets`.
 - Optional: `NEXT_PUBLIC_GA_MEASUREMENT_ID` for Google Analytics 4.
 - **`GOOGLE_CLOUD_PROJECT`** — Set in Terraform for Cloud Run so logs include `logging.googleapis.com/trace` and appear in **Trace** and Logs Explorer. Required for Observability → Trace to show requests.
@@ -148,9 +149,9 @@ Ensure **`GOOGLE_CLOUD_PROJECT`** is set in production so the logs API can call 
 - **Cloud Armor**: 60/min global, 10/min for `/api/chat`. Edge protection and abuse control.
 - Do not relax these without a conscious decision; they cap usage and cost.
 
-### Budget kill switch ($10)
+### Budget kill switch ($20)
 
-**Automatic (when budget is in Terraform):** If `billing_account_id` and `budget_alert_email` are set in `terraform.tfvars` and you apply, a **$10 budget** is created with email alerts at 50%, 90%, and 100%. Budget alerts are also published to Pub/Sub; a **Cloud Function** (`budget-kill`) subscribes and **automatically** sets Cloud Run **max-instances=0** when a threshold is exceeded. No manual step required — e.g. if you're away and traffic or abuse spikes, the function scales the service to zero and stops request-driven cost. See `terraform/budget.tf` and `terraform/budget-kill.tf`.
+**Automatic (when budget is in Terraform):** If `billing_account_id` and `budget_alert_email` are set in `terraform.tfvars` and you apply, a **$20 budget** is created with email alerts at 50%, 90%, and 100%. Budget alerts are also published to Pub/Sub; a **Cloud Function** (`budget-kill`) subscribes and **automatically** sets Cloud Run **max-instances=0** when a threshold is exceeded. No manual step required — e.g. if you're away and traffic or abuse spikes, the function scales the service to zero and stops request-driven cost. See `terraform/budget.tf` and `terraform/budget-kill.tf`.
 
 **Manual:** If the budget isn't configured in Terraform, or you want to run the same action by hand:
 

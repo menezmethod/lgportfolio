@@ -29,7 +29,7 @@ variable "inferencia_base_url" {
   default     = ""
 }
 
-# Optional: set to enable a $10 budget with email alerts (free). Get ID: gcloud billing accounts list
+# Optional: set to enable $20 budget kill switch (email + Pub/Sub → scale Cloud Run to 0). Get ID: gcloud billing accounts list
 variable "billing_account_id" {
   description = "Billing account ID for budget alerts (e.g. 012345-6789AB-CDEF01). Leave empty to skip."
   type        = string

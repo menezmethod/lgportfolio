@@ -1,15 +1,47 @@
-import { createClient } from "@supabase/supabase-js";
+/**
+ * RAG: retrieval for the AI chat.
+ * - When Cloud SQL (GCP) is configured: vector search via pgvector.
+ * - Otherwise: file-based knowledge base (KNOWLEDGE_BASE).
+ * Embeddings: Google Generative Language API (text-embedding-004).
+ */
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+import { Pool } from "pg";
 
-export const supabase = supabaseUrl && supabaseKey 
-  ? createClient(supabaseUrl, supabaseKey)
-  : null;
+const connectionName = process.env.CLOUD_SQL_CONNECTION_NAME;
+const dbName = process.env.RAG_DB_NAME;
+const dbUser = process.env.RAG_DB_USER;
+const dbPassword = process.env.RAG_DB_PASSWORD;
+const dbHost = process.env.RAG_DB_HOST; // optional: for local Cloud SQL Proxy (e.g. 127.0.0.1)
+
+const hasCloudSql =
+  connectionName && dbName && dbUser && dbPassword;
+
+let pool: Pool | null = null;
+
+function getPool(): Pool | null {
+  if (!hasCloudSql) return null;
+  if (pool) return pool;
+  try {
+    const host = dbHost || `/cloudsql/${connectionName}`;
+    pool = new Pool({
+      host,
+      database: dbName,
+      user: dbUser,
+      password: dbPassword,
+      max: 1,
+      idleTimeoutMillis: 10000,
+      connectionTimeoutMillis: 10000,
+    });
+    return pool;
+  } catch (err) {
+    console.error("RAG: failed to create Cloud SQL pool:", err);
+    return null;
+  }
+}
 
 export async function generateEmbedding(text: string): Promise<number[]> {
   const apiKey = process.env.GOOGLE_API_KEY;
-  
+
   if (!apiKey) {
     throw new Error("GOOGLE_API_KEY not configured");
   }
@@ -35,19 +67,19 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   return data.embedding?.values || [];
 }
 
-
-// Import our file-based context
 import { KNOWLEDGE_BASE } from "./knowledge";
 
-/** Deduplicate context so the same paragraph/block never appears twice. Prevents the model from echoing duplicates. */
 function deduplicateContext(context: string): string {
   const chunkSeparator = "\n\n---\n\n";
-  const chunks = context.split(chunkSeparator).map((b) => b.trim()).filter(Boolean);
+  const chunks = context
+    .split(chunkSeparator)
+    .map((b) => b.trim())
+    .filter(Boolean);
   const seen = new Set<string>();
   const out: string[] = [];
   for (const chunk of chunks) {
     const normalized = chunk.replace(/\s+/g, " ").trim();
-    if (normalized.length < 20) continue; // skip tiny fragments
+    if (normalized.length < 20) continue;
     if (seen.has(normalized)) continue;
     seen.add(normalized);
     out.push(chunk);
@@ -55,38 +87,37 @@ function deduplicateContext(context: string): string {
   return out.join(chunkSeparator);
 }
 
+/** Format embedding array for PostgreSQL vector(768). */
+function toVectorLiteral(embedding: number[]): string {
+  return `[${embedding.join(",")}]`;
+}
+
 export async function retrieveContext(query: string, topK = 5): Promise<string> {
-  // If no Supabase (or just for testing), use our local file first
-  if (!supabase) {
-    console.log("Using local file-based knowledge base (Supabase not configured)");
+  const client = getPool();
+
+  if (!client) {
     return KNOWLEDGE_BASE;
   }
 
   try {
     const embedding = await generateEmbedding(query);
+    const vectorLiteral = toVectorLiteral(embedding);
 
-    const { data, error } = await supabase.rpc("match_documents", {
-      query_embedding: embedding,
-      match_threshold: 0.7,
-      match_count: topK,
-    });
+    const { rows } = await client.query<{ content: string; source: string }>(
+      `SELECT content, source FROM match_documents($1::vector(768), 0.7, $2)`,
+      [vectorLiteral, topK]
+    );
 
-    // If RAG returns nothing, fallback to our full knowledge base
-    if (error || !data || data.length === 0) {
-      console.log("RAG query returned no matches, falling back to full knowledge base.");
+    if (!rows || rows.length === 0) {
       return KNOWLEDGE_BASE;
     }
 
-    const raw = data
-      .map(
-        (doc: { content: string; metadata: { source: string } }) =>
-          `[Source: ${doc.metadata?.source || "unknown"}] ${doc.content}`
-      )
+    const raw = rows
+      .map((r) => `[Source: ${r.source || "unknown"}] ${r.content}`)
       .join("\n\n---\n\n");
     return deduplicateContext(raw);
   } catch (err) {
     console.error("RAG retrieval error:", err);
-    // On error, always fallback to the file
     return KNOWLEDGE_BASE;
   }
 }
