@@ -47,7 +47,7 @@ No placeholder content. The site is live; the chat, health checks, and War Room 
 - **Next.js 16** — App Router, React 19, TypeScript, Tailwind. Standalone output for Cloud Run.
 - **AI chat** — Inferencia (OpenAI-compatible). RAG from a file-based knowledge base; optional Supabase pgvector. Per-IP and session rate limits, daily budget, response cache. Prompt-injection checks; conversation memory and session analytics in Firestore when configured.
 - **War Room** — Status tiles (inference, RAG, rate limiter, logging, trace), P50/P95 latency, request/error volume, recent events (errors, cold starts, rate limits). “Explain with AI” sends error context to the same LLM for plain-language explanation.
-- **Admin** — `/admin/conversations` (chat sessions) and `/admin/logs` (Cloud Run logs with trace links). Protected by admin secret; same secret for UI and API.
+- **Admin** — **Administration Board** at `/admin` or `/admin/board`: single pane with System (War Room), Recruiters (sessions + emails + conversation drill-down), Logs (Cloud Run logs with trace links), and Metrics (Prometheus exposition). Also `/admin/conversations` and `/admin/logs` as deep links. Protected by admin secret; same secret for UI and API.
 - **Infrastructure** — Terraform: Cloud Run, Artifact Registry, Secret Manager, global static IP, serverless NEG, backend + CDN, Cloud Armor (rate limits, scanner block, path traversal, adaptive DDoS), URL map, HTTPS redirect, managed SSL, uptime checks, alert policy. Optional: $10 billing budget with email + Pub/Sub; Cloud Function subscribes and sets Cloud Run `max-instances=0` when threshold is exceeded.
 - **CI/CD** — Cloud Build on push to `main`: build image (linux/amd64), push to Artifact Registry, deploy to Cloud Run with secrets.
 
@@ -64,7 +64,7 @@ No placeholder content. The site is live; the chat, health checks, and War Room 
 | Edge | Global External ALB, Cloud CDN, Cloud Armor |
 | IaC | Terraform (Run, LB, WAF, Pub/Sub, Cloud Function for budget kill) |
 | CI/CD | Cloud Build; secrets from Secret Manager |
-| Observability | In-memory telemetry → War Room; stdout JSON → Cloud Logging; trace IDs → Cloud Trace; uptime checks + alert |
+| Observability | In-memory telemetry → War Room; **Prometheus** `/api/metrics` (text format, admin-only); stdout JSON → Cloud Logging; trace IDs → Cloud Trace; uptime checks + alert |
 
 ---
 

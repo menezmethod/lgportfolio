@@ -1,8 +1,9 @@
-import { getHealthData, log } from "@/lib/telemetry";
+import { getHealthData, log, recordRequest } from "@/lib/telemetry";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const start = Date.now();
   const health = getHealthData();
 
   log("INFO", "Health check", {
@@ -12,6 +13,7 @@ export async function GET() {
   });
 
   const statusCode = health.status === "healthy" ? 200 : health.status === "degraded" ? 200 : 503;
+  recordRequest("/api/health", "GET", statusCode, Date.now() - start);
 
   return new Response(JSON.stringify(health, null, 2), {
     status: statusCode,

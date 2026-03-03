@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { recordRequest } from '@/lib/telemetry';
 
 // Initialize Supabase client for RAG
 function getSupabaseClient() {
@@ -51,10 +52,12 @@ CONTACT:
 `;
 
 export async function POST(req: NextRequest) {
+  const start = Date.now();
   try {
     const { query } = await req.json();
 
     if (!query) {
+      recordRequest("/api/rag", "POST", 400, Date.now() - start);
       return NextResponse.json(
         { error: 'Query is required' },
         { status: 400 }
@@ -76,6 +79,7 @@ export async function POST(req: NextRequest) {
 
         if (!error && data && data.length > 0) {
           const context = data.map((d) => d.content).join('\n');
+          recordRequest("/api/rag", "POST", 200, Date.now() - start);
           return NextResponse.json({ context, source: 'supabase' });
         }
       } catch (ragError) {
@@ -84,12 +88,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Fallback: return static portfolio context
-    return NextResponse.json({ 
-      context: PORTFOLIO_CONTEXT, 
-      source: 'fallback' 
+    recordRequest("/api/rag", "POST", 200, Date.now() - start);
+    return NextResponse.json({
+      context: PORTFOLIO_CONTEXT,
+      source: 'fallback'
     });
   } catch (error) {
     console.error('RAG API error:', error);
+    recordRequest("/api/rag", "POST", 500, Date.now() - start);
     return NextResponse.json(
       { error: 'Failed to process query' },
       { status: 500 }

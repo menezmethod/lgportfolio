@@ -1,5 +1,5 @@
-import { listSessions } from "@/lib/firestore";
-import { incrementAdminMetric, recordRequest } from "@/lib/telemetry";
+import { getBoardStats } from "@/lib/firestore";
+import { recordRequest } from "@/lib/telemetry";
 import { NextResponse } from "next/server";
 
 function isAdmin(req: Request): boolean {
@@ -12,13 +12,12 @@ function isAdmin(req: Request): boolean {
 export async function GET(req: Request) {
   const start = Date.now();
   if (!isAdmin(req)) {
-    recordRequest("/api/admin/sessions", "GET", 401, Date.now() - start);
+    recordRequest("/api/admin/board/stats", "GET", 401, Date.now() - start);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  incrementAdminMetric("sessions_list");
   const url = new URL(req.url);
-  const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get("limit") || "50", 10)));
-  const sessions = await listSessions(limit);
-  recordRequest("/api/admin/sessions", "GET", 200, Date.now() - start);
-  return NextResponse.json({ sessions });
+  const days = Math.min(30, Math.max(1, parseInt(url.searchParams.get("days") || "7", 10)));
+  const stats = await getBoardStats(days);
+  recordRequest("/api/admin/board/stats", "GET", 200, Date.now() - start);
+  return NextResponse.json(stats);
 }

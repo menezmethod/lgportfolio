@@ -1,4 +1,4 @@
-import { getWarRoomData, log } from "@/lib/telemetry";
+import { getWarRoomData, log, recordRequest } from "@/lib/telemetry";
 
 export const dynamic = "force-dynamic";
 
@@ -7,8 +7,10 @@ let cachedAt = 0;
 const CACHE_TTL = 10_000; // 10 seconds
 
 export async function GET() {
+  const start = Date.now();
   const now = Date.now();
   if (cachedData && now - cachedAt < CACHE_TTL) {
+    recordRequest("/api/war-room/data", "GET", 200, Date.now() - start);
     return new Response(cachedData, {
       headers: {
         "Content-Type": "application/json",
@@ -29,6 +31,7 @@ export async function GET() {
 
   cachedData = JSON.stringify(data);
   cachedAt = now;
+  recordRequest("/api/war-room/data", "GET", 200, Date.now() - start);
 
   return new Response(cachedData, {
     headers: {

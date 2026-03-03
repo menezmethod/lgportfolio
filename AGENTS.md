@@ -44,11 +44,16 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 | `/api/health` | Dynamic | Health check (used by uptime checks) |
 | `/api/war-room/data` | Dynamic | War Room metrics JSON (10s cache) |
 | `/api/rag` | Dynamic | RAG retrieval endpoint |
+| `/admin` | Redirect | Redirects to `/admin/board` |
+| `/admin/board` | Static | **Admin board (v2):** single pane — System (War Room), Recruiters, Logs, Metrics (requires `ADMIN_SECRET`) |
 | `/admin/conversations` | Static | Admin: list/view chat sessions (requires `ADMIN_SECRET`) |
 | `/admin/logs` | Static | Admin: view Cloud Run logs (requires `ADMIN_SECRET`) |
+| `/api/metrics` | Dynamic | Prometheus text exposition format (admin-only; header `X-Admin-Secret`) |
 | `/api/admin/sessions` | Dynamic | Admin API: list sessions (header `X-Admin-Secret`) |
 | `/api/admin/sessions/[id]` | Dynamic | Admin API: session + messages (header `X-Admin-Secret`) |
 | `/api/admin/logs` | Dynamic | Admin API: recent Cloud Run logs (header `X-Admin-Secret`) |
+| `/api/admin/board/view` | Dynamic | Admin API: record board view, increment `admin_board_views_total` (header `X-Admin-Secret`) |
+| `/api/admin/board/stats` | Dynamic | Admin API: 7d session count, sessions with email (header `X-Admin-Secret`) |
 
 ### Environment variables
 
@@ -69,6 +74,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 ### Telemetry
 
 - `src/lib/telemetry.ts` — In-memory metrics engine (counters, histograms, gauges, rolling time series).
+- **Prometheus:** `GET /api/metrics` returns [Prometheus text exposition format](https://prometheus.io/docs/instrumenting/exposition_formats/). All API routes call `recordRequest(endpoint, method, statusCode, durationMs)`. Admin actions increment `admin_board_views_total`, `admin_sessions_list_requests_total`, `admin_logs_requests_total`, `admin_conversation_detail_requests_total`. Protect `/api/metrics` with `X-Admin-Secret` when scraping.
 - Structured JSON logging via stdout → Cloud Logging auto-ingests.
 - Trace IDs in logs → Cloud Logging correlates with Cloud Trace automatically.
 - Chat route is fully instrumented: per-span timing for RAG retrieval and inference.
@@ -88,6 +94,8 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 ### Admin & viewing logs
 
 Admin pages and APIs are protected by **`ADMIN_SECRET`** (env or Secret Manager). Use the same secret for both UI and API.
+
+**Administration Board (recommended):** Open **`/admin`** or **`/admin/board`**, enter the admin secret once. You get a single pane with tabs: **System** (War Room live metrics, errors, events), **Recruiters** (sessions table + email column + full conversation drill-down, 7d summary cards), **Logs** (Cloud Run logs with time range and severity filters, trace links), **Metrics** (Prometheus text from `/api/metrics`). No need to open Cloud Console or Firestore for day-to-day “who chatted and what did they say?”
 
 **View logs (humans and agents):**
 
@@ -404,6 +412,8 @@ gcloud compute ssl-certificates describe portfolio-ssl-cert --global
 | `https://gimenez.dev/api/war-room/data` | GET | Public | 60/min | 10s server | Dashboard metrics JSON |
 | `https://gimenez.dev/api/chat` | POST | Public | 10/min (Cloud Armor) + 2/min (app) | None | LLM chat inference |
 | `https://gimenez.dev/api/rag` | POST | Public | 60/min | None | RAG context retrieval |
+| `https://gimenez.dev/api/metrics` | GET | Admin (`X-Admin-Secret`) | — | None | Prometheus text exposition format |
+| `https://gimenez.dev/admin/board` | GET | Admin (secret in UI) | — | None | Administration Board (System, Recruiters, Logs, Metrics) |
 
 ### Health endpoint response
 

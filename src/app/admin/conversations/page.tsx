@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Lock, MessageSquare, ChevronRight, Bot, User, FileText } from 'lucide-react';
+import { Lock, MessageSquare, ChevronRight, Bot, User, FileText, LayoutDashboard } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -123,6 +123,9 @@ export default function AdminConversationsPage() {
             <MessageSquare className="size-5" />
             Chat sessions (read-only)
           </h1>
+          <Link href="/admin/board">
+            <Button variant="ghost" size="sm"><LayoutDashboard className="size-4 mr-1" /> Board</Button>
+          </Link>
           <Link href="/admin/logs">
             <Button variant="ghost" size="sm"><FileText className="size-4 mr-1" /> Logs</Button>
           </Link>
