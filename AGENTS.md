@@ -20,6 +20,8 @@ This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature 
 
 So: **code, docs, and build fixes → commit and push to main**; the next build will deploy. **You do not need to run `docker build` / `docker push` / `gcloud run services update` manually** when auto-deploy is on. Use that manual flow only if the Cloud Build trigger isn't connected or you need a one-off deploy without pushing. No need to run Terraform for app-only changes. Use Terraform only when changing infrastructure (LB, WAF, DNS, monitoring). Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`).
 
+**Preventing "old version" after Terraform apply:** Terraform has `lifecycle { ignore_changes = [template[0].containers[0].image] }` on the Cloud Run service so **the container image is only updated by Cloud Build**. A plain `terraform apply` will not overwrite the live image with an older `portfolio/app:latest`; it only updates env, secrets, and scaling. Deploy app changes by pushing to `main` (Cloud Build) or running `gcloud builds submit --config=cloudbuild.yaml .`.
+
 ### Running the app
 
 - **Node:** 20.9+ required (see `engines` in `package.json`).
@@ -146,8 +148,7 @@ Ensure **`GOOGLE_CLOUD_PROJECT`** is set in production so the logs API can call 
 ### Rate limits (aligned with free tier)
 
 - **App** (`src/lib/rate-limit.ts`): 2 RPM per IP, 10 msgs/session, 150 LLM reqs/day. Keeps chat within free-tier usage.
-- **Cloud Armor**: 60/min global, 10/min for `/api/chat`. Edge protection and abuse control.
-- Do not relax these without a conscious decision; they cap usage and cost.
+- **Cloud Armor** (`terraform/security.tf`): 60/min global, 10/min for `/api/chat`. **Admin** requests to `/api/admin/*` with header `X-Admin-Secret` are **allowed** (no throttle). **War room**: `/api/war-room/data` has 120/min. See **`docs/TRAFFIC-AND-COST.md`** for full rate-limit and caching audit (traffic-spike readiness).
 
 ### Budget kill switch ($20)
 

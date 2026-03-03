@@ -18,6 +18,41 @@ resource "google_compute_security_policy" "default" {
   description = "Cloud Armor WAF policy for gimenez.dev"
   type        = "CLOUD_ARMOR"
 
+  # ── Rule 0: Allow admin traffic (with X-Admin-Secret) — no throttle ───────
+  # Admin board polls /api/admin/* and /api/war-room/data; exempt so one user
+  # doesn't burn the 60/min global limit. App still validates the secret.
+  rule {
+    action   = "allow"
+    priority = 100
+    match {
+      expr {
+        expression = "request.path.matches('/api/admin/.*') && request.headers['x-admin-secret'].size() > 0"
+      }
+    }
+    description = "Allow admin API traffic with X-Admin-Secret (no rate limit)"
+  }
+
+  # ── Rule 0b: Higher limit for war-room data (dashboard polls every 10s) ───
+  rule {
+    action   = "throttle"
+    priority = 200
+    match {
+      expr {
+        expression = "request.path.matches('/api/war-room/data')"
+      }
+    }
+    rate_limit_options {
+      conform_action = "allow"
+      exceed_action  = "deny(429)"
+      rate_limit_threshold {
+        count        = 120
+        interval_sec = 60
+      }
+      enforce_on_key = "IP"
+    }
+    description = "War room data: 120 req/min per IP (dashboard polling)"
+  }
+
   # ── Rule 1: Rate limit all traffic (60 req/min per IP) ──────────────────
 
   rule {

@@ -33,7 +33,18 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   async headers() {
+    // Cache static pages at CDN and browser (free-tier friendly when traffic spikes)
+    const staticCache = "public, max-age=3600, s-maxage=3600, stale-while-revalidate=60";
+    const staticRoutes = [
+      { source: "/", headers: [{ key: "Cache-Control", value: staticCache }] },
+      { source: "/about", headers: [{ key: "Cache-Control", value: staticCache }] },
+      { source: "/work", headers: [{ key: "Cache-Control", value: staticCache }] },
+      { source: "/contact", headers: [{ key: "Cache-Control", value: staticCache }] },
+      { source: "/architecture", headers: [{ key: "Cache-Control", value: staticCache }] },
+      { source: "/war-room", headers: [{ key: "Cache-Control", value: staticCache }] },
+    ];
     return [
+      ...staticRoutes,
       {
         source: "/(.*)",
         headers: securityHeaders,

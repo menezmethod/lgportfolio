@@ -157,10 +157,11 @@ export default function AdminBoardPage() {
     }
   }, [token, authHeader]);
 
+  // Only ping board/view when we have a stored (validated) secret so every request sends auth.
   useEffect(() => {
-    if (!token) return;
-    fetch('/api/admin/board/view', { headers: authHeader() }).catch(() => {});
-  }, [token, authHeader]);
+    if (!storedSecret) return;
+    fetch('/api/admin/board/view', { headers: { 'X-Admin-Secret': storedSecret } }).catch(() => {});
+  }, [storedSecret]);
 
   useEffect(() => {
     if (activeTab === 'system' && token) {
