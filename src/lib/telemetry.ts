@@ -204,7 +204,9 @@ export function recordRequest(endpoint: string, method: string, statusCode: numb
   increment(`http_requests_total{endpoint="${endpoint}",method="${method}",status="${statusCode}"}`);
   observe("http_request_duration_seconds", durationMs);
   observe(`http_request_duration_seconds{endpoint="${endpoint}"}`, durationMs);
-  recordRequestTimeSeries(durationMs, statusCode >= 400);
+  // Exclude 401 from error rate so auth failures on protected routes don't inflate the dashboard
+  const isError = statusCode >= 400 && statusCode !== 401;
+  recordRequestTimeSeries(durationMs, isError);
   if (statusCode >= 400) increment("errors_total");
   if (statusCode >= 500) increment(`errors_total{type="server"}`);
   else if (statusCode >= 400) increment(`errors_total{type="client"}`);
@@ -226,6 +228,86 @@ export function recordChatMetrics(fields: {
   }
   if (fields.tokensUsed) increment("chat_tokens_used_total", fields.tokensUsed);
   increment("chat_conversations_total");
+}
+
+/** Admin board usage metrics (for Prometheus and board Metrics section). */
+export function incrementAdminMetric(name: "board_views" | "sessions_list" | "logs" | "conversation_detail"): void {
+  const key = `admin_${name}_total`;
+  increment(key);
+}
+
+// ── Prometheus text exposition ────────────────────────────────────────────────
+
+/** Parse metric key into base name and optional labels string. */
+function parseMetricKey(key: string): { name: string; labels: string } {
+  const i = key.indexOf("{");
+  if (i === -1) return { name: key, labels: "" };
+  return { name: key.slice(0, i), labels: key.slice(i) };
+}
+
+/** Build Prometheus text format from in-memory counters, gauges, histograms. */
+export function getPrometheusText(): string {
+  const lines: string[] = [];
+  const durationMsToSeconds = (key: string) =>
+    key.includes("duration_seconds") || key.endsWith("_seconds");
+
+  // Counters: group by base name, emit # TYPE then samples
+  const counterByBase = new Map<string, Array<{ labels: string; value: number }>>();
+  for (const [key, value] of counters) {
+    const { name, labels } = parseMetricKey(key);
+    if (!counterByBase.has(name)) counterByBase.set(name, []);
+    counterByBase.get(name)!.push({ labels, value });
+  }
+  for (const [name, samples] of counterByBase) {
+    lines.push(`# TYPE ${name} counter`);
+    for (const { labels, value } of samples) {
+      lines.push(labels ? `${name}${labels} ${value}` : `${name} ${value}`);
+    }
+  }
+
+  // Gauges
+  const gaugeByBase = new Map<string, Array<{ labels: string; value: number }>>();
+  for (const [key, value] of gauges) {
+    const { name, labels } = parseMetricKey(key);
+    if (!gaugeByBase.has(name)) gaugeByBase.set(name, []);
+    gaugeByBase.get(name)!.push({ labels, value });
+  }
+  for (const [name, samples] of gaugeByBase) {
+    lines.push(`# TYPE ${name} gauge`);
+    for (const { labels, value } of samples) {
+      lines.push(labels ? `${name}${labels} ${value}` : `${name} ${value}`);
+    }
+  }
+
+  // Histograms: store observations; export as summary (quantiles + sum + count). Duration in ms → seconds.
+  // Group by base name so we emit one # TYPE per metric name.
+  const histogramGroups = new Map<string, Array<{ labels: string; arr: Array<{ t: number; v: number }> }>>();
+  for (const [key, arr] of histograms) {
+    if (!arr?.length) continue;
+    const { name, labels } = parseMetricKey(key);
+    if (!histogramGroups.has(name)) histogramGroups.set(name, []);
+    histogramGroups.get(name)!.push({ labels, arr });
+  }
+  for (const [name, group] of histogramGroups) {
+    lines.push(`# TYPE ${name} summary`);
+    for (const { labels, arr } of group) {
+      const values = arr.map((x) => x.v).sort((a, b) => a - b);
+      const sum = values.reduce((s, v) => s + v, 0);
+      const count = values.length;
+      const toSeconds = (v: number) => (durationMsToSeconds(name + labels) ? v / 1000 : v);
+      const q50 = values[Math.floor(0.5 * count)] ?? 0;
+      const q90 = values[Math.floor(0.9 * count)] ?? 0;
+      const q99 = values[Math.floor(0.99 * count)] ?? 0;
+      const labelPart = labels || "";
+      lines.push(`${name}${labelPart.replace("}", ',quantile="0.5"}')} ${toSeconds(q50)}`);
+      lines.push(`${name}${labelPart.replace("}", ',quantile="0.9"}')} ${toSeconds(q90)}`);
+      lines.push(`${name}${labelPart.replace("}", ',quantile="0.99"}')} ${toSeconds(q99)}`);
+      lines.push(`${name}_sum${labelPart} ${toSeconds(sum)}`);
+      lines.push(`${name}_count${labelPart} ${count}`);
+    }
+  }
+
+  return lines.join("\n") + "\n";
 }
 
 // ── Data Export Functions ────────────────────────────────────────────────────
@@ -349,17 +431,20 @@ export function getWarRoomData(): WarRoomData {
     },
     recent_events: [...events].reverse(),
     recent_errors: getRecentErrors(),
-    timeseries: {
-      latency_1h: timeSeriesBuckets
-        .filter((b) => b.t > Date.now() - 3600000)
+    timeseries: (() => {
+      const oneHourAgo = Date.now() - 3600000;
+      const buckets = timeSeriesBuckets.filter((b) => b.t > oneHourAgo);
+      const latency_1h = buckets
         .map((b) => ({
           t: b.t,
           p50: b.latencyCount > 0 ? Math.round(b.latencySum / b.latencyCount) : 0,
           p95: Math.round(percentile("http_request_duration_seconds", 95, 3600000)),
-        })),
-      requests_1h: timeSeriesBuckets
-        .filter((b) => b.t > Date.now() - 3600000)
-        .map((b) => ({ t: b.t, count: b.requests, errors: b.errors })),
-    },
+        }))
+        .sort((a, b) => a.t - b.t);
+      const requests_1h = buckets
+        .map((b) => ({ t: b.t, count: b.requests, errors: b.errors }))
+        .sort((a, b) => a.t - b.t);
+      return { latency_1h, requests_1h };
+    })(),
   };
 }

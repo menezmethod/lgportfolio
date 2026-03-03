@@ -1,4 +1,5 @@
 import { Logging } from "@google-cloud/logging";
+import { incrementAdminMetric, recordRequest } from "@/lib/telemetry";
 import { NextResponse } from "next/server";
 
 function isAdmin(req: Request): boolean {
@@ -12,12 +13,16 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
 export async function GET(req: Request) {
+  const start = Date.now();
   if (!isAdmin(req)) {
+    recordRequest("/api/admin/logs", "GET", 401, Date.now() - start);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  incrementAdminMetric("logs");
 
   const projectId = process.env.GOOGLE_CLOUD_PROJECT;
   if (!projectId) {
+    recordRequest("/api/admin/logs", "GET", 200, Date.now() - start);
     return NextResponse.json(
       { error: "GOOGLE_CLOUD_PROJECT not set", entries: [] },
       { status: 200, headers: { "Content-Type": "application/json" } }
@@ -57,9 +62,11 @@ export async function GET(req: Request) {
       };
     });
 
+    recordRequest("/api/admin/logs", "GET", 200, Date.now() - start);
     return NextResponse.json({ entries: out, project_id: projectId });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    recordRequest("/api/admin/logs", "GET", 503, Date.now() - start);
     return NextResponse.json(
       { error: "Failed to fetch logs", message: msg, entries: [] },
       { status: 503, headers: { "Content-Type": "application/json" } }

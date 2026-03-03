@@ -111,6 +111,9 @@ export default function AdminLogsPage() {
             Cloud Run logs
           </h1>
           <div className="flex items-center gap-2">
+            <Link href="/admin/board">
+              <Button variant="ghost" size="sm">Board</Button>
+            </Link>
             <Link href="/admin/conversations">
               <Button variant="ghost" size="sm">Conversations</Button>
             </Link>

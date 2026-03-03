@@ -186,3 +186,22 @@ export async function getSessionWithMemory(sessionId: string): Promise<{
   const messages = mem?.messages ?? [];
   return { session, messages };
 }
+
+/** Aggregates for admin board summary (e.g. sessions last 7d, with email). */
+export async function getBoardStats(days = 7): Promise<{
+  sessions_last_n_days: number;
+  sessions_with_email: number;
+}> {
+  const db = getDb();
+  if (!db) return { sessions_last_n_days: 0, sessions_with_email: 0 };
+
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const snap = await db
+    .collection(COLLECTIONS.SESSIONS)
+    .where("last_activity_at", ">=", since)
+    .get();
+
+  const docs = snap.docs.map((d) => d.data() as ChatSessionDoc);
+  const withEmail = docs.filter((d) => d.recruiter_email && String(d.recruiter_email).trim().length > 0).length;
+  return { sessions_last_n_days: docs.length, sessions_with_email: withEmail };
+}

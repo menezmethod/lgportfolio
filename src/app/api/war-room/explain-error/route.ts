@@ -1,5 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
+import { recordRequest } from "@/lib/telemetry";
 
 export const maxDuration = 30;
 
@@ -11,8 +12,10 @@ Your job: explain what the error means in plain language and suggest 1–3 concr
 Do not make up stack traces or code. If the error is unclear, say so and suggest how to get more context (e.g. check logs, trace_id).`;
 
 export async function POST(req: Request) {
+  const start = Date.now();
   const apiKey = process.env.INFERENCIA_API_KEY;
   if (!apiKey) {
+    recordRequest("/api/war-room/explain-error", "POST", 503, Date.now() - start);
     return new Response(
       JSON.stringify({ error: "Inference API not configured" }),
       { status: 503, headers: { "Content-Type": "application/json", "X-Content-Type-Options": "nosniff" } }
@@ -23,6 +26,7 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const errorText = (body as { error_text?: string }).error_text?.trim() || "";
     if (!errorText) {
+      recordRequest("/api/war-room/explain-error", "POST", 400, Date.now() - start);
       return new Response(
         JSON.stringify({ error: "Missing error_text" }),
         { status: 400, headers: { "Content-Type": "application/json", "X-Content-Type-Options": "nosniff" } }
@@ -42,12 +46,14 @@ export async function POST(req: Request) {
       temperature: 0.3,
     });
 
+    recordRequest("/api/war-room/explain-error", "POST", 200, Date.now() - start);
     return new Response(JSON.stringify({ explanation: text }), {
       status: 200,
       headers: { "Content-Type": "application/json", "X-Content-Type-Options": "nosniff" },
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "unknown";
+    recordRequest("/api/war-room/explain-error", "POST", 503, Date.now() - start);
     return new Response(
       JSON.stringify({ error: "Explain failed", message: msg }),
       { status: 503, headers: { "Content-Type": "application/json", "X-Content-Type-Options": "nosniff" } }
