@@ -61,7 +61,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 - `INFERENCIA_API_KEY` + `INFERENCIA_BASE_URL` are needed for the AI chat. Without them, chat returns 503 but all pages work.
 - In production on Cloud Run, these are set via **GCP Secret Manager** (never in env vars directly); `cloudbuild.yaml` passes them with `--set-secrets`.
 - Optional: `NEXT_PUBLIC_GA_MEASUREMENT_ID` for Google Analytics 4.
-- Optional: `GOOGLE_CLOUD_PROJECT` for Cloud Logging trace correlation.
+- **`GOOGLE_CLOUD_PROJECT`** — Set in Terraform for Cloud Run so logs include `logging.googleapis.com/trace` and appear in **Trace** and Logs Explorer. Required for Observability → Trace to show requests.
 
 ### Security architecture
 
@@ -76,7 +76,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 - `src/lib/telemetry.ts` — In-memory metrics engine (counters, histograms, gauges, rolling time series).
 - **Prometheus:** `GET /api/metrics` returns [Prometheus text exposition format](https://prometheus.io/docs/instrumenting/exposition_formats/). All API routes call `recordRequest(endpoint, method, statusCode, durationMs)`. Admin actions increment `admin_board_views_total`, `admin_sessions_list_requests_total`, `admin_logs_requests_total`, `admin_conversation_detail_requests_total`. Protect `/api/metrics` with `X-Admin-Secret` when scraping.
 - Structured JSON logging via stdout → Cloud Logging auto-ingests.
-- Trace IDs in logs → Cloud Logging correlates with Cloud Trace automatically.
+- **Trace:** Request trace ID is read from `X-Cloud-Trace-Context` or `traceparent` (Cloud Run sets these). All API logs that use `log(..., { trace_id })` get `logging.googleapis.com/trace` when `GOOGLE_CLOUD_PROJECT` is set, so **Observability → Trace** and Logs show the same trace. Cloud Run auto-samples traces (~0.1 req/s per instance); when a trace exists, our logs are linked to it.
 - Chat route is fully instrumented: per-span timing for RAG retrieval and inference.
 - Metrics reset on cold start (honest — the War Room dashboard shows this).
 
@@ -189,6 +189,7 @@ Internet
 Monitoring:
   → Uptime Checks (homepage 5min, /api/health 1min, /war-room 5min)
   → Alert Policy (notify on 2 consecutive failures)
+  → Portfolio alerts (Terraform alerts.tf): recruiter email captured, spam/abuse (rate limit + prompt injection), high API errors. Set portfolio_alert_email in terraform.tfvars for email notifications.
   → Cloud Logging (structured JSON from stdout, free 50GB/mo)
   → Cloud Trace (trace IDs in logs, free 2.5M spans/mo)
   → Error Reporting (structured error logs auto-detected)

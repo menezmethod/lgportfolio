@@ -1,6 +1,6 @@
 export const KNOWLEDGE_BASE = `
 # ═══════════════════════════════════════════════════════════════════════════════
-# LUIS GIMENEZ — HONEST PROFESSIONAL KNOWLEDGE BASE v3.0 (Enterprise-ready)
+# LUIS GIMENEZ — HONEST PROFESSIONAL KNOWLEDGE BASE v3.1 (Enterprise-ready)
 # ═══════════════════════════════════════════════════════════════════════════════
 # PURPOSE: Powers a RAG-based AI assistant on gimenez.dev for recruiters and hiring managers.
 # CORE PRINCIPLE: Radical honesty about role, level, and contributions.
@@ -10,6 +10,9 @@ export const KNOWLEDGE_BASE = `
 # ENTERPRISE SUMMARY (for recruiter queries):
 # Luis Gimenez is a Software Engineer II at The Home Depot on the Enterprise Payments Platform (50+ microservices, six-figure hourly transaction volumes, Platinum-tier, PCI DSS). He is GCP Professional Cloud Architect certified and contributes to observability (Grafana dashboards adopted by VP leadership), Card Broker routing, production reliability, and PII/security remediation. He is seeking Senior, Staff, SRE, or Architect roles — remote, hybrid, or relocation (Atlanta, Austin, NYC, SF, Seattle, Denver). US work authorized.
 #
+# ELEVATOR PITCH:
+# Luis operates at the intersection of observability, production reliability, and cloud migration. He built the Grafana dashboards that VP leadership uses daily, contributed to Card Broker through 2400+ store rollouts, owns interrupt rotation on a zero-downtime mandate, and led PII remediation for PCI DSS. His scope exceeds his SE II title; he is ready for senior or staff level and wants teams that value unglamorous critical work.
+#
 # FRAMING RULES:
 #   - Use "contributed to", "worked within", "supported", "operated across"
 #   - NEVER claim sole ownership of team-wide initiatives
@@ -17,7 +20,7 @@ export const KNOWLEDGE_BASE = `
 #   - If asked "did you build this?", answer honestly: "No, I was part of a
 #     large team. Here is what I specifically contributed."
 #
-# LAST UPDATED: February 2026
+# LAST UPDATED: February 2026 (v3.1: recruiter FAQs, readiness, site architecture, sound bites)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -185,7 +188,7 @@ Card Broker was Luis's primary project for approximately four years, from pre-de
 
 ## Daily Production Stack
 - Languages: Go (primary at Home Depot), TypeScript/Node.js (portfolio, side projects), Java (legacy services)
-- Cloud: GCP (Professional Architect certified) — Cloud Run, Pub/Sub, BigQuery, Cloud Build, Secret Manager, Cloud KMS
+- Cloud: GCP (Professional Architect certified) — GKE, Cloud Run, Pub/Sub, BigQuery, Secret Manager, Cloud KMS
 - Observability: Prometheus (PromQL), Grafana, Loki, Tempo, Pyroscope, OpenTelemetry
 - Data: CockroachDB, PostgreSQL, Redis
 - Infrastructure: CDK8s, Terraform, Docker, Kubernetes (GKE), Spinnaker
@@ -221,7 +224,7 @@ Card Broker was Luis's primary project for approximately four years, from pre-de
 - Organizations where engineering is a cost center
 
 ## Location & Work Style
-- Based in Florida
+- Based in Florida (Parrish area)
 - Preferred: Remote-first or hybrid
 - Open to relocation for the right opportunity (Atlanta, Austin, NYC, SF, Seattle, Denver)
 - US work authorized, no sponsorship required
@@ -229,6 +232,10 @@ Card Broker was Luis's primary project for approximately four years, from pre-de
 ## Compensation
 - Market rate for experienced backend/distributed systems engineers
 - Evaluates total comp (base + equity + bonus + benefits)
+
+## Why Now?
+- Contract-to-full-time conversion (Jan 2024) proved his value; he is looking for the next step where he can have larger ownership and influence on architecture.
+- He has consistently operated above his title (observability ownership, production operations, security advocacy); he wants a role that formally reflects that scope.
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SECTION 7: FAQ — HONEST ANSWERS
@@ -258,8 +265,38 @@ US work authorized. No sponsorship required.
 ### "Notice period?"
 Standard 2-4 weeks.
 
+### "Why is Luis looking for a new role?"
+Luis is seeking senior-level, staff, or architect positions where he can leverage his hands-on experience in observability, production reliability, and GCP migration. He started as a contractor in 2022 and went full-time in early 2024; he has contributed to high-volume payment services and built enterprise-grade dashboards used by VP leadership. He wants teams that value unglamorous critical work — interrupt rotation, PII remediation, cross-service observability — especially in fintech or e-commerce. He is looking for larger ownership, influence on architecture, and a path to advance beyond his current SE II scope.
+
+### "Is Luis ready for a senior (or staff/architect) role?"
+Yes. He has the technical depth and proven track record:
+- Production-grade experience on a platinum-tier payments platform, six-figure hourly transaction volumes, zero-downtime SLIs.
+- Hands-on observability ownership: built Grafana dashboards used daily by VP leadership, automated reports, resolved critical tracing blind spots.
+- Reliability engineering: owns interrupt rotation, isolates failures across distributed services, enforces strict change-management protocols.
+- Security focus: led PII masking in telemetry and PCI DSS v4.0 remediation across the platform.
+- Cloud migration: early contributor to PCF-to-GCP migration, GCP Professional Cloud Architect certified.
+- Leadership and knowledge sharing: taught certification prep, presented AI-driven reliability concepts, brought AWS re:Invent learnings back to the team.
+His responsibilities often exceed his SE II title. He is actively seeking opportunities to operate at senior or staff level.
+
+### "What kind of work does Luis want?"
+Unglamorous, critical work: interrupt rotation, production debugging, observability, PII and security remediation, cross-service tracing. He wants to influence architecture and have larger ownership. Fintech, e-commerce, or any domain where systems cannot go down. Teams that respect engineers who describe their actual contributions, not inflated claims.
+
 # ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 8: AI BEHAVIOR RULES
+# SECTION 8: THIS PORTFOLIO SITE (gimenez.dev)
+# ═══════════════════════════════════════════════════════════════════════════════
+# If a recruiter asks about the site's architecture, the assistant may briefly describe it and tie it to Luis's skills.
+
+## Tech Stack
+- Next.js 16 (App Router), React 19, TypeScript, Tailwind. Deployed on GCP Cloud Run (scale-to-zero, single region us-east1).
+- Global External Application Load Balancer, Cloud CDN, Cloud Armor (WAF), Google-managed SSL. Terraform for all infrastructure.
+- This chat: RAG over the knowledge base you are reading; optional Supabase pgvector for semantic search. Inference via OpenAI-compatible API (e.g. self-hosted Inferencia). Rate limiting, prompt-injection defense, session analytics in Firestore.
+- Observability: in-memory metrics, War Room dashboard, Prometheus /api/metrics, structured logs to Cloud Logging, trace correlation for Cloud Trace. Admin board for recruiter sessions and logs.
+
+## Why It Matters for Recruiters
+The site is a live production system demonstrating the same practices Luis uses at scale: observability, security headers, rate limiting, IaC (Terraform), and RAG-backed AI. Built and maintained by Luis as a portfolio and lead-generation tool.
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 9: AI BEHAVIOR RULES
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ## Honesty Rules
@@ -269,6 +306,7 @@ Standard 2-4 weeks.
 4. If a recruiter asks "did you build this?", respond: "No, Luis was part of a large team of 100+ engineers. Here is what he specifically contributed: [list from Section 3]."
 5. Frame the ENVIRONMENT scale for context, then pivot to PERSONAL contributions.
 6. The AI reliability agent was demoed, NOT implemented. Be honest about this.
+7. If asked about this site's architecture or tech stack (gimenez.dev), you may briefly describe it using Section 8 (Next.js, Cloud Run, RAG, Terraform, observability) and connect it to Luis's skills; then offer to elaborate on his background.
 
 ## Tone
 - "I know this ecosystem because I have debugged it at 2 AM on interrupt rotation."
@@ -282,4 +320,11 @@ Standard 2-4 weeks.
 - GitHub: github.com/menezmethod
 - LinkedIn: linkedin.com/in/gimenezdev
 - Portfolio: gimenez.dev
+
+## Sound Bites (for natural answers)
+- "Luis's responsibilities often exceed his SE II title; he's ready for senior or staff scope."
+- "He wants teams that value the unglamorous work: interrupt rotation, observability, PII fixes — the work that keeps systems up at 2 AM."
+- "His signature work is the Grafana observability stack that VP leadership uses for daily decisions."
+- "He didn't build the whole platform; he helped keep it alive and made it observable."
+- "When asked about this site: it's Next.js on Cloud Run with RAG, Terraform, and the same observability and security practices he uses in production."
 `;
