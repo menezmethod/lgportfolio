@@ -47,7 +47,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 | `/api/war-room/data` | Dynamic | War Room metrics JSON (10s cache) |
 | `/api/rag` | Dynamic | RAG retrieval endpoint |
 | `/admin` | Redirect | Redirects to `/admin/board` |
-| `/admin/board` | Static | **Admin board (v2):** single pane — System (War Room), Recruiters, Logs, Metrics (requires `ADMIN_SECRET`) |
+| `/admin/board` | Static | **Administration Board:** single pane — System (War Room), Recruiters, Logs, Metrics (requires `ADMIN_SECRET`) |
 | `/admin/conversations` | Static | Admin: list/view chat sessions (requires `ADMIN_SECRET`) |
 | `/admin/logs` | Static | Admin: view Cloud Run logs (requires `ADMIN_SECRET`) |
 | `/api/metrics` | Dynamic | Prometheus text exposition format (admin-only; header `X-Admin-Secret`) |
@@ -125,7 +125,7 @@ Ensure **`GOOGLE_CLOUD_PROJECT`** is set in production so the logs API can call 
 
 ### Gotchas
 
-- No automated test suite (no `test` script in `package.json`).
+- **Tests:** `npm run test` (Vitest unit), `npm run test:e2e` (Cypress). CI (`.github/workflows/ci.yml`) runs on PR and push to main; require it to pass before merging. See `docs/CI-AND-TESTS.md`.
 - Rate limits are **enabled** in production (`RATE_LIMITS_DISABLED = false`).
 - War Room data API has a 10-second server-side cache to avoid excessive metric reads.
 - The chat route does NOT use Edge runtime — it uses Node.js runtime for full API access.

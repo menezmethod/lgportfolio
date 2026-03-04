@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Cpu, Zap, Shield, Database, Radio, Clock, AlertTriangle, BarChart3, Wifi, Bot, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar,
-  XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from 'recharts';
 
 export interface WarRoomData {
@@ -38,6 +38,7 @@ export interface WarRoomData {
     node_version: string;
     boot_time: string;
   };
+  slos?: Array<{ name: string; target: number; unit: string; current: number; met: boolean }>;
   recent_events: Array<{ timestamp: string; type: string; message: string }>;
   recent_errors: Array<{ timestamp: string; endpoint: string; status_code: number; message: string; trace_id?: string }>;
   timeseries: {
@@ -190,6 +191,32 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
         ))}
       </section>
 
+      {d.slos && d.slos.length > 0 && (
+        <section>
+          <h3 className="text-xs font-mono text-gray-500 uppercase mb-3 flex items-center gap-2">
+            <Shield className="size-3.5 text-blue-400" /> SLO Status
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {d.slos.map((slo) => (
+              <div key={slo.name} className={`p-3 rounded-lg border ${slo.met ? 'border-emerald-400/20 bg-emerald-400/5' : 'border-red-400/20 bg-red-400/5'}`}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-mono text-gray-400">{slo.name}</span>
+                  <span className={`text-xs font-mono font-bold ${slo.met ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {slo.met ? 'MET' : 'BREACH'}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className={`text-lg font-bold font-mono ${slo.met ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {slo.current}
+                  </span>
+                  <span className="text-xs text-gray-600 font-mono">/ {slo.target}{slo.unit}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
           { label: 'Uptime', value: formatUptime(d.infrastructure.uptime_seconds), icon: Clock, color: 'text-emerald-400' },
@@ -223,6 +250,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
                     <XAxis dataKey="t" tickFormatter={formatTime} stroke="#4b5563" tick={{ fontSize: 10 }} />
                     <YAxis stroke="#4b5563" tick={{ fontSize: 10 }} unit="ms" />
                     <Tooltip contentStyle={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 8, fontSize: 12 }} labelFormatter={(l: unknown) => formatTime(Number(l))} />
+                    <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'monospace' }} />
                     <Line type="monotone" dataKey="p50" stroke="#22c55e" strokeWidth={2} dot={true} name="P50" />
                     <Line type="monotone" dataKey="p95" stroke="#f59e0b" strokeWidth={2} dot={true} name="P95" />
                   </LineChart>
@@ -242,6 +270,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
                     <XAxis dataKey="t" tickFormatter={formatTime} stroke="#4b5563" tick={{ fontSize: 10 }} />
                     <YAxis stroke="#4b5563" tick={{ fontSize: 10 }} />
                     <Tooltip contentStyle={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 8, fontSize: 12 }} labelFormatter={(l: unknown) => formatTime(Number(l))} />
+                    <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'monospace' }} />
                     <Bar dataKey="count" fill="#3b82f6" radius={[2, 2, 0, 0]} name="Requests" />
                     <Bar dataKey="errors" fill="#ef4444" radius={[2, 2, 0, 0]} name="Errors" />
                   </BarChart>

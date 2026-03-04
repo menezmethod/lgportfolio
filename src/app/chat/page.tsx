@@ -294,6 +294,9 @@ export default function Chat() {
           <div
             className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain"
             style={{ maxHeight: 'min(calc(100vh - 20rem), 100%)' }}
+            aria-live="polite"
+            aria-label="Chat messages"
+            role="log"
           >
             <div className="flex flex-col gap-6 p-4 sm:p-6 md:p-8 w-full">
               {messages.length === 0 && (
@@ -338,7 +341,7 @@ export default function Chat() {
               ))}
 
               {isLoading && (
-                <div className="flex gap-4 max-w-5xl">
+                <div className="flex gap-4 max-w-5xl" role="status" aria-label="Generating response">
                   <div className="size-8 sm:size-10 shrink-0 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mt-1">
                     <Bot className="size-5" />
                   </div>
@@ -379,13 +382,15 @@ export default function Chat() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about architecture, systems, or projects..."
-                className="flex-1 bg-transparent border-0 focus-visible:ring-0 px-4 py-3 h-auto text-base placeholder:text-muted-foreground/50"
+                aria-label="Ask a question about Luis's experience"
+                className="flex-1 bg-transparent border-0 focus-visible:ring-2 focus-visible:ring-primary/30 px-4 py-3 h-auto text-base placeholder:text-muted-foreground/50"
                 disabled={isLoading || showLimitMessage}
               />
               <Button
                 data-testid="chat-send"
                 type="submit"
                 size="icon"
+                aria-label="Send message"
                 className={cn(
                   "size-10 rounded-lg transition-all duration-300",
                   input.trim() ? "bg-primary text-primary-foreground shadow-glow-primary" : "bg-muted text-muted-foreground opacity-50"
@@ -402,7 +407,7 @@ export default function Chat() {
                   <button
                     type="button"
                     onClick={() => setShowEmailCapture(true)}
-                    className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 font-mono"
+                    className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-sm"
                   >
                     <Mail className="size-3" /> Email me this conversation
                   </button>
@@ -428,12 +433,16 @@ export default function Chat() {
                       name="email"
                       type="email"
                       placeholder="your@email.com"
-                      className="rounded-lg border border-border/60 bg-background/80 px-3 py-1.5 text-xs font-mono w-44"
+                      aria-label="Your email address"
+                      className="rounded-lg border border-border/60 bg-background/80 px-3 py-1.5 text-xs font-mono w-44 focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:outline-none"
                       required
                     />
                     <Button type="submit" size="sm" variant="outline" className="text-xs font-mono h-8">
                       Save
                     </Button>
+                    <p className="w-full text-[10px] text-muted-foreground/50 font-mono mt-1">
+                      Used only to send this transcript. Not stored or shared.
+                    </p>
                   </form>
                 )}
               </div>

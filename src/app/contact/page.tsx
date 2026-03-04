@@ -1,5 +1,3 @@
-'use client';
-
 import { Mail, Github, Linkedin, Twitter, Terminal, FileText, Download } from 'lucide-react';
 
 const socialLinks = [

@@ -51,11 +51,10 @@ export async function POST(req: Request) {
       status: 200,
       headers: { "Content-Type": "application/json", "X-Content-Type-Options": "nosniff" },
     });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "unknown";
+  } catch {
     recordRequest("/api/war-room/explain-error", "POST", 503, Date.now() - start);
     return new Response(
-      JSON.stringify({ error: "Explain failed", message: msg }),
+      JSON.stringify({ error: "Explain failed" }),
       { status: 503, headers: { "Content-Type": "application/json", "X-Content-Type-Options": "nosniff" } }
     );
   }

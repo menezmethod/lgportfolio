@@ -1,5 +1,3 @@
-'use client';
-
 import { ExternalLink, Github, Lock, Building2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -26,7 +24,7 @@ const projects: Project[] = [
     company: 'The Home Depot',
     description: 'Backend architecture for the critical path processing every credit, debit, and gift card transaction across a nationwide store footprint.',
     challenge: 'Black Friday traffic spikes (order-of-magnitude load) with zero margin for error. Legacy monoliths failing under load with inadequate observability.',
-    solution: 'Designed a distributed buffering architecture on GKE to decouple ingestion. Built OpenTelemetry tracing pipelines to make the entire payment path observable. Led zero-downtime GCT migration to type-safe Go microservices.',
+    solution: 'Designed a distributed buffering architecture on GKE to decouple ingestion. Built OpenTelemetry tracing pipelines to make the entire payment path observable. Led zero-downtime tender migration to type-safe Go microservices.',
     impact: 'Zero downtime during peak volume (high-throughput daily transaction volumes). Sub-50ms p99 latency. 20% latency reduction from observability-driven optimization.',
     stack: ['Go', 'GKE', 'CockroachDB', 'Redis', 'OpenTelemetry', 'Prometheus', 'Grafana'],
     architecture: 'Event-Driven Distributed Systems',
@@ -90,6 +88,7 @@ export default function Work() {
           Selected <span className="text-primary">Work</span>
         </h1>
 
+        <h2 className="sr-only">Featured Projects</h2>
         <div className="space-y-16 md:space-y-24">
           {projects.filter(p => p.featured).map((project, idx) => (
             <div key={project.title} className="group">

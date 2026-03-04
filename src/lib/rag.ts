@@ -33,8 +33,7 @@ function getPool(): Pool | null {
       connectionTimeoutMillis: 10000,
     });
     return pool;
-  } catch (err) {
-    console.error("RAG: failed to create Cloud SQL pool:", err);
+  } catch {
     return null;
   }
 }
@@ -116,8 +115,7 @@ export async function retrieveContext(query: string, topK = 5): Promise<string> 
       .map((r) => `[Source: ${r.source || "unknown"}] ${r.content}`)
       .join("\n\n---\n\n");
     return deduplicateContext(raw);
-  } catch (err) {
-    console.error("RAG retrieval error:", err);
+  } catch {
     return KNOWLEDGE_BASE;
   }
 }
