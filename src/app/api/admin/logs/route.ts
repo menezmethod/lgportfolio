@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   if (!projectId) {
     recordRequest("/api/admin/logs", "GET", 200, Date.now() - start);
     return NextResponse.json(
-      { error: "GOOGLE_CLOUD_PROJECT not set", entries: [] },
+      { error: "Logging not configured", entries: [] },
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -82,12 +82,11 @@ export async function GET(req: Request) {
     });
 
     recordRequest("/api/admin/logs", "GET", 200, Date.now() - start);
-    return NextResponse.json({ entries: out, project_id: projectId });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ entries: out });
+  } catch {
     recordRequest("/api/admin/logs", "GET", 503, Date.now() - start);
     return NextResponse.json(
-      { error: "Failed to fetch logs", message: msg, entries: [] },
+      { error: "Failed to fetch logs", entries: [] },
       { status: 503, headers: { "Content-Type": "application/json" } }
     );
   }

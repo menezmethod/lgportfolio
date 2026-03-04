@@ -58,8 +58,7 @@ export async function POST(req: NextRequest) {
         'Cache-Control': 'private, max-age=60',
       },
     });
-  } catch (error) {
-    console.error('RAG API error:', error);
+  } catch {
     recordRequest("/api/rag", "POST", 500, Date.now() - start);
     return NextResponse.json(
       { error: 'Failed to process query' },

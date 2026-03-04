@@ -44,13 +44,13 @@ function PortfolioContent() {
             <span className="text-primary">Golang. Edge AI.</span>
           </h1>
 
-          <div className="h-[50px] md:h-[60px] mb-6">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-mono text-muted-foreground">
+          <div className="h-[50px] md:h-[60px] mb-6" aria-label="Current role" aria-live="polite">
+            <p className="text-2xl md:text-3xl lg:text-4xl font-mono text-muted-foreground">
               <span className="text-primary/80 transition-all duration-500">
                 {titles[currentTitle]}
               </span>
-              <span className="animate-pulse ml-1 text-primary">_</span>
-            </h2>
+              <span className="animate-pulse ml-1 text-primary" aria-hidden="true">_</span>
+            </p>
           </div>
 
           {isRecruiter ? (
@@ -175,7 +175,7 @@ processors:
   attributes:
     actions:
       - key: service.team
-        value: payment-card-tender
+        value: tender-services
         action: upsert
 
 exporters:
@@ -220,8 +220,8 @@ service:
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                title: 'Zero-Downtime GCT Migrations',
-                desc: 'Led multi-phase migration strategies for Gift Card Tender systems. Blue-green deployments, traffic shadowing, and automated rollback gates ensuring zero customer impact.',
+                title: 'Zero-Downtime Tender Migrations',
+                desc: 'Led multi-phase migration strategies for enterprise tender systems. Blue-green deployments, traffic shadowing, and automated rollback gates ensuring zero customer impact.',
                 tags: ['Blue-Green', 'Traffic Shadow', 'Rollback Gates'],
               },
               {
@@ -359,7 +359,10 @@ echo "Local inference ready."`}
               'https://linkedin.com/in/gimenezdev',
               'https://twitter.com/menezmethod',
             ],
-            alumniOf: 'The Home Depot',
+            worksFor: {
+              '@type': 'Organization',
+              name: 'The Home Depot',
+            },
             knowsAbout: ['Go', 'Distributed Systems', 'GCP', 'Edge AI', 'OpenTelemetry', 'Payment Architecture'],
           }),
         }}

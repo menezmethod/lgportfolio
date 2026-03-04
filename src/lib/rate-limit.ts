@@ -118,6 +118,7 @@ export function checkRateLimit(ip: string): RateLimitResult {
   };
 }
 
+/** Daily budget resets at midnight (calendar day). Key is toDateString() so each new day gets a fresh count. */
 export function incrementDailyCount(): void {
   const today = new Date().toDateString();
   const existing = dailyCounters.get(today);
@@ -133,6 +134,7 @@ export function incrementDailyCount(): void {
   existing.count++;
 }
 
+/** Resets every calendar day (midnight); 150 LLM requests per day by default. */
 export function isDailyBudgetExhausted(): boolean {
   if (RATE_LIMITS_DISABLED) return false;
   const today = new Date().toDateString();

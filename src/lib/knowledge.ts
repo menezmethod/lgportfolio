@@ -1,3 +1,16 @@
+/**
+ * Knowledge base for the AI chat assistant.
+ *
+ * CONTENT POLICY — what we do NOT put here:
+ *   - Confidential employer information (trade secrets, internal tools, unreleased products)
+ *   - NDA-protected details or unannounced projects
+ *   - Exact revenue figures, customer counts, or financial data not publicly disclosed
+ *   - Internal URLs, IP addresses, credentials, or infrastructure details of employers
+ *   - PII of colleagues or other individuals
+ *
+ * Everything here must be public-knowledge, recruiter-safe, and factually accurate.
+ * Use "contributed to" / "worked within" framing; never claim sole ownership of team efforts.
+ */
 export const KNOWLEDGE_BASE = `
 # ═══════════════════════════════════════════════════════════════════════════════
 # LUIS GIMENEZ — HONEST PROFESSIONAL KNOWLEDGE BASE v3.1 (Enterprise-ready)
@@ -290,7 +303,7 @@ Unglamorous, critical work: interrupt rotation, production debugging, observabil
 - Next.js 16 (App Router), React 19, TypeScript, Tailwind. Deployed on GCP Cloud Run (scale-to-zero, single region us-east1).
 - Global External Application Load Balancer, Cloud CDN, Cloud Armor (WAF), Google-managed SSL. Terraform for all infrastructure.
 - This chat: RAG over the knowledge base you are reading; optional Cloud SQL (pgvector) for semantic search. Inference via OpenAI-compatible API (e.g. self-hosted Inferencia). Rate limiting, prompt-injection defense, session analytics in Firestore.
-- Observability: in-memory metrics, War Room dashboard, Prometheus /api/metrics, structured logs to Cloud Logging, trace correlation for Cloud Trace. Admin board for recruiter sessions and logs.
+- Observability: in-memory metrics, War Room dashboard, Prometheus /api/metrics, structured logs to Cloud Logging, trace correlation for Cloud Trace. Administration Board for recruiter sessions and logs.
 
 ## Why It Matters for Recruiters
 The site is a live production system demonstrating the same practices Luis uses at scale: observability, security headers, rate limiting, IaC (Terraform), and RAG-backed AI. Built and maintained by Luis as a portfolio and lead-generation tool.

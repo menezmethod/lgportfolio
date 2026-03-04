@@ -1,5 +1,3 @@
-'use client';
-
 import { Eye, Shield, Cpu, Code2 } from 'lucide-react';
 
 const skills: Record<string, string[]> = {

@@ -163,12 +163,30 @@ export default function AdminBoardPage() {
     fetch('/api/admin/board/view', { headers: { 'X-Admin-Secret': storedSecret } }).catch(() => {});
   }, [storedSecret]);
 
+  // Poll War Room only when System tab is active and tab is visible (limits abuse from many background tabs).
   useEffect(() => {
-    if (activeTab === 'system' && token) {
+    if (activeTab !== 'system' || !token) return;
+    let interval: ReturnType<typeof setInterval> | null = null;
+    const startPolling = () => {
       fetchWarRoom();
-      const interval = setInterval(fetchWarRoom, 10000);
-      return () => clearInterval(interval);
-    }
+      if (!interval) interval = setInterval(fetchWarRoom, 10000);
+    };
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') startPolling();
+      else stopPolling();
+    };
+    if (document.visibilityState === 'visible') startPolling();
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, [activeTab, token, fetchWarRoom]);
 
   const fetchBoardStats = useCallback(async () => {
@@ -247,7 +265,6 @@ export default function AdminBoardPage() {
           <div className="flex items-center gap-3">
             <LayoutDashboard className="size-5 text-emerald-400" />
             <h1 className="text-xl font-bold font-mono">Administration Board</h1>
-            <span className="text-xs bg-emerald-400/10 text-emerald-400 px-2 py-0.5 rounded font-mono border border-emerald-400/20">v2</span>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/admin/conversations">

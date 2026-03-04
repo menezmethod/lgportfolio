@@ -1,60 +1,38 @@
-# Portfolio Rebuild Decisions
+# Portfolio Decisions
 
 ## Project Setup
 - **Framework:** Next.js 16 App Router with TypeScript (Node 20.9+)
 - **Styling:** Tailwind CSS with original site colors preserved (#32c0f4 cyan, #e97124 orange)
-- **AI Chat:** AI SDK + Inferencia (OpenAI-compatible); optional Gemini/Anthropic fallbacks
+- **AI Chat:** AI SDK + Inferencia (OpenAI-compatible)
 - **RAG:** GCP Cloud SQL (PostgreSQL + pgvector) optional; falls back to file-based knowledge
 - **Infrastructure:** GCP Cloud Run via Terraform
 - **CI/CD:** Cloud Build (push to `main` → build & deploy to Cloud Run)
-
-## Branch Strategy
-- Working branch: `main` (per directive)
-- Source: Convert from existing CRA React app (master branch)
+- **Version:** Single source of truth in `package.json`, read via `src/lib/version.ts`
 
 ## Key Decisions
 1. Used original site colors (#32c0f4 cyan for primary, #e97124 orange for secondary) adapted to dark theme
 2. Implemented AI SDK for streaming chat (Inferencia API)
 3. Created comprehensive rate limiting (per-IP, session cap, daily budget)
-4. Pre-seeded cache for 9 common questions to avoid burning API calls
-5. Session-based message cap (20/session) to manage usage
-6. Architecture page as case study - showing RAG pipeline, cost breakdown, infrastructure diagrams
-7. Chat API uses Node.js runtime (full API access for RAG/inference)
-8. No maxTokens in streamText - relies on system prompt for length control
-9. String concatenation instead of template literals for cached responses (avoided parsing issues)
+4. Pre-seeded cache for common questions to avoid burning API calls
+5. Chat API uses Node.js runtime (full API access for RAG/inference) — see [ADR-003](./adr/003-chat-node-runtime-not-edge.md)
+6. Single Cloud Run instance with $20 budget kill switch — see [ADR-001](./adr/001-single-cloud-run-instance.md)
+7. Page Visibility API for War Room polling — see [ADR-002](./adr/002-page-visibility-war-room-polling.md)
+8. Dark theme only — no light mode
+9. In-memory telemetry resets on cold start (honest dashboard)
+10. SLOs tracked in War Room: availability, P95 latency, error rate, budget headroom
 
-## Assumptions
-- Luis will provide GOOGLE_API_KEY as GitHub Secret
-- Cloud SQL for RAG optional - file-based fallback works without it
-- Using Workload Identity instead of service account keys for better security
-- Dark theme only - no light mode
+## Architecture Decision Records
+See [docs/adr/](./adr/) for formal ADRs.
 
-## Cost Optimization
-- Cloud Run scale-to-0: $0-5/mo
-- Cloud SQL (RAG): ~$7–10/mo smallest instance or 30-day trial
-- Gemini API free tier: $0-3/mo
-- Total estimated: $1-11/month
-
-## Quality Gates Met
-- [x] npm run build succeeds
-- [x] npm run lint passes (warnings only, no errors)
-- [x] All pages render: Home, About, Work, Architecture, Chat, Contact
-- [x] Chat API with rate limiting and caching
-- [x] RAG pipeline scaffolded
+## Quality Gates
+- [x] `npm run build` succeeds
+- [x] `npm run lint` passes (0 errors, 0 warnings)
+- [x] `npm run test` — Vitest unit tests pass
+- [x] `npm run test:e2e` — Cypress smoke tests pass
+- [x] All pages render: Home, About, Work, Architecture, Chat, Contact, War Room
+- [x] Chat API with rate limiting, prompt injection defense, and caching
+- [x] RAG pipeline (file-based; Cloud SQL optional)
 - [x] Terraform IaC complete
 - [x] Cloud Build CI/CD (push to main → deploy)
-- [x] Dockerfile for containerization
-- [x] Comprehensive README and SETUP.md
-
-## Files Created/Updated
-- All Next.js app pages with dark theme
-- src/lib/rate-limit.ts - Rate limiting + response caching
-- src/lib/rag.ts - RAG retrieval logic
-- src/app/api/chat/route.ts - Chat API (Inferencia)
-- src/app/api/rag/route.ts - RAG context retrieval
-- src/app/architecture/page.tsx - Architecture case study
-- terraform/main.tf - GCP Cloud Run IaC
-- cloudbuild.yaml - Cloud Build deploy
-- README.md - Comprehensive documentation
-- SETUP.md - Step-by-step setup instructions
-- QUESTIONS.md - Questions for Luis post-build
+- [x] Security headers (CSP, HSTS, X-Frame-Options)
+- [x] No secrets in client responses or logs

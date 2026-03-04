@@ -133,13 +133,15 @@ Details: [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md), [AGENTS.md](./AGE
 **Scripts:** `npm run dev` · `npm run build` · `npm run start` · `npm run lint`  
 **Docker:** `docker build -t lgportfolio .` then run with `-e INFERENCIA_API_KEY` and `-e INFERENCIA_BASE_URL`; see `Dockerfile` for platform (linux/amd64).
 
-### Verify (build, lint, Terraform)
+### Verify (build, lint, test, Terraform)
 
 Run these before pushing or to confirm the repo is healthy:
 
 ```bash
 npm run build          # Production build (must succeed for Cloud Run)
 npm run lint           # ESLint (0 errors, 0 warnings)
+npm run test           # Vitest unit tests (security, rate-limit, version)
+npm run test:e2e       # Cypress smoke tests (requires app running on :3000)
 cd terraform && terraform init -input=false && terraform validate   # IaC valid
 ```
 
@@ -148,7 +150,10 @@ cd terraform && terraform init -input=false && terraform validate   # IaC valid
 ## Production readiness
 
 - **Build** — `output: "standalone"`; `npm run build` and `npm run lint` (0 errors).
-- **Security** — CSP, HSTS, X-Frame-Options; rate limiting (app + Cloud Armor); prompt-injection defense; secrets in Secret Manager; Cloud Run ingress only from ALB.
+- **Tests** — Vitest unit tests (security, rate-limit, version); Cypress e2e smoke tests; CI via GitHub Actions.
+- **Version** — Single source of truth in `package.json`, read via `src/lib/version.ts`. Health API, War Room, and UI all read from this one place.
+- **Security** — CSP, HSTS, X-Frame-Options; rate limiting (app + Cloud Armor); prompt-injection defense; secrets in Secret Manager; Cloud Run ingress only from ALB. No secrets in client responses or logs.
+- **SLOs** — Tracked in War Room: availability (99.5%), P95 latency (<500ms), error rate (<5%), budget headroom (>10%). See [ADRs](./docs/adr/).
 - **Health** — `/api/health` for uptime checks; 503 when degraded.
 - **Telemetry** — Structured JSON logs, trace IDs, in-memory metrics for the War Room; metrics reset on cold start (documented).
 - **Cost control** — Optional **$20** budget kill switch; when configured in Terraform (`billing_account_id`, `budget_alert_email`), a Cloud Function automatically scales Cloud Run to 0 on threshold breach. Manual fallback: `./scripts/disable-project-spend.sh`. See [docs/CHECKLIST-FINAL-SWEEP.md](./docs/CHECKLIST-FINAL-SWEEP.md) for a full sweep checklist.

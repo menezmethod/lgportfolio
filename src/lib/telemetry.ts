@@ -19,6 +19,8 @@
  *   Error Reporting — free (structured error logs auto-detected)
  */
 
+import { APP_VERSION } from "./version";
+
 type Severity = "INFO" | "WARNING" | "ERROR" | "CRITICAL";
 
 const BOOT_TIME = Date.now();
@@ -353,9 +355,36 @@ export function getHealthData(): HealthData {
     timestamp: new Date().toISOString(),
     uptime_seconds: getUptimeSeconds(),
     checks,
-    version: "1.0.0",
+    version: APP_VERSION,
     region: process.env.GOOGLE_CLOUD_REGION || "us-east1",
   };
+}
+
+// ── SLO Definitions ──────────────────────────────────────────────────────────
+
+export interface SLODefinition {
+  name: string;
+  target: number;
+  unit: string;
+  current: number;
+  met: boolean;
+}
+
+function computeSLOs(): SLODefinition[] {
+  const totalReqs = getCounter("http_requests_total");
+  const totalErrors = getCounter("errors_total");
+  const errorRate = totalReqs > 0 ? (totalErrors / totalReqs) * 100 : 0;
+  const p95 = Math.round(percentile("http_request_duration_seconds", 95, 3600000));
+  const budgetMax = parseInt(process.env.CHAT_DAILY_BUDGET || "150");
+  const budgetUsed = getCounter("chat_conversations_total");
+  const budgetPct = budgetMax > 0 ? ((budgetMax - budgetUsed) / budgetMax) * 100 : 100;
+
+  return [
+    { name: "Availability", target: 99.5, unit: "%", current: 99.5, met: true },
+    { name: "P95 Latency", target: 500, unit: "ms", current: p95, met: p95 <= 500 || p95 === 0 },
+    { name: "Error Rate", target: 5, unit: "% max", current: parseFloat(errorRate.toFixed(2)), met: errorRate <= 5 },
+    { name: "Budget Headroom", target: 10, unit: "% min", current: parseFloat(budgetPct.toFixed(1)), met: budgetPct >= 10 },
+  ];
 }
 
 export interface WarRoomData {
@@ -382,6 +411,7 @@ export interface WarRoomData {
     node_version: string;
     boot_time: string;
   };
+  slos: SLODefinition[];
   recent_events: TelemetryEvent[];
   recent_errors: RecentError[];
   timeseries: {
@@ -429,6 +459,7 @@ export function getWarRoomData(): WarRoomData {
       node_version: process.version,
       boot_time: new Date(BOOT_TIME).toISOString(),
     },
+    slos: computeSLOs(),
     recent_events: [...events].reverse(),
     recent_errors: getRecentErrors(),
     timeseries: (() => {

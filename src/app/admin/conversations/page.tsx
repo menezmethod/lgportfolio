@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Lock, MessageSquare, ChevronRight, Bot, User, FileText, LayoutDashboard } from 'lucide-react';
+import { Lock, MessageSquare, ChevronRight, Bot, User } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -92,97 +92,105 @@ export default function AdminConversationsPage() {
     setSelectedId(null);
   };
 
+  // Login gate: same layout and styling as Administration Board
   if (!storedSecret && !sessions.length) {
     return (
-      <div className="min-h-screen bg-background pt-20 px-4 flex items-center justify-center">
-        <Card className="p-6 max-w-sm w-full">
+      <div className="min-h-screen bg-[#0d1117] pt-20 px-4 flex items-center justify-center">
+        <Card className="p-6 max-w-sm w-full bg-[#161b22] border-white/10">
           <div className="flex items-center gap-2 mb-4">
             <Lock className="size-5 text-muted-foreground" />
-            <h1 className="text-lg font-semibold">Admin: Chat sessions</h1>
+            <h1 className="text-lg font-semibold text-gray-200">Conversations</h1>
           </div>
+          <p className="text-sm text-gray-500 mb-4">
+            View chat sessions (read-only). Use the same admin secret as the Administration Board.
+          </p>
           <Input
             type="password"
             placeholder="Admin secret"
             value={secret}
             onChange={(e) => setSecret(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && loadSessions()}
-            className="mb-3 font-mono"
+            className="mb-3 font-mono bg-[#0d1117] border-white/10 text-gray-200"
           />
-          {error && <p className="text-sm text-destructive mb-2">{error}</p>}
-          <Button onClick={loadSessions} className="w-full">View sessions</Button>
+          {error && <p className="text-sm text-red-400 mb-2">{error}</p>}
+          <Button onClick={loadSessions} className="w-full">Enter</Button>
+          <Link href="/admin/board" className="block mt-3 text-center text-sm text-gray-500 hover:text-gray-300">Administration Board</Link>
         </Card>
       </div>
     );
   }
 
+  // Main view: match Board dark theme and chrome
   return (
-    <div className="min-h-screen bg-background pt-16 pb-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <MessageSquare className="size-5" />
-            Chat sessions (read-only)
-          </h1>
-          <Link href="/admin/board">
-            <Button variant="ghost" size="sm"><LayoutDashboard className="size-4 mr-1" /> Board</Button>
-          </Link>
-          <Link href="/admin/logs">
-            <Button variant="ghost" size="sm"><FileText className="size-4 mr-1" /> Logs</Button>
-          </Link>
-          <Button variant="ghost" size="sm" onClick={logout}>Log out</Button>
-        </div>
+    <div className="min-h-screen bg-[#0d1117] text-gray-200 pt-16 pb-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <header className="flex flex-wrap items-center justify-between gap-4 py-6 border-b border-white/5 mb-6">
+          <div className="flex items-center gap-3">
+            <MessageSquare className="size-5 text-emerald-400" />
+            <h1 className="text-xl font-bold font-mono">Conversations</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link href="/admin/board">
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-200">Board</Button>
+            </Link>
+            <Link href="/admin/logs">
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-200">Logs</Button>
+            </Link>
+            <Button variant="ghost" size="sm" onClick={logout} className="text-gray-400 hover:text-gray-200">
+              Log out
+            </Button>
+          </div>
+        </header>
 
         {!sessions.length && !loading && (
-          <Button onClick={loadSessions}>Load sessions</Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={loadSessions} variant="outline" size="sm" className="border-white/20 text-gray-400">Load sessions</Button>
+          </div>
         )}
-        {loading && <p className="text-muted-foreground">Loading…</p>}
+        {loading && <p className="text-sm text-gray-500">Loading…</p>}
 
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-[70vh] overflow-y-auto">
             {sessions.map((s) => (
               <Card
                 key={s.session_id}
-                className={`p-3 cursor-pointer transition-colors ${selectedId === s.session_id ? 'ring-2 ring-primary' : 'hover:bg-muted/50'}`}
+                className={`p-3 cursor-pointer transition-colors bg-[#161b22] border-white/10 hover:border-emerald-500/30 ${
+                  selectedId === s.session_id ? 'ring-2 ring-emerald-500/50 border-emerald-500/30' : ''
+                }`}
                 onClick={() => loadDetail(s.session_id)}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs truncate">{s.session_id.slice(0, 8)}…</span>
-                  <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+                  <span className="font-mono text-xs text-gray-300 truncate">{s.session_id.slice(0, 12)}…</span>
+                  <ChevronRight className="size-4 text-gray-500 shrink-0" />
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {s.message_count} msgs · {formatTs(s.last_activity_at)}
-                  {s.recruiter_email && ` · ${s.recruiter_email}`}
+                <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                  <span>{s.message_count} msgs</span>
+                  <span>{formatTs(s.last_activity_at)}</span>
+                  {s.recruiter_email && <span className="text-emerald-400">{s.recruiter_email}</span>}
                 </div>
               </Card>
             ))}
           </div>
 
-          <div>
+          <div className="min-h-[200px]">
             {detail && (
-              <Card className="p-4">
+              <Card className="p-4 bg-[#161b22] border-white/10">
                 {detail.session && (
-                  <div className="text-xs text-muted-foreground mb-4 space-y-1">
+                  <div className="text-xs text-gray-500 mb-4 space-y-1">
                     <p>Started: {formatTs(detail.session.started_at)}</p>
                     <p>Last activity: {formatTs(detail.session.last_activity_at)}</p>
                     <p>Messages: {detail.session.message_count} · Engagement: {detail.session.engagement_score ?? 0}</p>
-                    {detail.session.recruiter_email && <p>Email: {detail.session.recruiter_email}</p>}
+                    {detail.session.recruiter_email && <p className="text-emerald-400">Email: {detail.session.recruiter_email}</p>}
                   </div>
                 )}
-                <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+                <div className="space-y-3 max-h-[50vh] overflow-y-auto">
                   {detail.messages.map((m, i) => (
-                    <div
-                      key={i}
-                      className={`flex gap-2 ${m.role === 'user' ? 'justify-end' : ''}`}
-                    >
-                      {m.role === 'assistant' && <Bot className="size-4 shrink-0 text-primary mt-0.5" />}
-                      <div
-                        className={`rounded-lg px-3 py-2 text-sm max-w-[85%] ${
-                          m.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                        }`}
-                      >
+                    <div key={i} className={`flex gap-2 ${m.role === 'user' ? 'justify-end' : ''}`}>
+                      {m.role === 'assistant' && <Bot className="size-4 shrink-0 text-emerald-400 mt-0.5" />}
+                      <div className={`rounded-lg px-3 py-2 text-sm max-w-[85%] ${m.role === 'user' ? 'bg-emerald-500/20 text-gray-200' : 'bg-white/5 text-gray-300'}`}>
                         {m.content}
                       </div>
-                      {m.role === 'user' && <User className="size-4 shrink-0 text-muted-foreground mt-0.5" />}
+                      {m.role === 'user' && <User className="size-4 shrink-0 text-gray-500 mt-0.5" />}
                     </div>
                   ))}
                 </div>

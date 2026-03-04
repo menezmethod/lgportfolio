@@ -85,13 +85,26 @@ This doc audits **rate limits**, **caching**, and **cost controls** so the site 
 
 ---
 
+## Distributed abuse (e.g. many IPs / botnet)
+
+If an attacker uses many IPs (e.g. 1000 machines) and opens the site or War Room and leaves tabs open:
+
+- **Per-IP limits** — Cloud Armor applies 60 req/min per IP (global) and 120/min per IP for `/api/war-room/data`. So 1000 IPs could theoretically send 60k–120k requests/min. In practice they are capped per IP; no single IP can blow the budget.
+- **War Room polling only when visible** — The War Room and Administration Board only poll `/api/war-room/data` when the browser tab is **visible** (Page Visibility API). Tabs left open in the background do **not** keep polling. That greatly reduces traffic from "leave 1000 tabs open" abuse.
+- **Single instance + budget kill** — `max_instance_count = 1` and the $20 budget kill (scale-to-zero) cap cost. Under heavy distributed traffic the instance is saturated and cost is bounded; once the budget threshold is hit, the service is scaled to zero.
+- **Adaptive DDoS** — Cloud Armor layer-7 adaptive protection is enabled; it can detect and mitigate volumetric patterns.
+
+So protection is: per-IP rate limits, no background polling for War Room, one instance max, and automatic scale-to-zero on budget.
+
+---
+
 ## Checklist (all areas)
 
 - [x] Cloud Armor: global 60/min, chat 10/min, admin exempt, war-room 120/min, scanner/exploit block.
 - [x] App: 2 RPM chat, 150/day, 10 msgs/session; chat cache for common prompts.
 - [x] CDN: enabled, static cache, negative caching 404/429 30s.
 - [x] Static pages: Cache-Control for /, /about, /work, /contact, /architecture, /war-room.
-- [x] War room API: 30s server cache, Cache-Control 30s.
+- [x] War room API: 30s server cache, Cache-Control 30s; client polls only when tab visible (Page Visibility API).
 - [x] RAG API: 60s in-memory response cache, 200 entries max.
 - [x] Max instances: 1.
 - [x] Budget: $20 kill switch with auto scale-to-zero.

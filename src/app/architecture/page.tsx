@@ -1,5 +1,3 @@
-'use client';
-
 import { Cloud, Database, Activity, Shield, Zap, Server, Layout, GitBranch } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
