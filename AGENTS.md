@@ -36,7 +36,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 | Route | Type | Description |
 |---|---|---|
 | `/` | Static | Homepage with hero + 3 pillar sections |
-| `/war-room` | Static | Live observability dashboard (auto-refreshes 10s) |
+| `/war-room` | Static | Live observability dashboard (auto-refreshes 60s; low-traffic cost) |
 | `/work` | Static | Selected work / projects |
 | `/architecture` | Static | Cloud Run architecture case study |
 | `/about` | Static | Professional profile |
@@ -44,7 +44,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 | `/chat` | Static | AI chat UI |
 | `/api/chat` | Dynamic | LLM inference endpoint (rate limited) |
 | `/api/health` | Dynamic | Health check (used by uptime checks) |
-| `/api/war-room/data` | Dynamic | War Room metrics JSON (10s cache) |
+| `/api/war-room/data` | Dynamic | War Room metrics JSON (60s cache; low-traffic) |
 | `/api/rag` | Dynamic | RAG retrieval endpoint |
 | `/admin` | Redirect | Redirects to `/admin/board` |
 | `/admin/board` | Static | **Administration Board:** single pane — System (War Room), Recruiters, Logs, Metrics (requires `ADMIN_SECRET`) |
@@ -148,7 +148,7 @@ Ensure **`GOOGLE_CLOUD_PROJECT`** is set in production so the logs API can call 
 ### Rate limits (aligned with free tier)
 
 - **App** (`src/lib/rate-limit.ts`): 2 RPM per IP, 10 msgs/session, 150 LLM reqs/day. Keeps chat within free-tier usage.
-- **Cloud Armor** (`terraform/security.tf`): 60/min global, 10/min for `/api/chat`. **Admin** requests to `/api/admin/*` with header `X-Admin-Secret` are **allowed** (no throttle). **War room**: `/api/war-room/data` has 120/min. See **`docs/TRAFFIC-AND-COST.md`** for full rate-limit and caching audit (traffic-spike readiness).
+- **Cloud Armor** (`terraform/security.tf`): 180/min global, 10/min for `/api/chat`. **Admin** requests to `/api/admin/*` with header `X-Admin-Secret` are **allowed** (no throttle). **War room**: `/api/war-room/data` has 120/min. See **`docs/TRAFFIC-AND-COST.md`** for full rate-limit and caching audit (traffic-spike readiness).
 
 ### Budget kill switch ($20)
 
@@ -409,12 +409,12 @@ gcloud compute ssl-certificates describe portfolio-ssl-cert --global
 
 | Endpoint | Method | Auth | Rate Limit | Cache | Purpose |
 |---|---|---|---|---|---|
-| `https://gimenez.dev/` | GET | Public | 60/min (Cloud Armor) | CDN 1hr | Homepage |
-| `https://gimenez.dev/war-room` | GET | Public | 60/min | CDN 1hr | Live dashboard |
-| `https://gimenez.dev/api/health` | GET | Public | 60/min | None | Health check for uptime monitoring |
-| `https://gimenez.dev/api/war-room/data` | GET | Public | 60/min | 10s server | Dashboard metrics JSON |
+| `https://gimenez.dev/` | GET | Public | 180/min (Cloud Armor) | CDN 1hr | Homepage |
+| `https://gimenez.dev/war-room` | GET | Public | 180/min | CDN 1hr | Live dashboard |
+| `https://gimenez.dev/api/health` | GET | Public | 180/min | None | Health check for uptime monitoring |
+| `https://gimenez.dev/api/war-room/data` | GET | Public | 120/min | 60s server | Dashboard metrics JSON |
 | `https://gimenez.dev/api/chat` | POST | Public | 10/min (Cloud Armor) + 2/min (app) | None | LLM chat inference |
-| `https://gimenez.dev/api/rag` | POST | Public | 60/min | None | RAG context retrieval |
+| `https://gimenez.dev/api/rag` | POST | Public | 180/min | None | RAG context retrieval |
 | `https://gimenez.dev/api/metrics` | GET | Admin (`X-Admin-Secret`) | — | None | Prometheus text exposition format |
 | `https://gimenez.dev/admin/board` | GET | Admin (secret in UI) | — | None | Administration Board (System, Recruiters, Logs, Metrics) |
 
@@ -498,7 +498,7 @@ WebSearch
 
 **Cloud Build trigger not firing**: Verify the trigger is connected to the right branch (`^main$`). Check Cloud Build history at https://console.cloud.google.com/cloud-build/builds.
 
-**Rate limit hitting too fast**: Cloud Armor applies at edge (60/min global, 10/min for `/api/chat`). The app has additional limits (2/min per IP for chat). Both layers are intentional.
+**Rate limit hitting too fast**: Cloud Armor applies at edge (180/min global, 10/min for `/api/chat`). The app has additional limits (2/min per IP for chat). Both layers are intentional.
 
 **Metrics reset to zero**: Expected. In-memory metrics reset on Cloud Run cold start (scale-to-zero). The War Room dashboard shows this honestly.
 

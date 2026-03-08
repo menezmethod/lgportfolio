@@ -163,13 +163,13 @@ export default function AdminBoardPage() {
     fetch('/api/admin/board/view', { headers: { 'X-Admin-Secret': storedSecret } }).catch(() => {});
   }, [storedSecret]);
 
-  // Poll War Room only when System tab is active and tab is visible (limits abuse from many background tabs).
+  // Poll War Room every 60s when System tab active and visible (low-traffic cost; increase to 30s when job hunting).
   useEffect(() => {
     if (activeTab !== 'system' || !token) return;
     let interval: ReturnType<typeof setInterval> | null = null;
     const startPolling = () => {
       fetchWarRoom();
-      if (!interval) interval = setInterval(fetchWarRoom, 10000);
+      if (!interval) interval = setInterval(fetchWarRoom, 60000);
     };
     const stopPolling = () => {
       if (interval) {

@@ -5,12 +5,12 @@
 # Alert Policies: free (notification channels may have costs)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# ── Uptime Check: Homepage (every 5 min) ─────────────────────────────────────
+# ── Uptime Check: Homepage (every 10 min — low-traffic cost; reduce period when job hunting) ─
 
 resource "google_monitoring_uptime_check_config" "homepage" {
   display_name = "Portfolio Homepage"
   timeout      = "10s"
-  period       = "300s"
+  period       = "600s"
 
   http_check {
     path         = "/"
@@ -30,12 +30,12 @@ resource "google_monitoring_uptime_check_config" "homepage" {
   depends_on = [google_project_service.apis]
 }
 
-# ── Uptime Check: Health API (every 1 min) ───────────────────────────────────
+# ── Uptime Check: Health API (every 10 min — low-traffic cost; reduce to 300s/60s when job hunting) ──
 
 resource "google_monitoring_uptime_check_config" "health" {
   display_name = "Portfolio Health API"
   timeout      = "10s"
-  period       = "60s"
+  period       = "600s"
 
   http_check {
     path         = "/api/health"
@@ -64,12 +64,12 @@ resource "google_monitoring_uptime_check_config" "health" {
   depends_on = [google_project_service.apis]
 }
 
-# ── Uptime Check: War Room (every 5 min) ─────────────────────────────────────
+# ── Uptime Check: War Room (every 10 min — low-traffic cost) ──────────────────
 
 resource "google_monitoring_uptime_check_config" "war_room" {
   display_name = "Portfolio War Room"
   timeout      = "10s"
-  period       = "300s"
+  period       = "600s"
 
   http_check {
     path         = "/war-room"

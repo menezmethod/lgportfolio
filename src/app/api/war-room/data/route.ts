@@ -5,8 +5,8 @@ export const dynamic = "force-dynamic";
 
 let cachedData: string | null = null;
 let cachedAt = 0;
-// 30s server cache: under traffic spike most requests hit cache, CDN can cache same
-const CACHE_TTL = 30_000;
+// 60s server cache (low-traffic cost; client polls at 60s; reduce to 30s when job hunting)
+const CACHE_TTL = 60_000;
 
 export async function GET(req: Request) {
   const start = Date.now();
@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     return new Response(cachedData, {
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "public, max-age=30",
+        "Cache-Control": "public, max-age=60",
         "X-Cache": "HIT",
         "X-Content-Type-Options": "nosniff",
       },
@@ -40,7 +40,7 @@ export async function GET(req: Request) {
   return new Response(cachedData, {
     headers: {
       "Content-Type": "application/json",
-      "Cache-Control": "public, max-age=30",
+      "Cache-Control": "public, max-age=60",
       "X-Cache": "MISS",
       "X-Content-Type-Options": "nosniff",
     },

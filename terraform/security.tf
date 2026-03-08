@@ -2,7 +2,7 @@
 # Cloud Armor — WAF & DDoS Protection (Standard Tier, included with ALB)
 #
 # Rules implemented:
-#   1. Rate limiting: 60 requests/min per IP (edge-level, before Cloud Run)
+#   1. Rate limiting: 180 requests/min per IP (edge-level, before Cloud Run)
 #   2. Block known bad user agents (scanners, bots)
 #   3. Block suspicious request patterns (path traversal, SQL injection)
 #   4. Chat API specific rate limit: 10 requests/min per IP
@@ -20,7 +20,7 @@ resource "google_compute_security_policy" "default" {
 
   # ── Rule 0: Allow admin traffic (with X-Admin-Secret) — no throttle ───────
   # Admin board polls /api/admin/* and /api/war-room/data; exempt so one user
-  # doesn't burn the 60/min global limit. App still validates the secret.
+  # doesn't burn the 180/min global limit. App still validates the secret.
   rule {
     action   = "allow"
     priority = 100
@@ -32,7 +32,7 @@ resource "google_compute_security_policy" "default" {
     description = "Allow admin API traffic with X-Admin-Secret (no rate limit)"
   }
 
-  # ── Rule 0b: Higher limit for war-room data (dashboard polls every 10s) ───
+  # ── Rule 0b: Higher limit for war-room data (dashboard polls every 60s) ───
   rule {
     action   = "throttle"
     priority = 200
@@ -53,7 +53,8 @@ resource "google_compute_security_policy" "default" {
     description = "War room data: 120 req/min per IP (dashboard polling)"
   }
 
-  # ── Rule 1: Rate limit all traffic (60 req/min per IP) ──────────────────
+  # ── Rule 1: Rate limit all traffic (180 req/min per IP) ─────────────────
+  # Next.js RSC (?_rsc=) + nav + War Room + admin can exceed 60/min; 180 allows normal use.
 
   rule {
     action   = "throttle"
@@ -68,12 +69,12 @@ resource "google_compute_security_policy" "default" {
       conform_action = "allow"
       exceed_action  = "deny(429)"
       rate_limit_threshold {
-        count        = 60
+        count        = 180
         interval_sec = 60
       }
       enforce_on_key = "IP"
     }
-    description = "Global rate limit: 60 req/min per IP"
+    description = "Global rate limit: 180 req/min per IP"
   }
 
   # ── Rule 2: Stricter rate limit on chat API (10 req/min per IP) ─────────
