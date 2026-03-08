@@ -26,7 +26,7 @@ resource "google_compute_security_policy" "default" {
     priority = 100
     match {
       expr {
-        expression = "request.path.matches('/api/admin/.*') && request.headers['x-admin-secret'].size() > 0"
+        expression = "request.path.matches('/api/admin/.*') && request.headers['x-admin-secret'] != ''"
       }
     }
     description = "Allow admin API traffic with X-Admin-Secret (no rate limit)"
