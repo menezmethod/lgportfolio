@@ -31,15 +31,15 @@ resource "google_billing_budget" "portfolio" {
 
   threshold_rules {
     threshold_percent = 0.5
-    spend_basis      = "CURRENT_SPEND"
+    spend_basis       = "CURRENT_SPEND"
   }
   threshold_rules {
     threshold_percent = 0.9
-    spend_basis      = "CURRENT_SPEND"
+    spend_basis       = "CURRENT_SPEND"
   }
   threshold_rules {
     threshold_percent = 1.0
-    spend_basis      = "CURRENT_SPEND"
+    spend_basis       = "CURRENT_SPEND"
   }
 
   all_updates_rule {
