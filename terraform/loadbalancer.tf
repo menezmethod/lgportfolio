@@ -58,14 +58,10 @@ resource "google_compute_backend_service" "default" {
       include_query_string = false
     }
 
-    # Negative caching: 429/404 at edge so burst doesn't hammer origin
+    # Negative caching: 404 at edge (429 not supported by Cloud CDN for negative caching)
     negative_caching = true
     negative_caching_policy {
       code = 404
-      ttl  = 30
-    }
-    negative_caching_policy {
-      code = 429
       ttl  = 30
     }
   }
