@@ -82,6 +82,8 @@ locals {
     "eventarc.googleapis.com",
     "cloudbuild.googleapis.com",
     "logging.googleapis.com",
+    "monitoring.googleapis.com",
+    "cloudtrace.googleapis.com",
     "sqladmin.googleapis.com",
   ]
 }

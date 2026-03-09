@@ -38,6 +38,7 @@ No placeholder content. The site is live; the chat, health checks, and War Room 
 | [gimenez.dev](https://gimenez.dev) | Homepage |
 | [gimenez.dev/war-room](https://gimenez.dev/war-room) | Live observability dashboard |
 | [gimenez.dev/architecture](https://gimenez.dev/architecture) | Cloud Run architecture write-up |
+| [gimenez.dev/docs](https://gimenez.dev/docs) | Technical documentation (deployment, CI, ADRs) |
 | [gimenez.dev/chat](https://gimenez.dev/chat) | AI chat (rate-limited) |
 
 ---

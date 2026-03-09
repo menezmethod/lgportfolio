@@ -42,6 +42,8 @@ const nextConfig: NextConfig = {
       { source: "/contact", headers: [{ key: "Cache-Control", value: staticCache }] },
       { source: "/architecture", headers: [{ key: "Cache-Control", value: staticCache }] },
       { source: "/war-room", headers: [{ key: "Cache-Control", value: staticCache }] },
+      { source: "/docs", headers: [{ key: "Cache-Control", value: staticCache }] },
+      { source: "/docs/(.*)", headers: [{ key: "Cache-Control", value: staticCache }] },
     ];
     return [
       ...staticRoutes,

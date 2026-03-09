@@ -1,27 +1,14 @@
-# Documentation
+# Documentation source
 
-Additional project documentation. For quick start and main reference, see the root [README.md](../README.md) and [AGENTS.md](../AGENTS.md).
+The documentation visible on the site is published at **[/docs](https://gimenez.dev/docs)** (or `http://localhost:3000/docs` in development). The app renders the markdown files in this folder there with a dedicated layout and navigation.
 
-| Document | Description |
-|----------|-------------|
-| [DEPLOY-CLOUDRUN.md](./DEPLOY-CLOUDRUN.md) | Cloud Run deployment checklist (GCP, Terraform, DNS, auto-deploy) |
-| [SETUP.md](./SETUP.md) | Step-by-step setup instructions |
-| [DEBUGGING_CHAT.md](./DEBUGGING_CHAT.md) | Chat / RAG debugging notes |
-| [DECISIONS.md](./DECISIONS.md) | Architecture and product decisions |
-| [QUESTIONS.md](./QUESTIONS.md) | Open questions and follow-ups |
-| [PLAN-CHAT-LOGGING.md](./PLAN-CHAT-LOGGING.md) | Chat session logging (implemented): Firestore, memory, engagement, admin |
-| [CHAT-SECRETS.md](./CHAT-SECRETS.md) | GCP Secret Manager: Firebase + admin secret setup for chat |
-| [PLAN-V2-ADMIN-BOARD.md](./PLAN-V2-ADMIN-BOARD.md) | **Administration Board (implemented):** single pane of glass — War Room + recruiter activity + logs + Prometheus metrics |
-| [CHECKLIST-FINAL-SWEEP.md](./CHECKLIST-FINAL-SWEEP.md) | **Final sweep:** Terraform best practices, $20 budget kill switch, free tier, security, secrets (no keys in repo) |
-| [TRAFFIC-AND-COST.md](./TRAFFIC-AND-COST.md) | **Traffic spike readiness:** Rate limits (Cloud Armor + app), caching (CDN + in-memory), cost caps; avoid going poor if the portfolio blows up |
-| [GRAFANA-LOKI-HIGHLEVEL.md](./GRAFANA-LOKI-HIGHLEVEL.md) | **Grafana + Loki (high-level):** Options for logs; Grafana Cloud free tier vs self-host; Cloud Logging → Loki via Alloy + Pub/Sub |
-| [CI-AND-TESTS.md](./CI-AND-TESTS.md) | **CI and tests:** Lint, build, Vitest, Cypress; GitHub Actions; require CI before merging (`gh` or UI) |
-| [PRODUCTION-V1-READINESS.md](./PRODUCTION-V1-READINESS.md) | **Production v1 readiness:** Design, daily budget, tests, CI, branch protection checklist |
+This folder is the single source of truth for that content. The sidebar and index are driven by `src/lib/docs-config.ts`; add or reorder entries there when you add or rename documents.
 
-## Architecture Decision Records
+## Contents
 
-| ADR | Decision |
-|-----|----------|
-| [ADR-001](./adr/001-single-cloud-run-instance.md) | Single Cloud Run instance with $20 budget kill switch |
-| [ADR-002](./adr/002-page-visibility-war-room-polling.md) | Page Visibility API for War Room polling |
-| [ADR-003](./adr/003-chat-node-runtime-not-edge.md) | AI chat uses Node.js runtime, not Edge |
+- **Deployment & setup:** `SETUP.md`, `DEPLOY-CLOUDRUN.md`, `CHAT-SECRETS.md`
+- **Operations:** `TRAFFIC-AND-COST.md`, `CI-AND-TESTS.md`, `DEBUGGING-CHAT.md`, `GCP-OBSERVABILITY-MAP.md`
+- **Decisions:** `DECISIONS.md`, `ADMIN-BOARD.md`
+- **Architecture decision records:** `adr/001-*.md`, `adr/002-*.md`, `adr/003-*.md`
+
+For run, build, deploy, and agent instructions, see the root [README.md](../README.md) and [AGENTS.md](../AGENTS.md).

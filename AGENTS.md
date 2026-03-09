@@ -39,6 +39,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 | `/war-room` | Static | Live observability dashboard (auto-refreshes 60s; low-traffic cost) |
 | `/work` | Static | Selected work / projects |
 | `/architecture` | Static | Cloud Run architecture case study |
+| `/docs` | Static | Technical documentation (deployment, CI, ADRs) |
 | `/about` | Static | Professional profile |
 | `/contact` | Static | Contact info + resume |
 | `/chat` | Static | AI chat UI |
@@ -79,7 +80,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 - `src/lib/telemetry.ts` — In-memory metrics engine (counters, histograms, gauges, rolling time series).
 - **Prometheus:** `GET /api/metrics` returns [Prometheus text exposition format](https://prometheus.io/docs/instrumenting/exposition_formats/). All API routes call `recordRequest(endpoint, method, statusCode, durationMs)`. Admin actions increment `admin_board_views_total`, `admin_sessions_list_requests_total`, `admin_logs_requests_total`, `admin_conversation_detail_requests_total`. Protect `/api/metrics` with `X-Admin-Secret` when scraping.
 - Structured JSON logging via stdout → Cloud Logging auto-ingests.
-- **Trace:** Request trace ID is read from `X-Cloud-Trace-Context` or `traceparent` (Cloud Run sets these). All API logs that use `log(..., { trace_id })` get `logging.googleapis.com/trace` when `GOOGLE_CLOUD_PROJECT` is set, so **Observability → Trace** and Logs show the same trace. Cloud Run auto-samples traces (~0.1 req/s per instance); when a trace exists, our logs are linked to it.
+- **Trace:** Request trace ID is read from `X-Cloud-Trace-Context` or `traceparent` (Cloud Run sets these). All API logs that use `log(..., { trace_id })` get `logging.googleapis.com/trace` when `GOOGLE_CLOUD_PROJECT` is set, so **Observability → Trace** and Logs show the same trace. The **Cloud Trace API** (`cloudtrace.googleapis.com`) is enabled in Terraform so traces appear in Console and in the GCP mobile app. Cloud Run auto-samples traces (~0.1 req/s per instance); when a trace exists, our logs are linked to it. See `docs/GCP-OBSERVABILITY-MAP.md` for where to find Trace (and dashboards, logs) on web and mobile.
 - Chat route is fully instrumented: per-span timing for RAG retrieval and inference.
 - Metrics reset on cold start (honest — the War Room dashboard shows this).
 
@@ -90,7 +91,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 ### Repo layout
 
 - **Root:** `README.md`, `AGENTS.md`, `package.json`, `next.config.ts`, `Dockerfile`, `cloudbuild.yaml`, `tsconfig.json`, `.env.example`, `.gitignore`. Entry docs and app config only.
-- **docs/** — Secondary documentation: `DEPLOY-CLOUDRUN.md`, `SETUP.md`, `DEBUGGING_CHAT.md`, `DECISIONS.md`, `QUESTIONS.md`, `our_domain.md`. See `docs/README.md` for index.
+- **docs/** — Source markdown for the site’s documentation. Rendered at `/docs`; index in `docs/README.md` and nav in `src/lib/docs-config.ts`.
 - **scripts/** — `deploy-cloudrun.sh`, `check-ssl-cert.sh`, `disable-project-spend.sh`.
 - **terraform/** — GCP IaC (Cloud Run, LB, WAF, monitoring). No legacy CRA files in `src/` (removed; see .gitignore).
 
@@ -127,7 +128,7 @@ Ensure **`GOOGLE_CLOUD_PROJECT`** is set in production so the logs API can call 
 
 - **Tests:** `npm run test` (Vitest unit), `npm run test:e2e` (Cypress). CI (`.github/workflows/ci.yml`) runs on PR and push to main; require it to pass before merging. See `docs/CI-AND-TESTS.md`.
 - Rate limits are **enabled** in production (`RATE_LIMITS_DISABLED = false`).
-- War Room data API has a 10-second server-side cache to avoid excessive metric reads.
+- War Room data API has a 60-second server-side cache (low-traffic cost; reduce to 30s when job hunting).
 - The chat route does NOT use Edge runtime — it uses Node.js runtime for full API access.
 
 ---
@@ -189,7 +190,7 @@ Internet
         → Cloud Run (lgportfolio, scale-to-zero, max 1 instance)
 
 Monitoring:
-  → Uptime Checks (homepage 5min, /api/health 1min, /war-room 5min)
+  → Uptime Checks (homepage 10min, /api/health 10min, /war-room 10min — low-traffic; reduce when job hunting)
   → Alert Policy (notify on 2 consecutive failures)
   → Portfolio alerts (Terraform alerts.tf): recruiter email captured, spam/abuse (rate limit + prompt injection), high API errors. Set portfolio_alert_email in terraform.tfvars for email notifications.
   → Cloud Logging (structured JSON from stdout, free 50GB/mo)
@@ -447,7 +448,7 @@ gcloud compute ssl-certificates describe portfolio-ssl-cert --global
 | **Cloud Trace** | Correlates via `logging.googleapis.com/trace` field in logs. | 2.5M spans/month |
 | **Cloud Monitoring** | Uptime checks, Cloud Run built-in metrics (CPU, memory, request count, latency). | Free tier |
 | **Error Reporting** | Auto-detects structured error logs with severity=ERROR. | Free |
-| **Uptime Checks** | 3 checks: homepage (5min), /api/health (1min), /war-room (5min). | 100 free |
+| **Uptime Checks** | 3 checks: all 10min (low-traffic; reduce when job hunting). | 100 free |
 | **Cloud Armor** | WAF at edge: rate limiting, scanner blocking, path traversal, adaptive DDoS. | Standard tier (included with ALB) |
 | **Cloud CDN** | Caches static pages at Google edge. Reduces Cloud Run invocations. | Pay per cache fill |
 | **Cloud Run metrics** | Instance count, CPU, memory, request count, latency, cold starts. Built-in, free. | Free |

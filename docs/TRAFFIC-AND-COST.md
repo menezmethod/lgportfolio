@@ -1,6 +1,6 @@
-# Traffic & cost readiness (if the portfolio blows up)
+# Traffic & cost control
 
-This doc audits **rate limits**, **caching**, and **cost controls** so the site can handle a traffic spike without blowing the budget. All levers stay within free tier where possible.
+This document describes **rate limits**, **caching**, and **cost controls** so the site remains within budget under traffic spikes. Configuration favors free-tier usage where possible.
 
 ---
 
@@ -50,7 +50,7 @@ This doc audits **rate limits**, **caching**, and **cost controls** so the site 
 
 - **Backend:** `terraform/loadbalancer.tf` — `enable_cdn = true`, `CACHE_ALL_STATIC`.
 - **TTLs:** `default_ttl = 3600`, `max_ttl = 86400`, `client_ttl = 3600`.
-- **Negative caching:** 404 and 429 cached at edge for 30s so bursts don’t hammer origin.
+- **Negative caching:** 404 cached at edge for 30s (429 not supported by Cloud CDN for negative caching).
 - **When it caches:** Responses with cacheable `Cache-Control` (e.g. `public, max-age=...`).
 
 ### App-sent Cache-Control (Next.js)
@@ -77,7 +77,7 @@ This doc audits **rate limits**, **caching**, and **cost controls** so the site 
 
 ---
 
-## Cost caps (so we don’t go poor)
+## Cost controls
 
 | Control            | Where              | Effect |
 |--------------------|--------------------|--------|
@@ -88,13 +88,13 @@ This doc audits **rate limits**, **caching**, and **cost controls** so the site 
 
 ---
 
-## If traffic “blows up” tomorrow
+## Behavior under traffic spike
 
 1. **Static pages** → Served from CDN (1h cache); origin gets very few HTML requests.
-2. **War room** → 30s server cache + 120/min per IP at edge; dashboard stays usable without overloading origin.
+2. **War room** → 60s server cache + 120/min per IP at edge; dashboard remains usable without overloading origin.
 3. **Chat** → Hard limits (2 RPM, 10/min edge, 150/day) keep LLM and Firestore usage bounded.
 4. **RAG** → 60s response cache absorbs duplicate questions.
-5. **429 bursts** → Negative caching (30s) at CDN so repeated 429s don’t all hit Cloud Run.
+5. **Rate-limited responses** → Served at edge; excess requests do not reach Cloud Run.
 6. **Runaway cost** → Single instance cap + $20 budget kill switch stop scaling and spend.
 
 ---
@@ -103,7 +103,7 @@ This doc audits **rate limits**, **caching**, and **cost controls** so the site 
 
 If an attacker uses many IPs (e.g. 1000 machines) and opens the site or War Room and leaves tabs open:
 
-- **Per-IP limits** — Cloud Armor applies 180 req/min per IP (global) and 120/min per IP for `/api/war-room/data`. So 1000 IPs could theoretically send 180k–120k requests/min. In practice they are capped per IP; no single IP can blow the budget.
+- **Per-IP limits** — Cloud Armor applies 180 req/min per IP (global) and 120/min per IP for `/api/war-room/data`. So 1000 IPs could theoretically send 120k–180k requests/min. In practice they are capped per IP; no single IP can exceed the intended budget.
 - **War Room polling only when visible** — The War Room and Administration Board only poll `/api/war-room/data` when the browser tab is **visible** (Page Visibility API). Tabs left open in the background do **not** keep polling. That greatly reduces traffic from "leave 1000 tabs open" abuse.
 - **Single instance + budget kill** — `max_instance_count = 1` and the $20 budget kill (scale-to-zero) cap cost. Under heavy distributed traffic the instance is saturated and cost is bounded; once the budget threshold is hit, the service is scaled to zero.
 - **Adaptive DDoS** — Cloud Armor layer-7 adaptive protection is enabled; it can detect and mitigate volumetric patterns.
@@ -116,11 +116,11 @@ So protection is: per-IP rate limits, no background polling for War Room, one in
 
 - [x] Cloud Armor: global 180/min, chat 10/min, admin exempt, war-room 120/min, scanner/exploit block.
 - [x] App: 2 RPM chat, 150/day, 10 msgs/session; chat cache for common prompts.
-- [x] CDN: enabled, static cache, negative caching 404/429 30s.
+- [x] CDN: enabled, static cache, negative caching for 404 (30s).
 - [x] Static pages: Cache-Control for /, /about, /work, /contact, /architecture, /war-room.
 - [x] War room API: 60s server cache; client polls every 60s when tab visible (low-traffic cost).
 - [x] RAG API: 60s in-memory response cache, 200 entries max.
 - [x] Max instances: 1.
 - [x] Budget: $20 kill switch with auto scale-to-zero.
 
-No secrets in repo; no test suite. See `AGENTS.md` for run/build/deploy and `docs/CHECKLIST-FINAL-SWEEP.md` for general checklist.
+See `AGENTS.md` for run/build/deploy and `docs/CHECKLIST-FINAL-SWEEP.md` for the production checklist.
