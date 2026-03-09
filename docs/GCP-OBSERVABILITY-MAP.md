@@ -9,7 +9,7 @@ Where to find observability data for the portfolio in **Google Cloud Console** a
 | Signal | Console (web) | Mobile app |
 |--------|---------------|------------|
 | **Custom dashboard** (traffic, uptime, errors, cost) | Monitoring → Dashboards → [your dashboard] | Operations / Monitoring → Dashboards |
-| **Logs** | Logging → Logs Explorer (filter: `resource.type="cloud_run_revision"`, `resource.labels.service_name="lgportfolio"`) | Logging / Logs (same project) |
+| **Logs** | Logging → Logs Explorer (filter: `resource.type="cloud_run_revision"`, `resource.labels.service_name="YOUR_SERVICE"`) | Logging / Logs (same project) |
 | **Traces** | Observability → Trace (Trace Explorer) | Operations → Trace / Latency |
 | **Errors** | Operations → Error Reporting | Operations → Error Reporting / Incidents |
 | **Uptime** | Monitoring → Uptime checks | Monitoring → Uptime checks |
@@ -25,7 +25,7 @@ If traces are not appearing:
 
 1. **Trace API must be enabled** — `cloudtrace.googleapis.com` is included in Terraform (`terraform/main.tf` → `required_apis`). Run `terraform apply` if not yet applied.
 
-2. **Project selection** — In the mobile app, select the same project (e.g. `lgportfolio`) that runs Cloud Run and has `GOOGLE_CLOUD_PROJECT` set.
+2. **Project selection** — In the mobile app, select the same project that runs Cloud Run and has `GOOGLE_CLOUD_PROJECT` set.
 
 3. **Trace context** — Cloud Run sets `X-Cloud-Trace-Context` on requests. The app logs with `trace_id` and `GOOGLE_CLOUD_PROJECT` so that `logging.googleapis.com/trace` links logs to Trace. Cloud Run samples traces (~0.1 req/s per instance); with low traffic, generate a few requests and check after a short delay.
 

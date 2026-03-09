@@ -20,7 +20,7 @@ Expect a 200 response with plain text or streamed chunks. The UI strips `[Reason
 
 In GCP Console → **Logging** → **Logs Explorer**, filter by:
 
-- `resource.type="cloud_run_revision"` and `resource.labels.service_name="lgportfolio"`
+- `resource.type="cloud_run_revision"` and `resource.labels.service_name="YOUR_SERVICE"`
 - Add: `jsonPayload.endpoint="/api/chat"` or `textPayload=~"Chat"` to see chat requests and errors.
 
 Check for 429 (rate limit), 503 (LLM/config or inference error), and `severity=ERROR` for stack traces. Trace IDs are in `jsonPayload.trace_id` and in the response header `X-Trace-Id` for correlating with client errors.

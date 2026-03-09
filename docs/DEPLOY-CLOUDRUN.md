@@ -1,4 +1,4 @@
-# Cloud Run deployment checklist (lgportfolio)
+# Cloud Run deployment checklist
 
 **Free-first:** Default setup uses free-tier features; the only significant fixed cost is the ALB (~$18/mo). See [AGENTS.md](../AGENTS.md) § Free-first & cost control. **Budget kill switch:** $20 budget in Terraform; when exceeded, Pub/Sub → Cloud Function scales Cloud Run to 0. Manual: `./scripts/disable-project-spend.sh`.
 
@@ -6,14 +6,14 @@ You’re authenticated and the project is set. Follow these in order. Full detai
 
 ## 1. Environment tag (done)
 
-Project `lgportfolio` is tagged `environment: Production`. The warning is resolved.
+Tag the project with `environment: Production` in GCP Console if prompted.
 
 ## 2. Enable APIs
 
 If not already enabled, run:
 
 ```bash
-export PROJECT_ID=lgportfolio
+export PROJECT_ID=YOUR_PROJECT_ID
 gcloud services enable \
   run.googleapis.com \
   artifactregistry.googleapis.com \
@@ -30,8 +30,8 @@ gcloud services enable \
 Only needed if you want the AI chat to work in production:
 
 ```bash
-echo -n "YOUR_INFERENCIA_API_KEY" | gcloud secrets create inferencia-api-key --data-file=- --project=lgportfolio
-echo -n "YOUR_INFERENCIA_BASE_URL" | gcloud secrets create inferencia-base-url --data-file=- --project=lgportfolio
+echo -n "YOUR_INFERENCIA_API_KEY" | gcloud secrets create inferencia-api-key --data-file=- --project=YOUR_PROJECT_ID
+echo -n "YOUR_INFERENCIA_BASE_URL" | gcloud secrets create inferencia-base-url --data-file=- --project=YOUR_PROJECT_ID
 ```
 
 Or leave them empty in Terraform and add later.
@@ -41,7 +41,7 @@ Or leave them empty in Terraform and add later.
 Terraform expects an image to exist before creating the Cloud Run service. The Dockerfile uses `--platform=linux/amd64` so images work on Cloud Run (required when building on ARM, e.g. Mac).
 
 ```bash
-export PROJECT_ID=lgportfolio
+export PROJECT_ID=YOUR_PROJECT_ID
 gcloud artifacts repositories create portfolio --repository-format=docker --location=us-east1 --project=$PROJECT_ID 2>/dev/null || true
 gcloud auth configure-docker us-east1-docker.pkg.dev --quiet
 docker build -t us-east1-docker.pkg.dev/$PROJECT_ID/portfolio/app:latest .
@@ -53,7 +53,7 @@ docker push us-east1-docker.pkg.dev/$PROJECT_ID/portfolio/app:latest
 ```bash
 cd terraform
 cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars: set project_id = "lgportfolio", region = "us-east1", domain = "gimenez.dev"
+# Edit terraform.tfvars: set project_id = "YOUR_PROJECT_ID", region = "us-east1", domain = "gimenez.dev"
 # Set inferencia_api_key / inferencia_base_url or "" to skip
 terraform init
 terraform plan
