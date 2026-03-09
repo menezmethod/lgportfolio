@@ -15,7 +15,7 @@ gcloud secrets versions add firebase-service-account \
 Or from stdin (paste the JSON, then Ctrl+D):
 
 ```bash
-gcloud secrets versions add firebase-service-account --data-file=- --project=lgportfolio
+gcloud secrets versions add firebase-service-account --data-file=- --project=YOUR_PROJECT_ID
 ```
 
 ## 2. Add admin secret (for /admin/conversations)

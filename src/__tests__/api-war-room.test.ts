@@ -66,10 +66,10 @@ describe("/api/war-room/data", () => {
     }
   });
 
-  it("returns Cache-Control: public, max-age=30", async () => {
+  it("returns Cache-Control: public, max-age=60 (low-traffic cache TTL)", async () => {
     const req = new Request("https://localhost:3000/api/war-room/data");
     const response = await getWarRoomData(req);
-    expect(response.headers.get("Cache-Control")).toBe("public, max-age=30");
+    expect(response.headers.get("Cache-Control")).toBe("public, max-age=60");
   });
 
   it("includes X-Content-Type-Options: nosniff", async () => {

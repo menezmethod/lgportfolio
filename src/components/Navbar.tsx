@@ -12,6 +12,7 @@ const navLinks = [
   { href: '/work', label: 'Work' },
   { href: '/architecture', label: 'Architecture' },
   { href: '/war-room', label: 'War Room' },
+  { href: '/docs', label: 'Docs' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ];

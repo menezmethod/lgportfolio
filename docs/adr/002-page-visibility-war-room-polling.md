@@ -16,3 +16,4 @@ Use the Page Visibility API (`document.visibilitychange`) to start/stop the poll
 - **Positive:** Zero requests from background tabs. Reduces Cloud Run invocations and stays within free-tier quotas. Honest telemetry — the dashboard reflects real-time data only when someone is actually viewing it.
 - **Negative:** If a user switches back to the tab after a long period, there is a brief moment of stale data before the first fetch completes. This is negligible (< 1 second).
 - **Note:** The Administration Board (`/admin/board`) uses the same pattern for its System tab (War Room embed).
+- **Update (2026-03):** Polling interval increased to 60s (low-traffic cost); increase to 30s when job hunting (see `docs/TRAFFIC-AND-COST.md`).

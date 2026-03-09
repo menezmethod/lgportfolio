@@ -20,7 +20,7 @@ Expect a 200 response with plain text or streamed chunks. The UI strips `[Reason
 
 In GCP Console → **Logging** → **Logs Explorer**, filter by:
 
-- `resource.type="cloud_run_revision"` and `resource.labels.service_name="lgportfolio"`
+- `resource.type="cloud_run_revision"` and `resource.labels.service_name="YOUR_SERVICE"`
 - Add: `jsonPayload.endpoint="/api/chat"` or `textPayload=~"Chat"` to see chat requests and errors.
 
 Check for 429 (rate limit), 503 (LLM/config or inference error), and `severity=ERROR` for stack traces. Trace IDs are in `jsonPayload.trace_id` and in the response header `X-Trace-Id` for correlating with client errors.
@@ -73,16 +73,7 @@ So you should see a reply in the UI when the API returns either format.
    - Browser: `[chat:client] response` has `ok: false`? → Read `errorData` and show the user the `message` (already shown in the chat bubble).
 
 2. **Rate limit / 429**
-   - In `src/lib/rate-limit.ts`, `RATE_LIMITS_DISABLED` should be `true` so `checkRateLimit` and related checks don’t block.
+   - Rate limits are enabled in production. For local debugging, set `RATE_LIMITS_DISABLED=true` in `.env.local` to bypass `checkRateLimit`.
 
 3. **Tunnel offline (ngrok 404)**
    - The route tries local first when running locally. If the local server is not running, it then tries the tunnel; if the tunnel is offline, you get 503 and the “AI model temporarily unavailable” message in the chat.
-
-## Remove logs later
-
-Search for `[chat]` and `[chat:client]` in:
-
-- `src/app/api/chat/route.ts`
-- `src/app/chat/page.tsx`
-
-Delete or comment out the `console.log` / `console.warn` / `console.error` lines when you’re done debugging.

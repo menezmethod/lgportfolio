@@ -25,12 +25,12 @@ export default function WarRoom() {
     }
   }, []);
 
-  // Poll only when tab is visible to limit abuse from many open-but-background tabs.
+  // Poll every 60s when tab visible (low-traffic cost; increase to 30s when job hunting).
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
     const startPolling = () => {
       fetchData();
-      if (!interval) interval = setInterval(fetchData, 10000);
+      if (!interval) interval = setInterval(fetchData, 60000);
     };
     const stopPolling = () => {
       if (interval) {

@@ -16,7 +16,7 @@
 - Security: rate limits, prompt-injection defense, headers
 - **Viewing logs:** UI (`/admin/logs`), CLI (`gcloud logging read`), API (`GET /api/admin/logs` with `X-Admin-Secret`)
 - **Admin:** `ADMIN_SECRET` for sessions and logs; Firestore for chat analytics/memory
-- Gotchas: no test script, rate limits on in prod, War Room cache 10s
+- Gotchas: rate limits on in prod, War Room cache 60s (low-traffic)
 - Free-tier and cost control (budget kill switch in `scripts/`)
 
 Before making changes, read the relevant section of AGENTS.md so your edits match run/deploy/debug and constraints.
