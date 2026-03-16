@@ -39,6 +39,7 @@ const CACHED_RESPONSES = new Map<string, string>([
       "- Owns interrupt rotation — production reliability at 2 AM\n" +
       "- Advocated for and implemented PII masking for PCI DSS compliance\n" +
       "- GCP Professional Cloud Architect certified\n\n" +
+      "The strongest hiring read is Staff-ready now in platform, observability, reliability, or cloud architecture roles, with credible Principal-track upside in the right environment.\n\n" +
       "For details, visit /about or /work.",
   ],
   [

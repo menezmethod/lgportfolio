@@ -13,6 +13,33 @@ const titles = [
   'Silicon-to-Satellite Operator',
 ];
 
+const heroSignals = [
+  {
+    label: 'Store Footprint',
+    value: '2400+',
+    note: 'retail nodes influenced through enterprise payments',
+    valueClassName: 'text-foreground',
+  },
+  {
+    label: 'Service Graph',
+    value: '50+',
+    note: 'payment services across the platform surface area',
+    valueClassName: 'text-foreground',
+  },
+  {
+    label: 'Critical Path',
+    value: '<50ms',
+    note: 'p99 latency target on the hottest transaction paths',
+    valueClassName: 'text-primary',
+  },
+  {
+    label: 'Edge Lab',
+    value: 'Pi 5 + ESP32',
+    note: 'hardware-in-the-loop gateway and sensor control plane',
+    valueClassName: 'text-emerald-400',
+  },
+] as const;
+
 function PortfolioContent() {
   const searchParams = useSearchParams();
   const isRecruiter = searchParams.get('ref') === 'recruiter';
@@ -69,22 +96,30 @@ function PortfolioContent() {
             </p>
           )}
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 py-8 border-y border-white/5 my-8 font-mono">
-            <div className="text-center">
-              <div className="text-2xl md:text-4xl font-bold text-foreground">2400+</div>
-              <div className="text-xs text-muted-foreground mt-1">stores touched</div>
+          <div className="my-10 text-left">
+            <div className="mb-3 flex items-center justify-center gap-3 font-mono text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+              <span className="h-px w-8 bg-primary/50" />
+              <span>Operational Signals</span>
+              <span className="h-px w-8 bg-emerald-500/40" />
             </div>
-            <div className="text-center">
-              <div className="text-2xl md:text-4xl font-bold text-foreground">50+</div>
-              <div className="text-xs text-muted-foreground mt-1">payment services</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl md:text-4xl font-bold text-foreground">&lt;50ms</div>
-              <div className="text-xs text-muted-foreground mt-1">p99 latency</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl md:text-4xl font-bold text-emerald-400">Pi 5</div>
-              <div className="text-xs text-muted-foreground mt-1">edge gateway lab</div>
+            <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card/35 shadow-2xl shadow-black/20 backdrop-blur-sm">
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:22px_22px] opacity-30" />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+              <div className="relative grid grid-cols-1 divide-y divide-white/6 md:grid-cols-2 md:divide-x md:divide-y-0 xl:grid-cols-4">
+                {heroSignals.map((signal) => (
+                  <div key={signal.label} className="p-5 md:p-6">
+                    <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                      {signal.label}
+                    </div>
+                    <div className={`text-3xl md:text-[2.6rem] font-bold leading-none tracking-tight ${signal.valueClassName}`}>
+                      {signal.value}
+                    </div>
+                    <p className="mt-3 max-w-[20rem] text-sm leading-relaxed text-muted-foreground">
+                      {signal.note}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
