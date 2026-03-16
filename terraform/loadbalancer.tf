@@ -116,14 +116,27 @@ resource "google_compute_managed_ssl_certificate" "default" {
   }
 }
 
+resource "google_compute_managed_ssl_certificate" "www" {
+  count = var.enable_load_balancer ? 1 : 0
+
+  name = "portfolio-ssl-cert-www"
+
+  managed {
+    domains = ["www.${var.domain}"]
+  }
+}
+
 # ── HTTPS Target Proxy ───────────────────────────────────────────────────────
 
 resource "google_compute_target_https_proxy" "default" {
   count = var.enable_load_balancer ? 1 : 0
 
-  name             = "portfolio-https-proxy"
-  url_map          = google_compute_url_map.default[0].id
-  ssl_certificates = [google_compute_managed_ssl_certificate.default[0].id]
+  name    = "portfolio-https-proxy"
+  url_map = google_compute_url_map.default[0].id
+  ssl_certificates = [
+    google_compute_managed_ssl_certificate.default[0].id,
+    google_compute_managed_ssl_certificate.www[0].id,
+  ]
 }
 
 # HTTP target proxy (for redirect)
