@@ -8,10 +8,10 @@ resource "google_service_account" "portfolio" {
 # ── Artifact Registry ────────────────────────────────────────────────────────
 
 resource "google_artifact_registry_repository" "portfolio" {
-  location      = var.region
-  repository_id = "portfolio"
-  description   = "Container images for gimenez.dev"
-  format        = "DOCKER"
+  location               = var.region
+  repository_id          = "portfolio"
+  description            = "Container images for gimenez.dev"
+  format                 = "DOCKER"
   cleanup_policy_dry_run = false
 
   # Keep enough history for rollback, but automatically trim old deploy images.

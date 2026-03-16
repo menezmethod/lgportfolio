@@ -70,7 +70,7 @@ resource "google_compute_backend_service" "default" {
   security_policy = google_compute_security_policy.default.id
 
   log_config {
-    enable      = true
+    enable = true
     # Keep a thin sample for edge visibility without paying to log half of all requests.
     sample_rate = 0.1
   }
