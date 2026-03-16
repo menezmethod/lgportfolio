@@ -7,7 +7,7 @@ This folder is the single source of truth for that content. The sidebar and inde
 ## Contents
 
 - **Deployment & setup:** `SETUP.md`, `DEPLOY-CLOUDRUN.md`, `CHAT-SECRETS.md`
-- **Operations:** `TRAFFIC-AND-COST.md`, `CI-AND-TESTS.md`, `DEBUGGING-CHAT.md`, `GCP-OBSERVABILITY-MAP.md`
+- **Operations:** `N8N-CONTROL-PLANE.md`, `TRAFFIC-AND-COST.md`, `CI-AND-TESTS.md`, `DEBUGGING-CHAT.md`, `GCP-OBSERVABILITY-MAP.md`
 - **Decisions:** `DECISIONS.md`, `ADMIN-BOARD.md`
 - **Architecture decision records:** `adr/001-*.md`, `adr/002-*.md`, `adr/003-*.md`
 

@@ -12,6 +12,7 @@ export interface DocEntry {
 export const docsNav: DocEntry[] = [
   { slug: "setup", file: "SETUP.md", title: "Setup" },
   { slug: "deploy", file: "DEPLOY-CLOUDRUN.md", title: "Deployment (Cloud Run)" },
+  { slug: "n8n-control-plane", file: "N8N-CONTROL-PLANE.md", title: "Edge Control Plane (n8n)" },
   { slug: "gcp-observability", file: "GCP-OBSERVABILITY-MAP.md", title: "GCP Observability (Console & Mobile)" },
   { slug: "traffic-cost", file: "TRAFFIC-AND-COST.md", title: "Traffic & Cost" },
   { slug: "ci-tests", file: "CI-AND-TESTS.md", title: "CI & Tests" },

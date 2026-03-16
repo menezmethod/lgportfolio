@@ -1,0 +1,385 @@
+{
+  "id": "c2f3f6c0-8134-4a05-9c09-22d8d5f27a69",
+  "name": "Deploy Guardian",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "d7f9bdde-9b89-4d6b-96bb-5f41c9c4ab12",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1100,
+        -150
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return [{ json: { triggerSource: 'manual', triggerLabel: 'Manual run' } }];"
+      },
+      "id": "21882f85-c0f4-4f66-9a20-ded3ebd3c4a2",
+      "name": "Label Manual Run",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -840,
+        -170
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "deploy-guardian",
+        "responseMode": "onReceived",
+        "responseData": "{\"status\":\"accepted\"}",
+        "responseContentType": "application/json",
+        "options": {}
+      },
+      "id": "2c485890-ef6f-4f6a-bc52-c70b1b82d0df",
+      "name": "Deploy Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1100,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const incoming = $input.first().json ?? {};\nreturn [{\n  json: {\n    triggerSource: 'webhook',\n    triggerLabel: 'Deploy webhook',\n    deploymentId: incoming.deployment_id ?? incoming.deploy_id ?? incoming.deployment?.id ?? incoming.sha ?? null,\n    deploymentMeta: {\n      branch: incoming.branch ?? incoming.ref ?? null,\n      sha: incoming.sha ?? incoming.commit ?? null,\n      status: incoming.status ?? incoming.state ?? null,\n      raw: incoming\n    }\n  }\n}];"
+      },
+      "id": "52f0a1a2-75c4-4df3-8ad9-e3f10c1f5e86",
+      "name": "Label Webhook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -840,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "passThrough",
+        "mergeBy": "allEntries"
+      },
+      "id": "5c7ffbc5-803c-4fc1-9dd2-3c7c7f624af3",
+      "name": "Merge Sources",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const sourceItem = $input.first()?.json ?? {};\nconst triggerSource = sourceItem.triggerSource ?? 'manual';\nconst triggerLabel = sourceItem.triggerLabel ?? (triggerSource === 'webhook' ? 'Deploy webhook' : 'Manual run');\nconst deploymentMeta = sourceItem.deploymentMeta ?? {};\nconst targets = [\n  { name: 'homepage', url: 'https://gimenez.dev/', expectJsonStatus: false },\n  { name: 'health_api', url: 'https://gimenez.dev/api/health', expectJsonStatus: true },\n  { name: 'war_room', url: 'https://gimenez.dev/war-room', expectJsonStatus: false },\n  { name: 'war_room_data', url: 'https://gimenez.dev/api/war-room/data', expectJsonStatus: false },\n  { name: 'chat_page', url: 'https://gimenez.dev/chat', expectJsonStatus: false }\n];\n\nreturn targets.map((target, index) => ({\n  json: {\n    ...target,\n    triggerSource,\n    triggerLabel,\n    deploymentMeta,\n    checkId: index + 1,\n    workflow: 'deploy-guardian'\n  }\n}));"
+      },
+      "id": "b5c9d1f9-a8b3-47c2-9cb5-6d1e59f4f6d4",
+      "name": "Build Targets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -360,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.url }}",
+        "authentication": "none",
+        "options": {
+          "redirect": {
+            "redirect": {
+              "followRedirects": true,
+              "maxRedirects": 5
+            }
+          },
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text",
+              "outputPropertyName": "body"
+            }
+          },
+          "timeout": 8000
+        }
+      },
+      "id": "8f12f5d8-76a5-46cc-a4e0-df6b7f4f4f23",
+      "name": "Probe Targets",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -120,
+        -20
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const workflowStaticData = $getWorkflowStaticData('global');\nconst checkedAt = new Date().toISOString();\nconst inputItems = $input.all();\nconst sourceItem = inputItems.find((item) => item.json.triggerSource) ?? inputItems[0] ?? {};\nconst triggerSource = sourceItem.json?.triggerSource ?? 'manual';\nconst triggerLabel = sourceItem.json?.triggerLabel ?? (triggerSource === 'webhook' ? 'Deploy webhook' : 'Manual run');\nconst deploymentMeta = sourceItem.json?.deploymentMeta ?? {};\n\nconst results = inputItems.map((item) => {\n  const target = {\n    name: item.json.name ?? `unknown-${item.pairedItem?.item ?? 0}`,\n    url: item.json.url ?? null,\n    expectJsonStatus: item.json.expectJsonStatus ?? false\n  };\n  const bodyText = String(item.json.body ?? '');\n  let appStatus = null;\n\n  if (target.expectJsonStatus) {\n    try {\n      const parsed = JSON.parse(bodyText);\n      appStatus = parsed.status ?? null;\n    } catch (error) {\n      appStatus = bodyText ? 'invalid-json' : null;\n    }\n  }\n\n  const statusCode = Number(item.json.statusCode ?? 0);\n  const healthy = !item.json.error && statusCode >= 200 && statusCode < 400 && (!target.expectJsonStatus || appStatus === 'healthy');\n\n  return {\n    name: target.name,\n    url: target.url,\n    healthy,\n    statusCode: statusCode || null,\n    statusMessage: item.json.statusMessage ?? null,\n    appStatus,\n    error: item.json.error ?? null,\n    proxyLatencyMs: item.json.duration ?? null,\n    checksum: target.expectJsonStatus ? appStatus : null\n  };\n});\n\nconst failures = results.filter((result) => !result.healthy);\nconst previousFailures = Number(workflowStaticData.deployGuardianFailures || 0);\nconst consecutiveFailures = failures.length > 0 ? previousFailures + 1 : 0;\nconst shouldEscalate = failures.length > 0 && consecutiveFailures >= 2;\n\nworkflowStaticData.deployGuardianFailures = consecutiveFailures;\nworkflowStaticData.lastDeployGuardianCheck = checkedAt;\nworkflowStaticData.lastDeployStatus = failures.length > 0 ? (shouldEscalate ? 'incident' : 'degraded') : 'healthy';\n\nconst summary = failures.length > 0\n  ? `${failures.length} failing smoke checks: ${failures.map((result) => result.name).join(', ')}`\n  : 'all smoke checks successful';\n\nreturn [\n  {\n    json: {\n      workflow: 'deploy-guardian',\n      checkedAt,\n      triggerSource,\n      triggerLabel,\n      deploymentMeta,\n      status: failures.length > 0 ? (shouldEscalate ? 'incident' : 'degraded') : 'healthy',\n      shouldEscalate,\n      consecutiveFailures,\n      summary,\n      results\n    }\n  }\n];"
+      },
+      "id": "74a4e3d9-b8f0-45b4-8f43-ec623d0b2d95",
+      "name": "Evaluate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const payload = $input.first().json;\nreturn [{ json: { ...payload, reportVersion: 'deploy-guardian.v1', finalizedAt: new Date().toISOString() } }];"
+      },
+      "id": "b4c24b1a-5be7-4b7a-9d77-bb1a8f72d4b7",
+      "name": "Formal Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const payload = $input.first().json;\nconst failingChecks = (payload.results || []).filter((check) => !check.healthy).map((check) => check.name);\nconst icon = payload.status === 'healthy'\n  ? ':white_check_mark:'\n  : payload.status === 'degraded'\n    ? ':warning:'\n    : ':rotating_light:';\nconst lines = [\n  `${icon} *Deploy Guardian* ${String(payload.status || 'unknown').toUpperCase()}`,\n  `Run: ${payload.triggerLabel || payload.triggerSource || 'manual'}`,\n  `Checked: ${payload.checkedAt}`,\n  `Summary: ${payload.summary}`\n];\nif (payload.deploymentMeta?.sha) {\n  lines.push(`SHA: ${payload.deploymentMeta.sha}`);\n}\nif (failingChecks.length > 0) {\n  lines.push(`Failing checks: ${failingChecks.join(', ')}`);\n}\nreturn [\n  {\n    json: {\n      ...payload,\n      slackNotification: {\n        skip: false,\n        channel: 'C0ALX8C12TG',\n        text: lines.join('\\n')\n      }\n    }\n  }\n];"
+      },
+      "id": "a3a3f1d6-6394-4a39-9244-411f4a6fbf08",
+      "name": "Build Ops Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.slackNotification.skip !== true }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "e5aa37c0-cf5a-4f96-a4ce-a70737ea6d53",
+      "name": "Notify Ops?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        860,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://slack.com/api/chat.postMessage",
+        "authentication": "none",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({ Authorization: 'Bearer ' + $env.SLACK_BOT_TOKEN, 'Content-Type': 'application/json; charset=utf-8' }) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ channel: $json.slackNotification.channel, text: $json.slackNotification.text }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 8000
+        }
+      },
+      "id": "6b69bcb7-324f-4fd0-a717-739276f17752",
+      "name": "Send Ops Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1100,
+        -140
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $input.first().json;\nif (!payload.shouldEscalate) {\n  return [{ json: { ...payload, escalated: false } }];\n}\nconst failing = payload.results?.filter((check) => !check.healthy) ?? [];\nthrow new Error(JSON.stringify({\n  workflow: payload.workflow,\n  status: payload.status,\n  summary: payload.summary,\n  consecutiveFailures: payload.consecutiveFailures,\n  deploymentMeta: payload.deploymentMeta,\n  failingChecks: failing\n}));"
+      },
+      "id": "1165a8c6-1e2b-4df5-8a1b-8b9f7e1c1d0e",
+      "name": "Escalate Incident",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        120
+      ],
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Label Manual Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label Manual Run": {
+      "main": [
+        [
+          {
+            "node": "Merge Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deploy Webhook": {
+      "main": [
+        [
+          {
+            "node": "Label Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label Webhook": {
+      "main": [
+        [
+          {
+            "node": "Merge Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Sources": {
+      "main": [
+        [
+          {
+            "node": "Build Targets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Targets": {
+      "main": [
+        [
+          {
+            "node": "Probe Targets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Probe Targets": {
+      "main": [
+        [
+          {
+            "node": "Evaluate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate Results": {
+      "main": [
+        [
+          {
+            "node": "Formal Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formal Summary": {
+      "main": [
+        [
+          {
+            "node": "Build Ops Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Ops Alert": {
+      "main": [
+        [
+          {
+            "node": "Notify Ops?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Ops?": {
+      "main": [
+        [
+          {
+            "node": "Send Ops Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "main2": [
+        [
+          {
+            "node": "Escalate Incident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Ops Slack": {
+      "main": [
+        [
+          {
+            "node": "Escalate Incident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escalate Incident": {
+      "main": []
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": null,
+  "versionId": "14c3c0a5-2dfb-4d62-9a83-c4ec9451dbef"
+}
