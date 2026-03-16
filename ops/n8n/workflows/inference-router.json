@@ -1,0 +1,444 @@
+{
+  "id": "f1a2d4b5-3c22-48d4-8b26-0f8b0629c8b3",
+  "name": "Inference Router",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "04b0f2cd-9641-4f61-b115-5f1be0c1222f",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const prompt = 'System prompt placeholder to demonstrate the router flow for testing.';\nconst sessionId = 'demo-session';\nreturn [{\n  json: {\n    request: {\n      prompt,\n      sessionId,\n      metadata: {\n        source: 'ops/n8n',\n        requestedAt: new Date().toISOString()\n      }\n    },\n    attempts: [],\n    prompt,\n    sessionId,\n    workflow: 'inference-router'\n  }\n}];"
+      },
+      "id": "c7d03a2c-5e0f-4b6f-a32e-8b4c9d895f6e",
+      "name": "Build Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCAL_LLM_ENDPOINT || 'http://localhost:8080/api/chat/local' }}",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.request) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json",
+              "outputPropertyName": "body"
+            }
+          },
+          "timeout": 12000
+        }
+      },
+      "id": "d9ba6057-3207-4b6f-b9a0-dc5a17d34bbd",
+      "name": "Local LLM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -320,
+        0
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "const requestMeta = $node['Build Request'].json;\nconst response = $input.item.json;\nconst envelope = response?.body ?? response;\nconst statusCode = envelope?.statusCode ?? response?.statusCode ?? null;\nconst success = typeof statusCode === 'number' ? statusCode >= 200 && statusCode < 400 && !response?.error : false;\nconst attempts = [...(requestMeta.attempts || [])];\nattempts.push({\n  step: 'local',\n  success,\n  statusCode,\n  error: response?.error ?? null,\n  reason: success ? 'handled locally' : 'local-call-failed',\n  timestamp: new Date().toISOString()\n});\nconst payload = envelope?.body ?? envelope?.data ?? null;\nreturn [{\n  json: {\n    request: requestMeta.request,\n    prompt: requestMeta.prompt,\n    sessionId: requestMeta.sessionId,\n    attempts,\n    success,\n    localResponse: payload,\n    statusCode,\n    lastStep: 'local'\n  }\n}];"
+      },
+      "id": "4e3f1b16-f99d-4c9a-8a64-3b3e2b6129ab",
+      "name": "Audit Local",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.success === true }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "9a2d0e2a-8b2b-4b71-aedf-bd13680d85d5",
+      "name": "Local Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        120,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const payload = $input.first().json;\nreturn [{\n  json: {\n    decision: 'local',\n    payload: payload.localResponse,\n    fallbackAudit: payload.attempts,\n    metadata: {\n      prompt: payload.prompt,\n      sessionId: payload.sessionId,\n      statusCode: payload.statusCode,\n      path: 'local'\n    }\n  }\n}];"
+      },
+      "id": "f492b1a0-dcf0-4d55-a53d-97d0519cfd2e",
+      "name": "Compile Local",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        360,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://integrate.api.nvidia.com/v1/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({ Authorization: 'Bearer ' + $env.NVIDIA_API_KEY, 'Content-Type': 'application/json' }) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'moonshotai/kimi-k2.5', messages: [{ role: 'user', content: $json.prompt }], max_tokens: 16384, temperature: 1, top_p: 1, stream: false }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json",
+              "outputPropertyName": "body"
+            }
+          },
+          "timeout": 20000
+        }
+      },
+      "id": "5aac4a2f-974d-40c8-9710-08b0a7551baf",
+      "name": "NVIDIA Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        120,
+        80
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "const prior = $node['Audit Local'].json;\nconst response = $input.item.json;\nconst envelope = response?.body ?? response;\nconst statusCode = envelope?.statusCode ?? response?.statusCode ?? null;\nconst success = typeof statusCode === 'number' ? statusCode >= 200 && statusCode < 400 && !response?.error : false;\nconst attempts = [...(prior.attempts || [])];\nattempts.push({\n  step: 'nvidia',\n  success,\n  statusCode,\n  error: response?.error ?? null,\n  reason: success ? 'nvidia-fallback' : 'nvidia-call-failed',\n  timestamp: new Date().toISOString()\n});\nconst payload = envelope?.body?.choices?.[0]?.message?.content ?? envelope?.body ?? envelope?.data ?? null;\nreturn [{\n  json: {\n    request: prior.request,\n    prompt: prior.prompt,\n    sessionId: prior.sessionId,\n    attempts,\n    success,\n    nvidiaResponse: payload,\n    statusCode,\n    lastStep: 'nvidia'\n  }\n}];"
+      },
+      "id": "c6ba90cf-3c8b-4f12-b383-246a6daa2d7d",
+      "name": "Audit NVIDIA",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 2,
+      "position": [
+        360,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.success === true }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "376dce3e-0e50-4ffa-b44b-0c0c5df4b3b9",
+      "name": "NVIDIA Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const nodeData = $input.item.json;\nreturn [{ json: { decision: 'nvidia', payload: nodeData.nvidiaResponse, fallbackAudit: nodeData.attempts, metadata: { prompt: nodeData.prompt, sessionId: nodeData.sessionId, statusCode: nodeData.statusCode, path: nodeData.lastStep } } }];"
+      },
+      "id": "4b61501e-8588-4b65-b3e6-295c30a1b5ca",
+      "name": "Compile NVIDIA",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 2,
+      "position": [
+        840,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const nodeData = $input.item.json;\nconst deterministicAnswer = `Deterministic fallback for \"${nodeData.prompt}\" while remote services recover.`;\nconst attempts = [...(nodeData.attempts || [])];\nattempts.push({\n  step: 'deterministic',\n  success: true,\n  statusCode: 200,\n  reason: 'deterministic-answer',\n  timestamp: new Date().toISOString()\n});\nreturn [{ json: { decision: 'deterministic', payload: deterministicAnswer, fallbackAudit: attempts, metadata: { prompt: nodeData.prompt, sessionId: nodeData.sessionId, statusCode: 200, path: 'deterministic' } } }];"
+      },
+      "id": "be7f8b4a-5d7c-448b-b8d1-6aedba1e9d7a",
+      "name": "Deterministic Fallback",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 2,
+      "position": [
+        840,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const payload = $input.first().json;\nconst attempts = Array.isArray(payload.fallbackAudit) ? payload.fallbackAudit : [];\nconst icon = payload.decision === 'local'\n  ? ':white_check_mark:'\n  : payload.decision === 'nvidia'\n    ? ':satellite:'\n    : ':warning:';\nconst lines = [\n  `${icon} *Inference Router* ${String(payload.decision || 'unknown').toUpperCase()}`,\n  `Session: ${payload.metadata?.sessionId || 'unknown'}`,\n  `Path: ${payload.metadata?.path || payload.decision}`,\n  `Status: ${payload.metadata?.statusCode || 'n/a'}`,\n  `Attempts: ${attempts.map((attempt) => `${attempt.step}:${attempt.success ? 'ok' : 'fail'}`).join(', ') || 'none'}`\n];\nreturn [{\n  json: {\n    ...payload,\n    slackNotification: {\n      skip: false,\n      channel: 'C0ALX8C12TG',\n      text: lines.join('\\n')\n    }\n  }\n}];"
+      },
+      "id": "b5bbf5fc-614b-4478-baf4-27b6dd4c1c87",
+      "name": "Build Ops Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.slackNotification.skip !== true }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "1e9ae661-3ae0-4b74-8f8c-98f159f01bf4",
+      "name": "Notify Ops?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://slack.com/api/chat.postMessage",
+        "authentication": "none",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({ Authorization: 'Bearer ' + $env.SLACK_BOT_TOKEN, 'Content-Type': 'application/json; charset=utf-8' }) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ channel: $json.slackNotification.channel, text: $json.slackNotification.text }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 8000
+        }
+      },
+      "id": "f6d83b7d-d7a7-4a84-b5a5-bbcab30fba1e",
+      "name": "Send Ops Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1600,
+        -120
+      ],
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Build Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Request": {
+      "main": [
+        [
+          {
+            "node": "Local LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Local LLM": {
+      "main": [
+        [
+          {
+            "node": "Audit Local",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit Local": {
+      "main": [
+        [
+          {
+            "node": "Local Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Local Success?": {
+      "main": [
+        [
+          {
+            "node": "Compile Local",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "main2": [
+        [
+          {
+            "node": "NVIDIA Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NVIDIA Call": {
+      "main": [
+        [
+          {
+            "node": "Audit NVIDIA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit NVIDIA": {
+      "main": [
+        [
+          {
+            "node": "NVIDIA Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NVIDIA Success?": {
+      "main": [
+        [
+          {
+            "node": "Compile NVIDIA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "main2": [
+        [
+          {
+            "node": "Deterministic Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compile Local": {
+      "main": [
+        [
+          {
+            "node": "Build Ops Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compile NVIDIA": {
+      "main": [
+        [
+          {
+            "node": "Build Ops Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deterministic Fallback": {
+      "main": [
+        [
+          {
+            "node": "Build Ops Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Ops Alert": {
+      "main": [
+        [
+          {
+            "node": "Notify Ops?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Ops?": {
+      "main": [
+        [
+          {
+            "node": "Send Ops Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "main2": [
+        []
+      ]
+    },
+    "Send Ops Slack": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": null,
+  "versionId": "6c2e3f9b-0cdc-4ede-9cac-61b1f4ac76f4"
+}

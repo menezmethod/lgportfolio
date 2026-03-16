@@ -1,0 +1,401 @@
+{
+  "id": "6c9b3a95-5eaf-4b40-94a8-35b3d3f1f3c9",
+  "name": "Cost Governor",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a02cbaf2-3d87-4533-8eb4-0f5b4bbd1c2b",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 60
+            }
+          ]
+        }
+      },
+      "id": "c3b1e4d2-8cfe-4f7a-a88a-9a2be0f3b5c1",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -960,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cost-governor",
+        "responseMode": "onReceived",
+        "responseData": "{\"status\":\"accepted\"}",
+        "responseCode": 202,
+        "responseDescription": "Cost Governor evaluation accepted"
+      },
+      "id": "b3f2d1e5-4d30-4a57-aa5e-90b4f3d1c2a4",
+      "name": "Cost Intake Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const now = new Date().toISOString();\nconst drillMode = $env.CONTROL_PLANE_DRILL === '1';\nreturn [\n  {\n    json: {\n      source: drillMode ? 'manual-drill' : 'scheduled-mock',\n      cost: drillMode ? 44 : 28.3,\n      budget: 40,\n      windowHours: 24,\n      currency: 'USD',\n      timestamp: now,\n      detail: drillMode ? 'Control-plane drill payload for Cost Governor' : 'Scheduled mock input to keep Cost Governor fresh',\n      metadata: {\n        cohort: 'cost-governor-demo',\n        cadence: '60m',\n        drillMode\n      }\n    }\n  }\n];"
+      },
+      "id": "d9a81c5a-21c7-44e5-9b09-7d6f0c2b1a27",
+      "name": "Mock Cost Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -600,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const raw = $input.first().json;\nconst now = new Date().toISOString();\nconst costValue = Number(raw.cost ?? raw.totalCost ?? raw.estimatedCost ?? 0);\nconst budgetValue = Number(raw.budget ?? raw.monthlyBudget ?? raw.allocatedBudget ?? 0);\nconst windowHours = Number(raw.windowHours ?? raw.window ?? 24) || 24;\nconst currency = raw.currency ?? 'USD';\nconst timestamp = raw.timestamp ?? raw.recordedAt ?? now;\nconst source = raw.source ?? 'webhook';\nconst detail = raw.detail ?? raw.notes ?? 'cost telemetry';\nconst metadata = {\n  ...(typeof raw.metadata === 'object' ? raw.metadata : {}),\n  ingestion: source === 'scheduled-mock' ? 'mock' : 'webhook',\n  receivedAt: now\n};\nreturn [{\n  json: {\n    workflow: 'cost-governor',\n    source,\n    timestamp,\n    cost: costValue,\n    budget: budgetValue,\n    windowHours,\n    currency,\n    detail,\n    metadata\n  }\n}];"
+      },
+      "id": "edc3a5f6-1a54-48c2-b7dd-4a5c7b9e8d23",
+      "name": "Normalize Cost Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const payload = $input.first().json;\nconst cost = Number(payload.cost ?? 0);\nconst budget = Number(payload.budget ?? 0);\nconst windowHours = Math.max(1, Number(payload.windowHours ?? 24));\nconst ratio = budget > 0 ? Number((cost / budget).toFixed(4)) : 0;\nconst hourlyRate = Number((cost / windowHours).toFixed(4));\nconst projected24 = Number((hourlyRate * 24).toFixed(2));\nconst projectedRatio = budget > 0 ? Number((projected24 / budget).toFixed(4)) : null;\nconst shortfall = budget > 0 ? Number((budget - cost).toFixed(2)) : null;\nconst stageDefinitions = [\n  {\n    label: 'Observation',\n    min: 0,\n    max: 0.75,\n    severity: 'nominal',\n    condition: 'ratio < 0.75',\n    rationale: 'Telemetry and War Room continue without intervention.',\n    next: 'Keep watching the War Room and annotate trends for VP reviews.'\n  },\n  {\n    label: 'Constraint',\n    min: 0.75,\n    max: 1,\n    severity: 'warning',\n    condition: '0.75 ≤ ratio < 1.0',\n    rationale: 'Budget trending high; pre-authorize noncritical limits.',\n    next: 'Throttle optional agents, postpone new features, log change request.'\n  },\n  {\n    label: 'Approval Guardrail',\n    min: 1,\n    max: Infinity,\n    severity: 'critical',\n    condition: 'ratio ≥ 1.0',\n    rationale: 'Budget exhausted; manual authorization required before scaling.',\n    next: 'Hold automation, notify approver, and avoid cost-driving actions.'\n  }\n];\nconst activeStage = stageDefinitions.find((stage) => ratio >= stage.min && ratio < stage.max) ?? stageDefinitions[stageDefinitions.length - 1];\nconst mitigationLadder = stageDefinitions.map((stage) => ({\n  stage: stage.label,\n  severity: stage.severity,\n  condition: stage.condition,\n  active: ratio >= stage.min && ratio < stage.max,\n  rationale: stage.rationale,\n  recommendation: stage.next\n}));\nconst requiresApproval = ratio >= 1;\nconst nextAction = requiresApproval ? stageDefinitions[2].next : activeStage.next;\nconst severityLabel = requiresApproval ? 'critical' : ratio >= 0.75 ? 'warning' : 'nominal';\nconst analysisSummary = requiresApproval\n  ? 'Cost governor halted new agents until approval.'\n  : ratio >= 0.75\n    ? 'Preliminary constraints in place; runway thinning.'\n    : 'Budget headroom is healthy.';\nreturn [{\n  json: {\n    ...payload,\n    ratio,\n    hourlyRate,\n    projected24,\n    projectedRatio,\n    shortfall,\n    severity: severityLabel,\n    mitigationLadder,\n    nextAction,\n    requiresApproval,\n    analysisSummary\n  }\n}];"
+      },
+      "id": "f0b2e5c9-3cbf-4202-bec1-1cf1a9b2dcd3",
+      "name": "Assess Mitigation Ladder",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return [{ json: $input.first().json }];"
+      },
+      "id": "a5d3f4b0-2a31-4a34-afce-0e5b4c4f7a89",
+      "name": "Format Cost Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const payload = $input.first().json;\nconst shouldNotify = payload.source !== 'scheduled-mock' || payload.severity !== 'nominal';\nconst icon = payload.severity === 'critical'\n  ? ':rotating_light:'\n  : payload.severity === 'warning'\n    ? ':warning:'\n    : ':white_check_mark:';\nconst lines = [\n  `${icon} *Cost Governor* ${String(payload.severity || 'nominal').toUpperCase()}`,\n  `Source: ${payload.source}`,\n  `Observed: ${payload.cost} ${payload.currency}`,\n  `Budget: ${payload.budget} ${payload.currency}`,\n  `Ratio: ${payload.ratio}`,\n  `Projected 24h: ${payload.projected24} ${payload.currency}`,\n  `Summary: ${payload.analysisSummary}`,\n  `Next action: ${payload.nextAction}`\n];\nreturn [{\n  json: {\n    ...payload,\n    slackNotification: {\n      skip: !shouldNotify,\n      channel: 'C0ALX8C12TG',\n      text: lines.join('\\n')\n    }\n  }\n}];"
+      },
+      "id": "362b1a30-dbd8-4528-a35e-2a1eef4a6cb7",
+      "name": "Build Ops Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.slackNotification.skip !== true }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "36f8f9ce-a3e0-46f0-9da0-c9a4279dfc14",
+      "name": "Notify Ops?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        940,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://slack.com/api/chat.postMessage",
+        "authentication": "none",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({ Authorization: 'Bearer ' + $env.SLACK_BOT_TOKEN, 'Content-Type': 'application/json; charset=utf-8' }) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ channel: $json.slackNotification.channel, text: $json.slackNotification.text }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 8000
+        }
+      },
+      "id": "f8b38a8c-10b7-4e23-935c-b02f91a95cf2",
+      "name": "Send Ops Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1180,
+        -80
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const payload = $input.first().json;\nconst lines = [\n  `:money_with_wings: *Cost Governor Approval Guardrail*`,\n  `Source: ${payload.source}`,\n  `Observed: ${payload.cost} ${payload.currency}`,\n  `Budget: ${payload.budget} ${payload.currency}`,\n  `Ratio: ${payload.ratio}`,\n  `Projected 24h: ${payload.projected24} ${payload.currency}`,\n  `Summary: ${payload.analysisSummary}`,\n  `Action requested: ${payload.nextAction}`\n];\nreturn [{\n  json: {\n    ...payload,\n    approvalNotification: {\n      skip: payload.requiresApproval !== true,\n      channel: 'C0AM2TREPN0',\n      text: lines.join('\\n')\n    }\n  }\n}];"
+      },
+      "id": "d37765c0-a845-43c5-a592-d71b1aab8aae",
+      "name": "Build Approval Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.approvalNotification.skip !== true }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "88ebc36b-7ec3-4bf0-b225-3680af3f0763",
+      "name": "Notify Approval?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1420,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://slack.com/api/chat.postMessage",
+        "authentication": "none",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({ Authorization: 'Bearer ' + $env.SLACK_BOT_TOKEN, 'Content-Type': 'application/json; charset=utf-8' }) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ channel: $json.approvalNotification.channel, text: $json.approvalNotification.text }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 8000
+        }
+      },
+      "id": "b37972c3-d791-4cd0-98c0-8311496e6ef0",
+      "name": "Send Approval Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1660,
+        60
+      ],
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Mock Cost Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Mock Cost Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cost Intake Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Cost Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mock Cost Payload": {
+      "main": [
+        [
+          {
+            "node": "Normalize Cost Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Cost Input": {
+      "main": [
+        [
+          {
+            "node": "Assess Mitigation Ladder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assess Mitigation Ladder": {
+      "main": [
+        [
+          {
+            "node": "Format Cost Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Cost Report": {
+      "main": [
+        [
+          {
+            "node": "Build Ops Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Ops Alert": {
+      "main": [
+        [
+          {
+            "node": "Notify Ops?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Ops?": {
+      "main": [
+        [
+          {
+            "node": "Send Ops Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "main2": [
+        [
+          {
+            "node": "Build Approval Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Ops Slack": {
+      "main": [
+        [
+          {
+            "node": "Build Approval Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Approval Alert": {
+      "main": [
+        [
+          {
+            "node": "Notify Approval?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Approval?": {
+      "main": [
+        [
+          {
+            "node": "Send Approval Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "main2": [
+        []
+      ]
+    },
+    "Send Approval Slack": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": null,
+  "versionId": "cbbde6a5-d543-4e6d-b844-9bddc7b9d2a7"
+}
