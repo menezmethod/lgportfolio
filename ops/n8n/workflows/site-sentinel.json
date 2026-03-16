@@ -1,0 +1,385 @@
+{
+  "id": "8f365fc2-50b3-4503-b6de-0ef6bc4177f5",
+  "name": "Site Sentinel",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a9c315c8-249c-4af8-9c94-744740249ddb",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "triggerSource",
+              "value": "manual"
+            },
+            {
+              "name": "triggerLabel",
+              "value": "Manual run"
+            }
+          ]
+        },
+        "options": {
+          "keepOnlySet": false
+        }
+      },
+      "id": "905d3fef-f631-4e46-b11d-b0c9505b8393",
+      "name": "Label Manual Run",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -660,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      },
+      "id": "3dcc9982-31ef-4471-8f4b-35c74fdc7377",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -880,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "triggerSource",
+              "value": "scheduled"
+            },
+            {
+              "name": "triggerLabel",
+              "value": "Scheduled run"
+            }
+          ]
+        },
+        "options": {
+          "keepOnlySet": false
+        }
+      },
+      "id": "feae2f54-f132-4e9d-a6d6-af7cd988c3ff",
+      "name": "Label Scheduled Run",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -660,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "passThrough",
+        "mergeBy": "allEntries"
+      },
+      "id": "83db8ba8-0d36-486c-a1d0-7c3149e65dd0",
+      "name": "Merge Sources",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 1,
+      "position": [
+        -520,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const sourceItem = $input.first()?.json ?? {};\nconst triggerSource = sourceItem.triggerSource ?? 'manual';\nconst triggerLabel = sourceItem.triggerLabel ?? 'Manual run';\nreturn [\n  { json: { name: 'homepage', url: 'https://gimenez.dev/', expectJsonStatus: false, triggerSource, triggerLabel } },\n  { json: { name: 'health_api', url: 'https://gimenez.dev/api/health', expectJsonStatus: true, triggerSource, triggerLabel } },\n  { json: { name: 'war_room', url: 'https://gimenez.dev/war-room', expectJsonStatus: false, triggerSource, triggerLabel } },\n  { json: { name: 'war_room_data', url: 'https://gimenez.dev/api/war-room/data', expectJsonStatus: false, triggerSource, triggerLabel } }\n];"
+      },
+      "id": "e12372c3-cbcc-4524-a959-5369fa92d77f",
+      "name": "Build Targets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -300,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.url }}",
+        "authentication": "none",
+        "options": {
+          "redirect": {
+            "redirect": {
+              "followRedirects": true,
+              "maxRedirects": 5
+            }
+          },
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text",
+              "outputPropertyName": "body"
+            }
+          },
+          "timeout": 8000
+        }
+      },
+      "id": "a1f86a4f-883f-4f86-8d4f-792886ff5601",
+      "name": "Probe Targets",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -100,
+        0
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const checkedAt = new Date().toISOString();\nconst workflowStaticData = $getWorkflowStaticData('global');\nconst inputs = $input.all();\nconst triggerSource = inputs[0]?.json?.triggerSource ?? 'scheduled';\nconst triggerLabel = inputs[0]?.json?.triggerLabel ?? (triggerSource === 'manual' ? 'Manual run' : 'Scheduled run');\nconst targets = [\n  { name: 'homepage', url: 'https://gimenez.dev/', expectJsonStatus: false },\n  { name: 'health_api', url: 'https://gimenez.dev/api/health', expectJsonStatus: true },\n  { name: 'war_room', url: 'https://gimenez.dev/war-room', expectJsonStatus: false },\n  { name: 'war_room_data', url: 'https://gimenez.dev/api/war-room/data', expectJsonStatus: false }\n];\n\nconst results = inputs.map((item) => {\n  const targetIndex = item.pairedItem?.item ?? 0;\n  const target = targets[targetIndex] || targets[0];\n  const bodyText = String(item.json.body || '');\n  let appStatus = null;\n\n  if (target.expectJsonStatus) {\n    try {\n      const parsed = JSON.parse(bodyText);\n      appStatus = parsed.status ?? null;\n    } catch (error) {\n      appStatus = bodyText ? 'invalid-json' : null;\n    }\n  }\n\n  const healthy = !item.json.error\n    && Number(item.json.statusCode || 0) >= 200\n    && Number(item.json.statusCode || 0) < 400\n    && (!target.expectJsonStatus || appStatus === 'healthy');\n\n  return {\n    name: target.name,\n    url: target.url,\n    healthy,\n    statusCode: item.json.statusCode ?? null,\n    statusMessage: item.json.statusMessage ?? null,\n    appStatus,\n    error: item.json.error ?? null,\n    bodyPreview: bodyText.slice(0, 160)\n  };\n});\n\nconst failures = results.filter((result) => !result.healthy);\nconst previousFailures = Number(workflowStaticData.consecutiveFailures || 0);\nconst consecutiveFailures = failures.length > 0 ? previousFailures + 1 : 0;\nconst shouldEscalate = failures.length > 0 && consecutiveFailures >= 2;\n\nworkflowStaticData.lastCheckedAt = checkedAt;\nworkflowStaticData.lastSummary = failures.length > 0 ? failures.map((failure) => failure.name).join(', ') : 'healthy';\nworkflowStaticData.consecutiveFailures = consecutiveFailures;\nworkflowStaticData.lastStatus = failures.length > 0 ? 'degraded' : 'healthy';\n\nreturn [\n  {\n    json: {\n      workflow: 'site-sentinel',\n      checkedAt,\n      triggerSource,\n      triggerLabel,\n      status: failures.length > 0 ? (shouldEscalate ? 'incident' : 'degraded') : 'healthy',\n      shouldEscalate,\n      consecutiveFailures,\n      summary: failures.length > 0\n        ? `${failures.length} failing checks: ${failures.map((failure) => failure.name).join(', ')}`\n        : 'all checks healthy',\n      results\n    }\n  }\n];"
+      },
+      "id": "75d7b7aa-cf60-44f1-a132-0f969c7621bc",
+      "name": "Evaluate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const payload = $input.first().json;\nconst drillMode = $env.CONTROL_PLANE_DRILL === '1';\nconst shouldNotify = drillMode || payload.triggerSource === 'manual' || payload.status !== 'healthy';\nconst failingChecks = (payload.results || []).filter((result) => !result.healthy).map((result) => result.name);\nconst icon = payload.status === 'healthy'\n  ? ':white_check_mark:'\n  : payload.status === 'degraded'\n    ? ':warning:'\n    : ':rotating_light:';\nconst lines = [\n  `${icon} *Site Sentinel* ${String(payload.status || 'unknown').toUpperCase()}`,\n  `Run: ${payload.triggerLabel || payload.triggerSource || 'manual'}`,\n  `Checked: ${payload.checkedAt}`,\n  `Summary: ${payload.summary}`\n];\nif (drillMode) {\n  lines.push('Mode: control-plane drill');\n}\nif (failingChecks.length > 0) {\n  lines.push(`Failing checks: ${failingChecks.join(', ')}`);\n}\nreturn [\n  {\n    json: {\n      ...payload,\n      slackNotification: {\n        skip: !shouldNotify,\n        channel: 'C0ALX8C12TG',\n        text: lines.join('\\n')\n      }\n    }\n  }\n];"
+      },
+      "id": "8f129a4e-dcf2-45e6-b3ef-9f63c354dd8b",
+      "name": "Build Ops Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.slackNotification.skip !== true }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "0f4a67d4-3f38-42b0-8446-060af6c00ba8",
+      "name": "Notify Ops?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        520,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://slack.com/api/chat.postMessage",
+        "authentication": "none",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({ Authorization: 'Bearer ' + $env.SLACK_BOT_TOKEN, 'Content-Type': 'application/json; charset=utf-8' }) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ channel: $json.slackNotification.channel, text: $json.slackNotification.text }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 8000
+        }
+      },
+      "id": "96c6b8f8-0c2d-4c9f-b5ae-7c2c7c96fb08",
+      "name": "Send Ops Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        760,
+        -120
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const payload = $input.first().json;\n\nif (!payload.shouldEscalate) {\n  return [{ json: payload }];\n}\n\nthrow new Error(JSON.stringify({\n  workflow: payload.workflow,\n  checkedAt: payload.checkedAt,\n  consecutiveFailures: payload.consecutiveFailures,\n  summary: payload.summary,\n  failingChecks: payload.results.filter((result) => !result.healthy)\n}));"
+      },
+      "id": "9702983f-f0c8-4646-a87c-7369cf5eb7ef",
+      "name": "Escalate Incident",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Label Manual Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Label Scheduled Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label Manual Run": {
+      "main": [
+        [
+          {
+            "node": "Merge Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label Scheduled Run": {
+      "main": [
+        [
+          {
+            "node": "Merge Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Sources": {
+      "main": [
+        [
+          {
+            "node": "Build Targets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Targets": {
+      "main": [
+        [
+          {
+            "node": "Probe Targets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Probe Targets": {
+      "main": [
+        [
+          {
+            "node": "Evaluate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate Results": {
+      "main": [
+        [
+          {
+            "node": "Build Ops Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Ops Alert": {
+      "main": [
+        [
+          {
+            "node": "Notify Ops?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Ops?": {
+      "main": [
+        [
+          {
+            "node": "Send Ops Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "main2": [
+        [
+          {
+            "node": "Escalate Incident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Ops Slack": {
+      "main": [
+        [
+          {
+            "node": "Escalate Incident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": null,
+  "versionId": "e9e8e898-3de8-4d2c-bd18-4286eac27afa"
+}

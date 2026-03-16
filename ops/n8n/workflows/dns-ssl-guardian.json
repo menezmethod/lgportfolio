@@ -1,0 +1,478 @@
+{
+  "id": "1fd0b80a-0d76-40d3-aaf9-542ea89eb687",
+  "name": "DNS / SSL Guardian",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f9a2ad41-eaf0-4383-95dc-36ebacb7d849",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1160,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "triggerSource",
+              "value": "manual"
+            },
+            {
+              "name": "triggerLabel",
+              "value": "Manual run"
+            }
+          ]
+        },
+        "options": {
+          "keepOnlySet": false
+        }
+      },
+      "id": "87d9986f-a2d2-45a0-9fa5-f6b7abf4a12b",
+      "name": "Label Manual Run",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "eb6d2d77-5fa2-4e32-84b0-557fa7eb09bf",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1160,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "triggerSource",
+              "value": "scheduled"
+            },
+            {
+              "name": "triggerLabel",
+              "value": "Scheduled run"
+            }
+          ]
+        },
+        "options": {
+          "keepOnlySet": false
+        }
+      },
+      "id": "57b1cb16-fdb4-40b1-b40a-22f57120d0cb",
+      "name": "Label Scheduled Run",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "passThrough",
+        "mergeBy": "allEntries"
+      },
+      "id": "3ccd7576-b52a-4580-9588-f406276bd76b",
+      "name": "Merge Sources",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 1,
+      "position": [
+        -840,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const sourceItem = $input.first()?.json ?? {};\nconst triggerSource = sourceItem.triggerSource ?? 'manual';\nconst triggerLabel = sourceItem.triggerLabel ?? 'Manual run';\nreturn [\n  { json: { name: 'apex_http', url: 'http://gimenez.dev/', scheme: 'http', triggerSource, triggerLabel } },\n  { json: { name: 'apex_https', url: 'https://gimenez.dev/', scheme: 'https', triggerSource, triggerLabel } },\n  { json: { name: 'www_https', url: 'https://www.gimenez.dev/', scheme: 'https', triggerSource, triggerLabel } }\n];"
+      },
+      "id": "96c35fc5-bad0-4906-bbbb-35e41684548a",
+      "name": "Build Endpoint Targets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -620,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.url }}",
+        "authentication": "none",
+        "options": {
+          "redirect": {
+            "redirect": {
+              "followRedirects": true,
+              "maxRedirects": 5
+            }
+          },
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text",
+              "outputPropertyName": "body"
+            }
+          },
+          "timeout": 8000
+        }
+      },
+      "id": "3e62df1c-f1f0-4c4b-a3d0-ecb77cb72b24",
+      "name": "Probe Public Endpoints",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -360,
+        0
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const checkedAt = new Date().toISOString();\nconst targets = $('Build Endpoint Targets').all().map((item) => item.json);\nconst inputs = $input.all();\nconst triggerSource = inputs[0]?.json?.triggerSource ?? 'scheduled';\nconst triggerLabel = inputs[0]?.json?.triggerLabel ?? (triggerSource === 'manual' ? 'Manual run' : 'Scheduled run');\n\nconst publicEndpoints = inputs.map((item, index) => {\n  const targetIndex = item.pairedItem?.item ?? index;\n  const target = targets[targetIndex] || targets[0];\n  const bodyText = String(item.json.body || '');\n  const locationHeader = item.json.headers?.location || item.json.headers?.Location || null;\n  const statusCode = Number(item.json.statusCode || 0);\n  const healthy = !item.json.error && statusCode >= 200 && statusCode < 400;\n\n  return {\n    name: target.name,\n    url: target.url,\n    scheme: target.scheme,\n    healthy,\n    statusCode: item.json.statusCode ?? null,\n    statusMessage: item.json.statusMessage ?? null,\n    location: locationHeader,\n    error: item.json.error ?? null,\n    bodyPreview: bodyText.slice(0, 160)\n  };\n});\n\nconst endpointMap = Object.fromEntries(publicEndpoints.map((result) => [result.name, result]));\n\nreturn [\n  {\n    json: {\n      workflow: 'dns-ssl-guardian',\n      checkedAt,\n      triggerSource,\n      triggerLabel,\n      publicEndpoints,\n      publicStatus: {\n        apexHttpHealthy: Boolean(endpointMap.apex_http?.healthy),\n        apexHttpsHealthy: Boolean(endpointMap.apex_https?.healthy),\n        wwwHttpsHealthy: Boolean(endpointMap.www_https?.healthy)\n      }\n    }\n  }\n];"
+      },
+      "id": "cab37555-4958-48fd-a78a-fca72c4f32e6",
+      "name": "Evaluate Endpoint Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -100,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return [\n  { json: { label: 'google_apex_a', resolver: 'google', endpoint: 'https://dns.google/resolve', query: { name: 'gimenez.dev', type: 'A' }, headers: {} } },\n  { json: { label: 'google_www_cname', resolver: 'google', endpoint: 'https://dns.google/resolve', query: { name: 'www.gimenez.dev', type: 'CNAME' }, headers: {} } },\n  { json: { label: 'cloudflare_apex_a', resolver: 'cloudflare', endpoint: 'https://cloudflare-dns.com/dns-query', query: { name: 'gimenez.dev', type: 'A' }, headers: { accept: 'application/dns-json' } } },\n  { json: { label: 'cloudflare_www_cname', resolver: 'cloudflare', endpoint: 'https://cloudflare-dns.com/dns-query', query: { name: 'www.gimenez.dev', type: 'CNAME' }, headers: { accept: 'application/dns-json' } } } \n];"
+      },
+      "id": "7a055df5-9d76-4c2c-bd27-4fb124d51fe3",
+      "name": "Build DNS Queries",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        140,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.endpoint }}",
+        "authentication": "none",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={{ JSON.stringify($json.query) }}",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify($json.headers || {}) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 8000
+        }
+      },
+      "id": "f9db3da4-7cf8-4f1b-b4c9-5ef4e99f5d2e",
+      "name": "Query Public DNS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        420,
+        0
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const workflowStaticData = $getWorkflowStaticData('global');\nconst base = $('Evaluate Endpoint Results').first().json;\nconst queryItems = $('Build DNS Queries').all().map((item) => item.json);\n\nconst dnsResponses = $input.all().map((item, index) => {\n  const queryIndex = item.pairedItem?.item ?? index;\n  const queryItem = queryItems[queryIndex] || queryItems[0];\n  const query = queryItem?.query || {};\n  const body = item.json.body || {};\n  const answers = Array.isArray(body.Answer) ? body.Answer : [];\n\n  return {\n    label: queryItem?.label || null,\n    resolver: queryItem?.resolver || null,\n    endpoint: queryItem?.endpoint || null,\n    query,\n    statusCode: item.json.statusCode ?? null,\n    statusMessage: item.json.statusMessage ?? null,\n    error: item.json.error ?? null,\n    answers: answers.map((answer) => String(answer.data || '').replace(/\\.$/, '').toLowerCase())\n  };\n});\n\nconst apexRecordsByResolver = Object.fromEntries(\n  dnsResponses\n    .filter((response) => response.query.name === 'gimenez.dev')\n    .map((response) => [response.resolver, response.answers])\n);\nconst wwwTargetsByResolver = Object.fromEntries(\n  dnsResponses\n    .filter((response) => response.query.name === 'www.gimenez.dev')\n    .map((response) => [response.resolver, response.answers])\n);\n\nconst apexResolverAnswers = Object.values(apexRecordsByResolver);\nconst wwwResolverAnswers = Object.values(wwwTargetsByResolver);\nconst apexUnique = [...new Set(apexResolverAnswers.flat())];\nconst dnsConsistent = apexResolverAnswers.length > 0 && apexResolverAnswers.every((answers) => answers.length > 0) && apexUnique.length === 1;\nconst wwwPointsToApex = wwwResolverAnswers.length > 0 && wwwResolverAnswers.every((answers) => answers.length > 0 && answers.includes('gimenez.dev'));\n\nconst findings = [];\nconst recommendedActions = [];\n\nif (!dnsConsistent) {\n  findings.push('dns_inconsistent_public_resolvers');\n  recommendedActions.push('Compare public DNS answers with the registrar and edge configuration.');\n}\n\nif (!wwwPointsToApex) {\n  findings.push('www_cname_mismatch');\n  recommendedActions.push('Ensure the www CNAME points to gimenez.dev.');\n}\n\nif (base.publicStatus.apexHttpHealthy && !base.publicStatus.apexHttpsHealthy) {\n  findings.push('https_failing_while_http_reachable');\n  recommendedActions.push('Check TLS and Google-managed certificate health before changing DNS.');\n}\n\nif (base.publicStatus.apexHttpsHealthy && !base.publicStatus.wwwHttpsHealthy) {\n  findings.push('www_hostname_coverage_gap');\n  recommendedActions.push('Verify the edge certificate covers both apex and www hostnames.');\n}\n\nif (!base.publicStatus.apexHttpHealthy && !base.publicStatus.apexHttpsHealthy && dnsConsistent) {\n  findings.push('origin_or_edge_unreachable');\n  recommendedActions.push('Inspect edge routing and Cloud Run reachability from GCP.');\n}\n\nconst previousFailures = Number(workflowStaticData.consecutiveFailures || 0);\nconst consecutiveFailures = findings.length > 0 ? previousFailures + 1 : 0;\nconst shouldEscalate = findings.length > 0 && consecutiveFailures >= 2;\nconst summary = findings.length > 0 ? findings.join(', ') : 'dns and tls checks healthy';\n\nworkflowStaticData.lastCheckedAt = base.checkedAt;\nworkflowStaticData.lastSummary = summary;\nworkflowStaticData.consecutiveFailures = consecutiveFailures;\nworkflowStaticData.lastStatus = findings.length > 0 ? 'degraded' : 'healthy';\n\nreturn [\n  {\n    json: {\n      workflow: 'dns-ssl-guardian',\n      checkedAt: base.checkedAt,\n      triggerSource: base.triggerSource,\n      triggerLabel: base.triggerLabel,\n      status: findings.length > 0 ? (shouldEscalate ? 'incident' : 'degraded') : 'healthy',\n      shouldEscalate,\n      consecutiveFailures,\n      summary,\n      findings,\n      recommendedActions,\n      publicEndpoints: base.publicEndpoints,\n      dnsState: {\n        dnsConsistent,\n        apexRecordsByResolver,\n        apexUnique,\n        wwwTargetsByResolver,\n        wwwPointsToApex\n      },\n      dnsResponses\n    }\n  }\n];"
+      },
+      "id": "cb748939-e18d-44d0-978f-5d53c95532d5",
+      "name": "Evaluate DNS Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const payload = $input.first().json;\nconst drillMode = $env.CONTROL_PLANE_DRILL === '1';\nconst shouldNotify = drillMode || payload.triggerSource === 'manual' || payload.status !== 'healthy';\nconst icon = payload.status === 'healthy'\n  ? ':white_check_mark:'\n  : payload.status === 'degraded'\n    ? ':warning:'\n    : ':rotating_light:';\nconst lines = [\n  `${icon} *DNS / SSL Guardian* ${String(payload.status || 'unknown').toUpperCase()}`,\n  `Run: ${payload.triggerLabel || payload.triggerSource || 'manual'}`,\n  `Checked: ${payload.checkedAt}`,\n  `Summary: ${payload.summary}`\n];\nif (drillMode) {\n  lines.push('Mode: control-plane drill');\n}\nif ((payload.findings || []).length > 0) {\n  lines.push(`Findings: ${payload.findings.join(', ')}`);\n}\nif ((payload.recommendedActions || []).length > 0) {\n  lines.push(`Next steps: ${payload.recommendedActions.join(' | ')}`);\n}\nreturn [\n  {\n    json: {\n      ...payload,\n      slackNotification: {\n        skip: !shouldNotify,\n        channel: 'C0ALX8C12TG',\n        text: lines.join('\\n')\n      }\n    }\n  }\n];"
+      },
+      "id": "ee545929-1cf1-4a0b-8fab-f25b0fc91d09",
+      "name": "Build Ops Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.slackNotification.skip !== true }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "7c892bd1-72e3-4c21-bdfa-62372ad5fe2b",
+      "name": "Notify Ops?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://slack.com/api/chat.postMessage",
+        "authentication": "none",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify({ Authorization: 'Bearer ' + $env.SLACK_BOT_TOKEN, 'Content-Type': 'application/json; charset=utf-8' }) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ channel: $json.slackNotification.channel, text: $json.slackNotification.text }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 8000
+        }
+      },
+      "id": "624ae5ed-e761-478f-afc0-4a60b97c70bb",
+      "name": "Send Ops Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1420,
+        -120
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const payload = $input.first().json;\n\nif (!payload.shouldEscalate) {\n  return [{ json: payload }];\n}\n\nthrow new Error(JSON.stringify({\n  workflow: payload.workflow,\n  checkedAt: payload.checkedAt,\n  consecutiveFailures: payload.consecutiveFailures,\n  summary: payload.summary,\n  findings: payload.findings,\n  recommendedActions: payload.recommendedActions\n}));"
+      },
+      "id": "bb1e22e8-9d63-4f65-8f26-8d7a0c78de55",
+      "name": "Escalate Incident",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1640,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Label Manual Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Label Scheduled Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label Manual Run": {
+      "main": [
+        [
+          {
+            "node": "Merge Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label Scheduled Run": {
+      "main": [
+        [
+          {
+            "node": "Merge Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Sources": {
+      "main": [
+        [
+          {
+            "node": "Build Endpoint Targets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Endpoint Targets": {
+      "main": [
+        [
+          {
+            "node": "Probe Public Endpoints",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Probe Public Endpoints": {
+      "main": [
+        [
+          {
+            "node": "Evaluate Endpoint Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate Endpoint Results": {
+      "main": [
+        [
+          {
+            "node": "Build DNS Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build DNS Queries": {
+      "main": [
+        [
+          {
+            "node": "Query Public DNS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Public DNS": {
+      "main": [
+        [
+          {
+            "node": "Evaluate DNS Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate DNS Results": {
+      "main": [
+        [
+          {
+            "node": "Build Ops Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Ops Alert": {
+      "main": [
+        [
+          {
+            "node": "Notify Ops?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Ops?": {
+      "main": [
+        [
+          {
+            "node": "Send Ops Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "main2": [
+        [
+          {
+            "node": "Escalate Incident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Ops Slack": {
+      "main": [
+        [
+          {
+            "node": "Escalate Incident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": null,
+  "versionId": "e7527cba-6aa1-4fc0-a598-9e772f0f8db1"
+}
