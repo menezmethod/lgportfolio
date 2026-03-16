@@ -39,6 +39,7 @@ const CACHED_RESPONSES = new Map<string, string>([
       "- Owns interrupt rotation — production reliability at 2 AM\n" +
       "- Advocated for and implemented PII masking for PCI DSS compliance\n" +
       "- GCP Professional Cloud Architect certified\n\n" +
+      "The strongest hiring read is Staff-ready now in platform, observability, reliability, or cloud architecture roles, with credible Principal-track upside in the right environment.\n\n" +
       "For details, visit /about or /work.",
   ],
   [
@@ -63,7 +64,7 @@ const CACHED_RESPONSES = new Map<string, string>([
   ],
   [
     "is luis open to remote work?",
-    "Yes. Luis is based in Florida and is seeking Senior, Staff, SRE, or Architect roles.\n\n" +
+    "Yes. Luis is based in Florida and is seeking Staff, Principal-track, SRE, or AI infrastructure architecture roles.\n\n" +
       "Open to remote, hybrid, or relocation — particularly Atlanta, Austin, NYC, SF/Bay Area, Seattle, or Denver.\n\n" +
       "US work authorized. No sponsorship required.",
   ],

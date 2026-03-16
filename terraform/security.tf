@@ -14,6 +14,8 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 
 resource "google_compute_security_policy" "default" {
+  count = var.enable_load_balancer ? 1 : 0
+
   name        = "portfolio-waf-policy"
   description = "Cloud Armor WAF policy for gimenez.dev"
   type        = "CLOUD_ARMOR"

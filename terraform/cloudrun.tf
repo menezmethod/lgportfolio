@@ -8,10 +8,41 @@ resource "google_service_account" "portfolio" {
 # ── Artifact Registry ────────────────────────────────────────────────────────
 
 resource "google_artifact_registry_repository" "portfolio" {
-  location      = var.region
-  repository_id = "portfolio"
-  description   = "Container images for gimenez.dev"
-  format        = "DOCKER"
+  location               = var.region
+  repository_id          = "portfolio"
+  description            = "Container images for gimenez.dev"
+  format                 = "DOCKER"
+  cleanup_policy_dry_run = false
+
+  # Keep enough history for rollback, but automatically trim old deploy images.
+  cleanup_policies {
+    id     = "keep-most-recent"
+    action = "KEEP"
+
+    most_recent_versions {
+      keep_count = 12
+    }
+  }
+
+  cleanup_policies {
+    id     = "delete-old-tagged"
+    action = "DELETE"
+
+    condition {
+      tag_state  = "TAGGED"
+      older_than = "1209600s"
+    }
+  }
+
+  cleanup_policies {
+    id     = "delete-old-untagged"
+    action = "DELETE"
+
+    condition {
+      tag_state  = "UNTAGGED"
+      older_than = "259200s"
+    }
+  }
 
   depends_on = [google_project_service.apis]
 }
@@ -90,7 +121,7 @@ resource "google_secret_manager_secret_iam_member" "firebase_sa_accessor" {
 resource "google_cloud_run_v2_service" "portfolio" {
   name     = "lgportfolio"
   location = var.region
-  ingress  = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
+  ingress  = var.enable_load_balancer ? "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER" : "INGRESS_TRAFFIC_ALL"
 
   template {
     service_account = google_service_account.portfolio.email

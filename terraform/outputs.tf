@@ -1,28 +1,7 @@
 # ── Outputs ───────────────────────────────────────────────────────────────────
 
-output "load_balancer_ip" {
-  description = "Static IP for the load balancer — point your DNS A record here"
-  value       = google_compute_global_address.default.address
-}
-
-output "cloud_run_url" {
-  description = "Direct Cloud Run URL (bypasses ALB, for debugging only)"
-  value       = google_cloud_run_v2_service.portfolio.uri
-}
-
-output "service_account_email" {
-  description = "Cloud Run service account"
-  value       = google_service_account.portfolio.email
-}
-
-output "ssl_certificate_name" {
-  description = "SSL certificate name (check status in Console or: gcloud compute ssl-certificates describe portfolio-ssl-cert --global)"
-  value       = google_compute_managed_ssl_certificate.default.name
-}
-
-output "namecheap_dns_instructions" {
-  description = "Instructions for Namecheap DNS configuration"
-  value       = <<-EOT
+locals {
+  namecheap_dns_instructions_edge = <<-EOT
 
     ╔══════════════════════════════════════════════════════════════════╗
     ║               NAMECHEAP DNS CONFIGURATION                       ║
@@ -35,7 +14,7 @@ output "namecheap_dns_instructions" {
     ║                                                                  ║
     ║     Type   Host   Value                      TTL                ║
     ║     ─────  ─────  ─────────────────────────  ──────             ║
-    ║     A      @      ${google_compute_global_address.default.address}              Automatic          ║
+    ║     A      @      ${try(google_compute_global_address.default[0].address, "EDGE_DISABLED")}              Automatic          ║
     ║     CNAME  www    gimenez.dev.               Automatic          ║
     ║                                                                  ║
     ║  5. Wait 5-30 minutes for DNS propagation                       ║
@@ -44,4 +23,45 @@ output "namecheap_dns_instructions" {
     ╚══════════════════════════════════════════════════════════════════╝
 
   EOT
+
+  namecheap_dns_instructions_low_cost = <<-EOT
+
+    Edge mode is disabled.
+
+    Primary public URL:
+      ${google_cloud_run_v2_service.portfolio.uri}
+
+    Custom domain DNS can stay parked or be repointed later when edge mode is re-enabled.
+
+  EOT
+}
+
+output "load_balancer_ip" {
+  description = "Static IP for the load balancer — null when enable_load_balancer=false"
+  value       = var.enable_load_balancer ? google_compute_global_address.default[0].address : null
+}
+
+output "cloud_run_url" {
+  description = "Direct Cloud Run URL (bypasses ALB, for debugging only)"
+  value       = google_cloud_run_v2_service.portfolio.uri
+}
+
+output "public_base_url" {
+  description = "Primary public URL for the portfolio in the current mode"
+  value       = var.enable_load_balancer ? "https://${var.domain}" : google_cloud_run_v2_service.portfolio.uri
+}
+
+output "service_account_email" {
+  description = "Cloud Run service account"
+  value       = google_service_account.portfolio.email
+}
+
+output "ssl_certificate_name" {
+  description = "SSL certificate name when edge mode is enabled; null when enable_load_balancer=false"
+  value       = var.enable_load_balancer ? google_compute_managed_ssl_certificate.default[0].name : null
+}
+
+output "namecheap_dns_instructions" {
+  description = "Instructions for Namecheap DNS configuration in the current mode"
+  value       = var.enable_load_balancer ? local.namecheap_dns_instructions_edge : local.namecheap_dns_instructions_low_cost
 }

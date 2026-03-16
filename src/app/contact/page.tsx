@@ -21,11 +21,11 @@ export default function Contact() {
 
         <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
           Selectively accepting interviews for{' '}
-          <span className="text-foreground font-semibold">Senior</span>,{' '}
-          <span className="text-foreground font-semibold">Staff</span>, and{' '}
-          <span className="text-foreground font-semibold">Architect</span> roles.
-          If you have a hard distributed systems problem or need someone to
-          unfuck your observability stack, let&apos;s talk.
+          <span className="text-foreground font-semibold">Staff</span>,{' '}
+          <span className="text-foreground font-semibold">Principal-track</span>, and{' '}
+          <span className="text-foreground font-semibold">AI Infrastructure Architect</span> roles.
+          If you need someone who can own observability, migrations, and edge-to-cloud systems design,
+          let&apos;s talk.
         </p>
 
         <div className="mb-12 p-8 bg-card/30 rounded-xl border border-border/50 relative overflow-hidden group">
@@ -73,10 +73,11 @@ export default function Contact() {
         </div>
 
         <div className="mt-16 p-8 bg-card/30 rounded-xl border border-border/50 text-center">
-          <h2 className="text-xl font-semibold mb-4">Want specifics on my architecture decisions?</h2>
+          <h2 className="text-xl font-semibold mb-4">Need the trade-off rationale?</h2>
           <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-            My AI assistant can answer technical questions about my background, system design
-            approach, and project details. It runs on a self-hosted LLM with RAG retrieval.
+            My AI assistant can answer technical questions about architecture decisions, system design
+            trade-offs, and the current project build queue. It runs on a retrieval-backed workflow with
+            operational guardrails.
           </p>
           <a
             href="/chat"

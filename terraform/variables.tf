@@ -15,6 +15,12 @@ variable "domain" {
   default     = "gimenez.dev"
 }
 
+variable "enable_load_balancer" {
+  description = "Enable the global external load balancer, Cloud CDN, and Cloud Armor. Keep true for custom-domain production."
+  type        = bool
+  default     = true
+}
+
 variable "inferencia_api_key" {
   description = "Inferencia LLM API key"
   type        = string

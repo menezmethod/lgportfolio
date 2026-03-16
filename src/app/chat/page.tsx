@@ -20,7 +20,7 @@ const SUGGESTED_PROMPTS = [
   "How does Luis handle production incidents and on-call?",
   "What's his biggest technical contribution in the last year?",
   "Why is Luis looking for a new role?",
-  "What does Luis bring to a senior or staff engineering team?",
+  "What does Luis bring to a staff or principal-track engineering team?",
 ];
 
 function cleanAssistantContent(raw: string): string {

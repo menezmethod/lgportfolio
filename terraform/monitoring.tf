@@ -5,6 +5,10 @@
 # Alert Policies: free (notification channels may have costs)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+locals {
+  public_host = replace(google_cloud_run_v2_service.portfolio.uri, "https://", "")
+}
+
 # ── Uptime Check: Homepage (every 10 min — low-traffic cost; reduce period when job hunting) ─
 
 resource "google_monitoring_uptime_check_config" "homepage" {
@@ -23,7 +27,7 @@ resource "google_monitoring_uptime_check_config" "homepage" {
     type = "uptime_url"
     labels = {
       project_id = var.project_id
-      host       = var.domain
+      host       = var.enable_load_balancer ? var.domain : local.public_host
     }
   }
 
@@ -52,7 +56,7 @@ resource "google_monitoring_uptime_check_config" "health" {
     type = "uptime_url"
     labels = {
       project_id = var.project_id
-      host       = var.domain
+      host       = var.enable_load_balancer ? var.domain : local.public_host
     }
   }
 
@@ -82,7 +86,7 @@ resource "google_monitoring_uptime_check_config" "war_room" {
     type = "uptime_url"
     labels = {
       project_id = var.project_id
-      host       = var.domain
+      host       = var.enable_load_balancer ? var.domain : local.public_host
     }
   }
 

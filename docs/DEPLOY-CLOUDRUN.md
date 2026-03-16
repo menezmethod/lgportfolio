@@ -1,6 +1,6 @@
 # Cloud Run deployment checklist
 
-**Free-first:** Default setup uses free-tier features; the only significant fixed cost is the ALB (~$18/mo). See [AGENTS.md](../AGENTS.md) § Free-first & cost control. **Budget kill switch:** $20 budget in Terraform; when exceeded, Pub/Sub → Cloud Function scales Cloud Run to 0. Manual: `./scripts/disable-project-spend.sh`.
+**Free-first:** Default setup keeps the custom domain live via the ALB. Low-cost mode is optional and should only be used if you are okay serving the site from the Cloud Run URL or another front door. See [AGENTS.md](../AGENTS.md) § Free-first & cost control. **Budget kill switch:** $20 budget in Terraform; when exceeded, Pub/Sub → Cloud Function scales Cloud Run to 0. Manual: `./scripts/disable-project-spend.sh`.
 
 You’re authenticated and the project is set. Follow these in order. Full details are in [AGENTS.md](../AGENTS.md).
 
@@ -54,6 +54,8 @@ docker push us-east1-docker.pkg.dev/$PROJECT_ID/portfolio/app:latest
 cd terraform
 cp terraform.tfvars.example terraform.tfvars
 # Edit terraform.tfvars: set project_id = "YOUR_PROJECT_ID", region = "us-east1", domain = "gimenez.dev"
+# Leave enable_load_balancer = true for custom-domain production
+# Set enable_load_balancer = false only if you intentionally want low-cost mode and accept losing the ALB-backed domain
 # Set inferencia_api_key / inferencia_base_url or "" to skip
 terraform init
 terraform plan
@@ -62,13 +64,17 @@ terraform apply
 
 ## 6. DNS
 
-After `terraform apply`, get the LB IP and point your domain to it:
+By default, after `terraform apply`, get the LB IP and point your domain to it:
 
 ```bash
 terraform output load_balancer_ip
 ```
 
-In Namecheap (or your registrar): A record for `@` → that IP; CNAME `www` → `gimenez.dev`.
+If you intentionally switch to low-cost mode later, the direct Cloud Run URL is:
+
+```bash
+terraform output public_base_url
+```
 
 ## 7. Continuous deployment (auto-deploy on)
 

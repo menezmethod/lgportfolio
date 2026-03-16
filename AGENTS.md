@@ -8,7 +8,7 @@
 
 ### Overview
 
-This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature and live War Room observability dashboard. Single Next.js process deployed on **GCP Cloud Run** behind a **Global External Application Load Balancer** with Cloud CDN and Cloud Armor.
+This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature and live War Room observability dashboard. Single Next.js process deployed on **GCP Cloud Run**. Default production mode keeps a **Global External Application Load Balancer** with Cloud CDN and Cloud Armor in front of the custom domain. Low-cost mode is optional and uses the direct Cloud Run URL instead.
 
 ### Deployment (auto-deploy on)
 
@@ -17,6 +17,8 @@ This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature 
 1. Builds the Docker image (Dockerfile uses `--platform=linux/amd64` for Cloud Run).
 2. Pushes to Artifact Registry (`portfolio/app`).
 3. Deploys to Cloud Run with `--set-secrets` for `INFERENCIA_API_KEY` and `INFERENCIA_BASE_URL` from Secret Manager.
+
+**Trigger hygiene:** The GitHub trigger should use **`cloudbuild.yaml`** and push to the managed Artifact Registry repo **`portfolio`**. Avoid leaving a Cloud Run UI "source deploy" trigger active long-term; it creates a second repo (`cloud-run-source-deploy`) that can accumulate stale images and cost drift.
 
 So: **code, docs, and build fixes → commit and push to main**; the next build will deploy. **You do not need to run `docker build` / `docker push` / `gcloud run services update` manually** when auto-deploy is on. Use that manual flow only if the Cloud Build trigger isn't connected or you need a one-off deploy without pushing. No need to run Terraform for app-only changes. Use Terraform only when changing infrastructure (LB, WAF, DNS, monitoring). Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`).
 
@@ -73,7 +75,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 - **Rate limiting**: `src/lib/rate-limit.ts` — 2 RPM per IP, 10 msgs/session, 150 LLM reqs/day.
 - **Security headers**: CSP, HSTS, X-Frame-Options in `next.config.ts`.
 - **Cloud Armor WAF**: Edge-level rate limiting, scanner blocking, path traversal blocking, adaptive DDoS.
-- **Ingress restriction**: Cloud Run accepts traffic only from the ALB (`INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER`).
+- **Ingress mode**: In low-cost mode Cloud Run uses public ingress (`INGRESS_TRAFFIC_ALL`). In edge mode it is restricted to the ALB (`INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER`).
 
 ### Telemetry
 
@@ -141,15 +143,16 @@ Ensure **`GOOGLE_CLOUD_PROJECT`** is set in production so the logs API can call 
 
 | Free (use by default) | Paid (only if you explicitly choose) |
 |------------------------|--------------------------------------|
-| Cloud Run (scale-to-zero, free tier) | **ALB forwarding rule (~$18/mo)** — main fixed cost |
+| Cloud Run (scale-to-zero, free tier) | **ALB forwarding rule (~$18/mo)** — optional edge-mode fixed cost |
 | Cloud Logging (50 GB/mo), Trace (2.5M spans/mo), Monitoring, Uptime Checks, Error Reporting | Cloud CDN (cache egress; usually &lt;$1) |
 | Cloud Armor (standard tier with ALB) | Secret Manager (2 secrets ~$0.06/mo) |
+| Artifact Registry storage (trimmed via cleanup policies) | Extra image churn from unmanaged source-deploy repos |
 | Google-managed SSL | |
 
 ### Rate limits (aligned with free tier)
 
 - **App** (`src/lib/rate-limit.ts`): 2 RPM per IP, 10 msgs/session, 150 LLM reqs/day. Keeps chat within free-tier usage.
-- **Cloud Armor** (`terraform/security.tf`): 180/min global, 10/min for `/api/chat`. **Admin** requests to `/api/admin/*` with header `X-Admin-Secret` are **allowed** (no throttle). **War room**: `/api/war-room/data` has 120/min. See **`docs/TRAFFIC-AND-COST.md`** for full rate-limit and caching audit (traffic-spike readiness).
+- **Cloud Armor** (`terraform/security.tf`): active only in edge mode. Low-cost mode relies on app-level rate limits. **Admin** requests to `/api/admin/*` with header `X-Admin-Secret` are still protected by the app. See **`docs/TRAFFIC-AND-COST.md`** for full rate-limit and caching audit (traffic-spike readiness).
 
 ### Budget kill switch ($20)
 

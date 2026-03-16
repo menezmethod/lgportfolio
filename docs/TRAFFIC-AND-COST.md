@@ -85,6 +85,8 @@ This document describes **rate limits**, **caching**, and **cost controls** so t
 | **Budget kill**    | `terraform/budget.tf` + `budget-kill.tf` | $20 budget; at threshold, Pub/Sub → Cloud Function sets Cloud Run to 0 instances. |
 | **Edge rate limits** | Cloud Armor       | 180/min global; excess gets 429 at edge and does not reach Cloud Run. |
 | **Chat limits**    | App + Cloud Armor  | 2 RPM per IP, 10/min at edge, 150/day, 10 msgs/session. |
+| **Artifact cleanup** | `terraform/cloudrun.tf` | Keep the latest rollback-safe image set and auto-delete stale tagged/untagged images. |
+| **LB log sampling** | `terraform/loadbalancer.tf` | Sample only 10% of ALB request logs to reduce logging spend. |
 
 ---
 
@@ -122,5 +124,7 @@ So protection is: per-IP rate limits, no background polling for War Room, one in
 - [x] RAG API: 60s in-memory response cache, 200 entries max.
 - [x] Max instances: 1.
 - [x] Budget: $20 kill switch with auto scale-to-zero.
+- [x] Artifact Registry: auto-clean tagged and untagged deploy images.
+- [x] Load balancer logs: sampled at 10%, not 50%.
 
 See `AGENTS.md` for run/build/deploy and `docs/CHECKLIST-FINAL-SWEEP.md` for the production checklist.

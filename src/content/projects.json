@@ -1,0 +1,243 @@
+[
+  {
+    "slug": "payment-card-tender-system",
+    "title": "Payment Card Tender System",
+    "eyebrow": "Enterprise production system",
+    "company": "The Home Depot",
+    "summary": "Contributed to the tender path that carries credit, debit, and gift card traffic across a nationwide store footprint and ecommerce, with observability and migration work on the critical path.",
+    "narrative": {
+      "problem": "Peak retail traffic and a zero-downtime mandate leave no room for opaque dependencies, weak telemetry, or brittle release procedures.",
+      "tradeoff": "Favor observability-first design and buffered distributed flows over simpler synchronous coupling, even when that increases platform complexity up front.",
+      "decision": "Worked within a Go and GKE payment environment to improve telemetry, support zero-downtime tender migrations, and make high-risk paths visible during production incidents.",
+      "outcome": "Helped keep a platinum-tier payments domain measurable under load, with leadership-facing observability and sub-50ms p99 performance on critical paths."
+    },
+    "stack": [
+      "Go",
+      "GKE",
+      "CockroachDB",
+      "Redis",
+      "OpenTelemetry",
+      "Prometheus",
+      "Grafana"
+    ],
+    "architecture": "Observability-first payment routing on distributed Go services",
+    "cloud": "GKE, BigQuery, Pub/Sub, Cloud KMS",
+    "hardware": "Retail edge and store infrastructure",
+    "status": "production",
+    "featured": true,
+    "origin": "professional",
+    "links": {
+      "caseStudy": "/architecture"
+    },
+    "metrics": [
+      { "label": "footprint", "value": "2400+ stores" },
+      { "label": "domain", "value": "50+ services" },
+      { "label": "latency", "value": "<50ms p99" },
+      { "label": "availability", "value": "0-downtime mandate" }
+    ]
+  },
+  {
+    "slug": "magic-jungle-telemetry-mesh",
+    "title": "Magic Jungle Telemetry Mesh",
+    "eyebrow": "Hero build | edge observability",
+    "summary": "ESP32 environmental nodes feeding a Raspberry Pi 5 gateway, local vision workloads, and a public GCP analytics board for backyard growth telemetry.",
+    "narrative": {
+      "problem": "Owning sensors is not the same as operating a system. The goal is a resilient edge network with useful telemetry, not a pile of disconnected boards.",
+      "tradeoff": "Keep sensing, buffering, and first-pass inference local for latency and resilience; ship curated events and long-horizon aggregates to GCP for analytics and a public dashboard.",
+      "decision": "Use ESP32 nodes for capture, MQTT into a Pi 5 gateway for edge rules and Frigate, then normalize events in Cloud Run and persist time-series analytics in BigQuery.",
+      "outcome": "Turns a backyard project into proof of silicon-to-satellite thinking: hardware, enclosures, observability, edge AI, and cloud analytics in one system."
+    },
+    "stack": [
+      "ESP32",
+      "Raspberry Pi 5",
+      "MQTT",
+      "Frigate",
+      "Cloud Run",
+      "BigQuery",
+      "Grafana",
+      "Terraform"
+    ],
+    "architecture": "Sensor mesh -> Pi 5 gateway -> Cloud Run control plane -> BigQuery analytics",
+    "cloud": "Cloud Run, BigQuery, Cloud Monitoring, Terraform",
+    "hardware": "ESP32 fleet, Raspberry Pi 5, cameras, 3D-printed enclosures",
+    "status": "building",
+    "featured": true,
+    "origin": "personal",
+    "metrics": [
+      { "label": "cadence", "value": "24/7 telemetry" },
+      { "label": "latency", "value": "<2s ingest target" },
+      { "label": "retention", "value": "365d analytics" },
+      { "label": "artifact", "value": "Public dashboard" }
+    ],
+    "nextMilestone": "Bring the first outdoor node online and publish a live telemetry board."
+  },
+  {
+    "slug": "edge-fleet-control-plane",
+    "title": "Edge Fleet Control Plane",
+    "eyebrow": "Hero build | self-healing edge ops",
+    "summary": "A control plane for Pi 5 and ESP32 hardware that manages heartbeats, signed OTA rollouts, incident timelines, and public health telemetry from one operator surface.",
+    "narrative": {
+      "problem": "A shelf of boards is inventory, not architecture. The missing piece is coordinated fleet health, rollout discipline, and observable failure handling.",
+      "tradeoff": "Use a lightweight edge gateway and event bus instead of heavyweight cluster tooling so the system stays cheap, understandable, and deployable on real hobby hardware.",
+      "decision": "Run fleet coordination and local buffering on the Pi 5, push signed rollout metadata and incident state through Cloud Run APIs, and store historical reliability signals in BigQuery.",
+      "outcome": "Demonstrates that the same operational patterns used in enterprise systems can govern small edge fleets with real SLOs, rollback paths, and health visibility."
+    },
+    "stack": [
+      "Raspberry Pi 5",
+      "ESP32",
+      "TypeScript",
+      "Cloud Run",
+      "BigQuery",
+      "OpenTelemetry",
+      "Terraform"
+    ],
+    "architecture": "Edge heartbeat mesh -> Cloud Run fleet API -> BigQuery reliability timeline",
+    "cloud": "Cloud Run, BigQuery, Secret Manager, Cloud Monitoring",
+    "hardware": "Raspberry Pi 5, ESP32 nodes, smart relays",
+    "status": "building",
+    "featured": true,
+    "origin": "personal",
+    "metrics": [
+      { "label": "fleet", "value": "6+ edge nodes" },
+      { "label": "detection", "value": "<60s fault target" },
+      { "label": "rollback", "value": "<2m OTA rollback" },
+      { "label": "surface", "value": "Single ops board" }
+    ],
+    "nextMilestone": "Stand up signed firmware manifests and device heartbeat reporting."
+  },
+  {
+    "slug": "autonomous-print-cell",
+    "title": "Autonomous Print Cell",
+    "eyebrow": "Hero build | machine vision + manufacturing",
+    "summary": "A Bambu P1S production cell with ESP32 power and environmental sensing, Pi 5 vision analysis, and cloud-side quality analytics for failed-print detection.",
+    "narrative": {
+      "problem": "A printer is a tool. A print cell becomes a systems project only when failures, energy use, and quality signals are captured and acted on automatically.",
+      "tradeoff": "Run vision and anomaly checks locally so detection remains fast and inexpensive; send structured events to GCP for quality trends, auditability, and remote monitoring.",
+      "decision": "Pair the printer with ESP32 telemetry, local camera analysis on the Pi 5, and a Cloud Run ingestion pipeline that records print events, defects, and energy data into BigQuery.",
+      "outcome": "Creates a hardware-backed AI operations case study that blends manufacturing telemetry, edge inference, and cloud analytics without becoming another generic web app."
+    },
+    "stack": [
+      "Bambu P1S",
+      "ESP32",
+      "Raspberry Pi 5",
+      "Frigate",
+      "Cloud Run",
+      "BigQuery",
+      "Looker Studio"
+    ],
+    "architecture": "Print telemetry + local vision -> Pi 5 event broker -> GCP quality analytics",
+    "cloud": "Cloud Run, BigQuery, Looker Studio, Cloud Monitoring",
+    "hardware": "Bambu P1S, ESP32 power monitor, Raspberry Pi 5, camera rig",
+    "status": "building",
+    "featured": true,
+    "origin": "personal",
+    "metrics": [
+      { "label": "vision", "value": "<90s defect target" },
+      { "label": "monitoring", "value": "24/7 camera feed" },
+      { "label": "analytics", "value": "Per-job energy cost" },
+      { "label": "artifact", "value": "Quality dashboard" }
+    ],
+    "nextMilestone": "Instrument the printer job stream and calibrate local failed-print detection."
+  },
+  {
+    "slug": "gimenez-dev-operator-console",
+    "title": "gimenez.dev Operator Console",
+    "eyebrow": "Live supporting system",
+    "summary": "The portfolio itself as a live operator surface: recruiter-facing RAG, admin telemetry, trace-linked logs, and a war room that documents how the system behaves in production.",
+    "narrative": {
+      "problem": "Static portfolios do not answer technical questions, capture intent, or prove operational maturity.",
+      "tradeoff": "Keep the app compact and cheap on Cloud Run while still exposing metrics, logs, admin workflows, and a truthful AI retrieval layer.",
+      "decision": "Use Next.js 16 on Cloud Run with Terraform, Cloud Armor, structured logging, trace correlation, and a constrained RAG workflow backed by portfolio knowledge.",
+      "outcome": "Useful as a lead-generation surface and as a supporting example of security, observability, and AI-as-infrastructure thinking."
+    },
+    "stack": [
+      "Next.js 16",
+      "TypeScript",
+      "Cloud Run",
+      "Terraform",
+      "Cloud Logging",
+      "RAG"
+    ],
+    "architecture": "Cloud Run operator console with recruiter analytics and RAG",
+    "cloud": "Cloud Run, Cloud Logging, Cloud Trace, Terraform",
+    "hardware": "Local inference hardware for the chat workflow",
+    "status": "live",
+    "featured": false,
+    "origin": "personal",
+    "links": {
+      "github": "https://github.com/menezmethod/lgportfolio",
+      "demo": "https://gimenez.dev"
+    },
+    "metrics": [
+      { "label": "cost", "value": "~$2/mo" },
+      { "label": "infra", "value": "Terraform IaC" },
+      { "label": "security", "value": "WAF + rate limits" },
+      { "label": "observability", "value": "Trace-linked logs" }
+    ]
+  },
+  {
+    "slug": "churnistic",
+    "title": "Churnistic",
+    "eyebrow": "Archived from headline rotation",
+    "summary": "Automated churn modeling and retraining pipeline built before the portfolio shifted toward edge systems and infrastructure proof.",
+    "narrative": {
+      "problem": "Model drift made predictions stale and retraining too manual.",
+      "tradeoff": "Automate the ML loop and accept a narrower scope rather than overbuild the surrounding product surface.",
+      "decision": "Used event-driven triggers, validation gates, and retraining automation to keep a churn model current.",
+      "outcome": "Still a good ML automation story, but no longer the strongest evidence for a principal edge-to-cloud brand."
+    },
+    "stack": [
+      "TypeScript",
+      "TensorFlow.js",
+      "Firebase Functions",
+      "React"
+    ],
+    "architecture": "Event-driven ML pipeline",
+    "cloud": "Firebase Functions, Cloud Firestore",
+    "hardware": "Cloud-only",
+    "status": "archived",
+    "featured": false,
+    "origin": "personal",
+    "links": {
+      "github": "https://github.com/menezmethod/churnistic"
+    },
+    "metrics": [
+      { "label": "accuracy", "value": "+15%" },
+      { "label": "savings", "value": "5h/week" }
+    ],
+    "archiveReason": "Strong automation work, but it does not reinforce the new silicon-to-satellite narrative."
+  },
+  {
+    "slug": "real-time-trading-engine",
+    "title": "Real-Time Trading Engine",
+    "eyebrow": "Archived from headline rotation",
+    "summary": "A streaming app with WebSockets and gRPC that reads as a capable engineering exercise but not a differentiated systems case study.",
+    "narrative": {
+      "problem": "Needed low-latency streaming data and live portfolio updates.",
+      "tradeoff": "Optimize for real-time transport and service boundaries instead of deeper operational or hardware differentiation.",
+      "decision": "Built a Go backend with WebSockets, gRPC, and PostgreSQL for real-time trading interactions.",
+      "outcome": "Useful as a streaming exercise, but commodity finance demos are not the strongest signal for the current brand."
+    },
+    "stack": [
+      "Go",
+      "WebSockets",
+      "gRPC",
+      "PostgreSQL",
+      "React"
+    ],
+    "architecture": "Microservices with gRPC and WebSocket streaming",
+    "cloud": "Cloud Run capable",
+    "hardware": "Cloud-only",
+    "status": "archived",
+    "featured": false,
+    "origin": "personal",
+    "links": {
+      "github": "https://github.com/menezmethod/st-server"
+    },
+    "metrics": [
+      { "label": "protocol", "value": "WebSocket" },
+      { "label": "backend", "value": "Go + gRPC" }
+    ],
+    "archiveReason": "The architecture is solid, but it looks like a product demo instead of a systems architecture headline."
+  }
+]
