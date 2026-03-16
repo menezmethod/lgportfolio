@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
 # Toggle the portfolio edge stack on or off through Terraform.
-#   off = low-cost mode (Cloud Run public ingress, no ALB/CDN/Cloud Armor)
+#   off = low-cost mode (Cloud Run public ingress, no ALB/CDN/Cloud Armor,
+#         and the custom domain will stop serving unless another front door exists)
 #   on  = edge mode (ALB/CDN/Cloud Armor in front of Cloud Run)
 #
 # Usage:

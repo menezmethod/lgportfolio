@@ -8,7 +8,7 @@
 
 ### Overview
 
-This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature and live War Room observability dashboard. Single Next.js process deployed on **GCP Cloud Run**. Default mode is **low-cost** (direct Cloud Run URL, public ingress); optional **edge mode** adds a Global External Application Load Balancer with Cloud CDN and Cloud Armor.
+This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature and live War Room observability dashboard. Single Next.js process deployed on **GCP Cloud Run**. Default production mode keeps a **Global External Application Load Balancer** with Cloud CDN and Cloud Armor in front of the custom domain. Low-cost mode is optional and uses the direct Cloud Run URL instead.
 
 ### Deployment (auto-deploy on)
 

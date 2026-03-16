@@ -35,8 +35,8 @@ steps:
       - "--all-tags"
       - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/app"
 
-  # Deploy to Cloud Run. Keep ingress configurable so low-cost mode can run
-  # without the ALB, but edge mode can still lock Cloud Run behind it later.
+  # Deploy to Cloud Run. Default to ALB-only ingress for custom-domain production.
+  # Override _CLOUD_RUN_INGRESS=all only when you intentionally accept losing the edge stack.
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: "gcloud"
     args:
@@ -78,7 +78,7 @@ substitutions:
   _SERVICE_NAME: lgportfolio
   _AR_REPO: portfolio
   _GA_MEASUREMENT_ID: ""
-  _CLOUD_RUN_INGRESS: "all"
+  _CLOUD_RUN_INGRESS: "internal-and-cloud-load-balancing"
 
 options:
   logging: CLOUD_LOGGING_ONLY
