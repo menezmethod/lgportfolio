@@ -22,5 +22,5 @@ terraform apply -input=false tfplan
 
 echo ""
 echo "=== Next: DNS ==="
-echo "Get LB IP and point gimenez.dev to it:"
-terraform output load_balancer_ip
+echo "Current public URL:"
+terraform output public_base_url

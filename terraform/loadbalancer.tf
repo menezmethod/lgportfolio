@@ -13,6 +13,8 @@
 # ── Global Static IP ─────────────────────────────────────────────────────────
 
 resource "google_compute_global_address" "default" {
+  count = var.enable_load_balancer ? 1 : 0
+
   name = "portfolio-lb-ip"
 
   depends_on = [google_project_service.apis]
@@ -21,6 +23,8 @@ resource "google_compute_global_address" "default" {
 # ── Serverless NEG (points to Cloud Run) ─────────────────────────────────────
 
 resource "google_compute_region_network_endpoint_group" "cloudrun_neg" {
+  count = var.enable_load_balancer ? 1 : 0
+
   name                  = "portfolio-cloudrun-neg"
   network_endpoint_type = "SERVERLESS"
   region                = var.region
@@ -33,6 +37,8 @@ resource "google_compute_region_network_endpoint_group" "cloudrun_neg" {
 # ── Backend Service (with CDN + Cloud Armor) ─────────────────────────────────
 
 resource "google_compute_backend_service" "default" {
+  count = var.enable_load_balancer ? 1 : 0
+
   name = "portfolio-backend"
 
   protocol    = "HTTPS"
@@ -40,7 +46,7 @@ resource "google_compute_backend_service" "default" {
   timeout_sec = 30
 
   backend {
-    group = google_compute_region_network_endpoint_group.cloudrun_neg.id
+    group = google_compute_region_network_endpoint_group.cloudrun_neg[0].id
   }
 
   # Cloud CDN (free-tier: edge cache reduces Cloud Run requests when traffic spikes)
@@ -67,7 +73,7 @@ resource "google_compute_backend_service" "default" {
   }
 
   # Cloud Armor
-  security_policy = google_compute_security_policy.default.id
+  security_policy = google_compute_security_policy.default[0].id
 
   log_config {
     enable = true
@@ -79,12 +85,16 @@ resource "google_compute_backend_service" "default" {
 # ── URL Map ──────────────────────────────────────────────────────────────────
 
 resource "google_compute_url_map" "default" {
+  count = var.enable_load_balancer ? 1 : 0
+
   name            = "portfolio-url-map"
-  default_service = google_compute_backend_service.default.id
+  default_service = google_compute_backend_service.default[0].id
 }
 
 # HTTP → HTTPS redirect URL map
 resource "google_compute_url_map" "http_redirect" {
+  count = var.enable_load_balancer ? 1 : 0
+
   name = "portfolio-http-redirect"
 
   default_url_redirect {
@@ -97,6 +107,8 @@ resource "google_compute_url_map" "http_redirect" {
 # ── Google-Managed SSL Certificate ───────────────────────────────────────────
 
 resource "google_compute_managed_ssl_certificate" "default" {
+  count = var.enable_load_balancer ? 1 : 0
+
   name = "portfolio-ssl-cert"
 
   managed {
@@ -107,31 +119,39 @@ resource "google_compute_managed_ssl_certificate" "default" {
 # ── HTTPS Target Proxy ───────────────────────────────────────────────────────
 
 resource "google_compute_target_https_proxy" "default" {
+  count = var.enable_load_balancer ? 1 : 0
+
   name             = "portfolio-https-proxy"
-  url_map          = google_compute_url_map.default.id
-  ssl_certificates = [google_compute_managed_ssl_certificate.default.id]
+  url_map          = google_compute_url_map.default[0].id
+  ssl_certificates = [google_compute_managed_ssl_certificate.default[0].id]
 }
 
 # HTTP target proxy (for redirect)
 resource "google_compute_target_http_proxy" "redirect" {
+  count = var.enable_load_balancer ? 1 : 0
+
   name    = "portfolio-http-redirect-proxy"
-  url_map = google_compute_url_map.http_redirect.id
+  url_map = google_compute_url_map.http_redirect[0].id
 }
 
 # ── Forwarding Rules (the actual listener) ───────────────────────────────────
 
 resource "google_compute_global_forwarding_rule" "https" {
+  count = var.enable_load_balancer ? 1 : 0
+
   name                  = "portfolio-https-rule"
-  target                = google_compute_target_https_proxy.default.id
+  target                = google_compute_target_https_proxy.default[0].id
   port_range            = "443"
-  ip_address            = google_compute_global_address.default.id
+  ip_address            = google_compute_global_address.default[0].id
   load_balancing_scheme = "EXTERNAL"
 }
 
 resource "google_compute_global_forwarding_rule" "http_redirect" {
+  count = var.enable_load_balancer ? 1 : 0
+
   name                  = "portfolio-http-redirect-rule"
-  target                = google_compute_target_http_proxy.redirect.id
+  target                = google_compute_target_http_proxy.redirect[0].id
   port_range            = "80"
-  ip_address            = google_compute_global_address.default.id
+  ip_address            = google_compute_global_address.default[0].id
   load_balancing_scheme = "EXTERNAL"
 }

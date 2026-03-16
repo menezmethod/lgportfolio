@@ -15,6 +15,12 @@ variable "domain" {
   default     = "gimenez.dev"
 }
 
+variable "enable_load_balancer" {
+  description = "Enable the global external load balancer, Cloud CDN, and Cloud Armor. Default false for low-cost portfolio mode."
+  type        = bool
+  default     = false
+}
+
 variable "inferencia_api_key" {
   description = "Inferencia LLM API key"
   type        = string

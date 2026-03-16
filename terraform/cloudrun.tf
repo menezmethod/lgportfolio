@@ -121,7 +121,7 @@ resource "google_secret_manager_secret_iam_member" "firebase_sa_accessor" {
 resource "google_cloud_run_v2_service" "portfolio" {
   name     = "lgportfolio"
   location = var.region
-  ingress  = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
+  ingress  = var.enable_load_balancer ? "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER" : "INGRESS_TRAFFIC_ALL"
 
   template {
     service_account = google_service_account.portfolio.email

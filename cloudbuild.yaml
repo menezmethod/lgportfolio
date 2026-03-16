@@ -35,7 +35,8 @@ steps:
       - "--all-tags"
       - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/app"
 
-  # Deploy to Cloud Run (ingress restricted to ALB + internal only)
+  # Deploy to Cloud Run. Keep ingress configurable so low-cost mode can run
+  # without the ALB, but edge mode can still lock Cloud Run behind it later.
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: "gcloud"
     args:
@@ -50,7 +51,7 @@ steps:
       - "managed"
       - "--allow-unauthenticated"
       - "--ingress"
-      - "internal-and-cloud-load-balancing"
+      - "${_CLOUD_RUN_INGRESS}"
       - "--memory"
       - "512Mi"
       - "--cpu"
@@ -77,6 +78,7 @@ substitutions:
   _SERVICE_NAME: lgportfolio
   _AR_REPO: portfolio
   _GA_MEASUREMENT_ID: ""
+  _CLOUD_RUN_INGRESS: "all"
 
 options:
   logging: CLOUD_LOGGING_ONLY

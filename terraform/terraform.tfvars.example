@@ -4,6 +4,7 @@
 project_id          = "your-gcp-project-id"
 region              = "us-east1"
 domain              = "gimenez.dev"
+enable_load_balancer = false
 inferencia_api_key  = "your-inferencia-api-key"
 inferencia_base_url = "https://your-inferencia-endpoint.com/v1"
 

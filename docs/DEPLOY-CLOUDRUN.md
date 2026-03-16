@@ -1,6 +1,6 @@
 # Cloud Run deployment checklist
 
-**Free-first:** Default setup uses free-tier features; the only significant fixed cost is the ALB (~$18/mo). See [AGENTS.md](../AGENTS.md) § Free-first & cost control. **Budget kill switch:** $20 budget in Terraform; when exceeded, Pub/Sub → Cloud Function scales Cloud Run to 0. Manual: `./scripts/disable-project-spend.sh`.
+**Free-first:** Default setup now uses **low-cost mode**: Cloud Run public ingress, no ALB, and no fixed edge cost. Turn edge mode back on only when you actually need custom-domain edge controls. See [AGENTS.md](../AGENTS.md) § Free-first & cost control. **Budget kill switch:** $20 budget in Terraform; when exceeded, Pub/Sub → Cloud Function scales Cloud Run to 0. Manual: `./scripts/disable-project-spend.sh`.
 
 You’re authenticated and the project is set. Follow these in order. Full details are in [AGENTS.md](../AGENTS.md).
 
@@ -54,6 +54,7 @@ docker push us-east1-docker.pkg.dev/$PROJECT_ID/portfolio/app:latest
 cd terraform
 cp terraform.tfvars.example terraform.tfvars
 # Edit terraform.tfvars: set project_id = "YOUR_PROJECT_ID", region = "us-east1", domain = "gimenez.dev"
+# Leave enable_load_balancer = false for low-cost mode; set true only when you want the full edge stack
 # Set inferencia_api_key / inferencia_base_url or "" to skip
 terraform init
 terraform plan
@@ -62,13 +63,17 @@ terraform apply
 
 ## 6. DNS
 
-After `terraform apply`, get the LB IP and point your domain to it:
+Low-cost mode uses the direct Cloud Run URL:
+
+```bash
+terraform output public_base_url
+```
+
+If you later re-enable edge mode, then point Namecheap (or your registrar) at:
 
 ```bash
 terraform output load_balancer_ip
 ```
-
-In Namecheap (or your registrar): A record for `@` → that IP; CNAME `www` → `gimenez.dev`.
 
 ## 7. Continuous deployment (auto-deploy on)
 
