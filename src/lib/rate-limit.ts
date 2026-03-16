@@ -36,6 +36,7 @@ const CACHED_RESPONSES = new Map<string, string>([
       "He did not build the platform. He works within it. His specific contributions include:\n" +
       "- Built Grafana observability dashboards adopted by VP-level leadership (his signature work)\n" +
       "- Contributed production code to Card Broker (credit/debit routing) for approximately two years\n" +
+      "- Supported PSP and the register-side payment servlet layer across the in-store execution path\n" +
       "- Owns interrupt rotation — production reliability at 2 AM\n" +
       "- Advocated for and implemented PII masking for PCI DSS compliance\n" +
       "- GCP Professional Cloud Architect certified\n\n" +

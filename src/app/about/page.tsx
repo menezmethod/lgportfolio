@@ -27,7 +27,7 @@ export default function About() {
               I work inside one of the hardest engineering environments to fake: enterprise payments.
               At <span className="font-semibold text-primary">The Home Depot</span>, I contribute to a
               tender ecosystem that supports <span className="font-semibold text-foreground">2400+ stores</span>,
-              high-throughput transaction flows, and platinum-tier uptime expectations.
+              high-throughput transaction flows, the register-side payment servlet path, and platinum-tier uptime expectations.
             </p>
             <p>
               My focus is not generic full-stack work. I instrument critical paths, reduce operational

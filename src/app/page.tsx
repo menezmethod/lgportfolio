@@ -83,7 +83,7 @@ function PortfolioContent() {
           {isRecruiter ? (
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4 border-l-2 border-primary/50 pl-6 text-left">
               <strong className="text-foreground">Available for Staff, Principal-track, and AI infrastructure roles.</strong>{' '}
-              I build the systems under the interface: payment rails, observability, and edge-to-cloud AI control planes.
+              I build the systems under the interface: payment rails, the register-side payment path, observability, and edge-to-cloud AI control planes.
               Current proof point: a Fortune 50 payments domain with{' '}
               <strong className="text-foreground">2400+ stores, platinum-tier uptime expectations, and sub-50ms critical paths</strong>.
             </p>
@@ -91,7 +91,7 @@ function PortfolioContent() {
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
               I design systems that start at hardware and end in measurable cloud outcomes.
               Today that means mission-critical payment infrastructure at a{' '}
-              <strong className="text-foreground">Fortune 50 retailer</strong>. Next it means
+              <strong className="text-foreground">Fortune 50 retailer</strong>, spanning both backend services and register-resident payment execution. Next it means
               public edge labs built from <strong className="text-foreground">ESP32 nodes, Raspberry Pi 5 gateways, and GCP observability</strong>.
             </p>
           )}
