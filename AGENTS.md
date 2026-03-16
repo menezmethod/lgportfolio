@@ -18,6 +18,8 @@ This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature 
 2. Pushes to Artifact Registry (`portfolio/app`).
 3. Deploys to Cloud Run with `--set-secrets` for `INFERENCIA_API_KEY` and `INFERENCIA_BASE_URL` from Secret Manager.
 
+**Trigger hygiene:** The GitHub trigger should use **`cloudbuild.yaml`** and push to the managed Artifact Registry repo **`portfolio`**. Avoid leaving a Cloud Run UI "source deploy" trigger active long-term; it creates a second repo (`cloud-run-source-deploy`) that can accumulate stale images and cost drift.
+
 So: **code, docs, and build fixes → commit and push to main**; the next build will deploy. **You do not need to run `docker build` / `docker push` / `gcloud run services update` manually** when auto-deploy is on. Use that manual flow only if the Cloud Build trigger isn't connected or you need a one-off deploy without pushing. No need to run Terraform for app-only changes. Use Terraform only when changing infrastructure (LB, WAF, DNS, monitoring). Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`).
 
 **Preventing "old version" after Terraform apply:** Terraform has `lifecycle { ignore_changes = [template[0].containers[0].image] }` on the Cloud Run service so **the container image is only updated by Cloud Build**. A plain `terraform apply` will not overwrite the live image with an older `portfolio/app:latest`; it only updates env, secrets, and scaling. Deploy app changes by pushing to `main` (Cloud Build) or running `gcloud builds submit --config=cloudbuild.yaml .`.
@@ -144,6 +146,7 @@ Ensure **`GOOGLE_CLOUD_PROJECT`** is set in production so the logs API can call 
 | Cloud Run (scale-to-zero, free tier) | **ALB forwarding rule (~$18/mo)** — main fixed cost |
 | Cloud Logging (50 GB/mo), Trace (2.5M spans/mo), Monitoring, Uptime Checks, Error Reporting | Cloud CDN (cache egress; usually &lt;$1) |
 | Cloud Armor (standard tier with ALB) | Secret Manager (2 secrets ~$0.06/mo) |
+| Artifact Registry storage (trimmed via cleanup policies) | Extra image churn from unmanaged source-deploy repos |
 | Google-managed SSL | |
 
 ### Rate limits (aligned with free tier)

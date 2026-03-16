@@ -6,7 +6,7 @@ describe("Smoke", () => {
 
   it("loads the about page", () => {
     cy.visit("/about");
-    cy.contains("Systems Thinker").should("be.visible");
+    cy.contains("Systems Operator.").should("be.visible");
   });
 
   it("loads the chat page", () => {

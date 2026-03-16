@@ -1,36 +1,41 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { Github, Linkedin, Twitter, Mail } from "lucide-react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 
-const inter = Inter({ subsets: ["latin"] });
-const jetbrainsMono = JetBrains_Mono({
+const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
   variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
-  title: "Luis Gimenez | Systems Architect — Golang, GCP, Edge AI",
+  title: "Luis Gimenez | Systems & AI Architect — GCP, Observability, Edge Systems",
   description:
-    "Systems Architect and Backend Engineer. GCP Certified Cloud Architect. I fix broken distributed systems, lead zero-downtime migrations, and build local AI pipelines on edge hardware.",
+    "Systems and AI architect focused on distributed systems, observability, and edge-to-cloud infrastructure. GCP Professional Cloud Architect with production payments experience.",
   keywords: [
-    "Systems Architect",
+    "Systems and AI Architect",
     "GCP Cloud Architect",
-    "Golang",
-    "Edge AI",
+    "Observability",
+    "Edge Systems",
+    "ESP32",
+    "Raspberry Pi 5",
     "Distributed Systems",
     "OpenTelemetry",
     "Payment Systems",
-    "Backend Engineer",
-    "Local RAG",
+    "AI Infrastructure",
   ],
   authors: [{ name: "Luis Gimenez" }],
   openGraph: {
-    title: "Luis Gimenez | Systems Architect — Golang, GCP, Edge AI",
+    title: "Luis Gimenez | Systems & AI Architect — GCP, Observability, Edge Systems",
     description:
-      "I fix broken distributed systems and build local AI pipelines. GCP Certified Cloud Architect with production-scale payment infrastructure experience.",
+      "Distributed systems, observability, and edge-to-cloud AI infrastructure. GCP-certified with production-scale payments experience and hardware-backed system design.",
     url: "https://gimenez.dev",
     siteName: "Luis Gimenez",
     locale: "en_US",
@@ -45,7 +50,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} ${jetbrainsMono.variable}`}>
+      <body className={`${plexSans.className} ${plexMono.variable}`}>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-white"

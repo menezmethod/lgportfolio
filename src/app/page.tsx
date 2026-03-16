@@ -8,9 +8,9 @@ import { Suspense } from 'react';
 
 const titles = [
   'GCP Professional Cloud Architect',
-  'Distributed Systems Engineer',
-  'Edge AI & Local RAG Builder',
-  'War Room Operator',
+  'Principal-Track Systems Architect',
+  'Edge AI Infrastructure Builder',
+  'Silicon-to-Satellite Operator',
 ];
 
 function PortfolioContent() {
@@ -41,7 +41,7 @@ function PortfolioContent() {
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold">
             <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">Systems Architect.</span>
             <br />
-            <span className="text-primary">Golang. Edge AI.</span>
+            <span className="text-primary">Edge Systems. AI Infrastructure.</span>
           </h1>
 
           <div className="h-[50px] md:h-[60px] mb-6" aria-label="Current role" aria-live="polite">
@@ -55,37 +55,36 @@ function PortfolioContent() {
 
           {isRecruiter ? (
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4 border-l-2 border-primary/50 pl-6 text-left">
-              <strong className="text-foreground">Available for Senior, Staff &amp; Architect roles.</strong>{' '}
-              I fix broken distributed systems and integrate local AI pipelines.
-              Currently on the payments platform at a Fortune 50 retailer&mdash;
-              <strong className="text-foreground">high-throughput, mission-critical availability</strong>.
+              <strong className="text-foreground">Available for Staff, Principal-track, and AI infrastructure roles.</strong>{' '}
+              I build the systems under the interface: payment rails, observability, and edge-to-cloud AI control planes.
+              Current proof point: a Fortune 50 payments domain with{' '}
+              <strong className="text-foreground">2400+ stores, platinum-tier uptime expectations, and sub-50ms critical paths</strong>.
             </p>
           ) : (
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
-              I fix broken distributed systems and build local AI pipelines.
-              Currently engineering mission-critical payment infrastructure at a{' '}
-              <strong className="text-foreground">Fortune 50 retailer</strong>&mdash;
-              <strong className="text-foreground">high-throughput</strong>{' '}
-              Go microservices on GCP.
+              I design systems that start at hardware and end in measurable cloud outcomes.
+              Today that means mission-critical payment infrastructure at a{' '}
+              <strong className="text-foreground">Fortune 50 retailer</strong>. Next it means
+              public edge labs built from <strong className="text-foreground">ESP32 nodes, Raspberry Pi 5 gateways, and GCP observability</strong>.
             </p>
           )}
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 py-8 border-y border-white/5 my-8 font-mono">
             <div className="text-center">
-              <div className="text-2xl md:text-4xl font-bold text-foreground">High</div>
-              <div className="text-xs text-muted-foreground mt-1">throughput</div>
+              <div className="text-2xl md:text-4xl font-bold text-foreground">2400+</div>
+              <div className="text-xs text-muted-foreground mt-1">stores touched</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-4xl font-bold text-foreground">Platinum</div>
-              <div className="text-xs text-muted-foreground mt-1">tier SLO</div>
+              <div className="text-2xl md:text-4xl font-bold text-foreground">50+</div>
+              <div className="text-xs text-muted-foreground mt-1">payment services</div>
             </div>
             <div className="text-center">
               <div className="text-2xl md:text-4xl font-bold text-foreground">&lt;50ms</div>
               <div className="text-xs text-muted-foreground mt-1">p99 latency</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-4xl font-bold text-emerald-400">GCP</div>
-              <div className="text-xs text-muted-foreground mt-1">certified architect</div>
+              <div className="text-2xl md:text-4xl font-bold text-emerald-400">Pi 5</div>
+              <div className="text-xs text-muted-foreground mt-1">edge gateway lab</div>
             </div>
           </div>
 
@@ -251,40 +250,40 @@ service:
         </div>
       </section>
 
-      {/* ── EDGE AI & LOCAL RAG ── */}
+      {/* ── SILICON TO SATELLITE ── */}
       <section id="edge-ai" className="py-20 md:py-32 px-4 md:px-6 border-t border-white/5">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <Cpu className="size-5 text-primary" />
-            <span className="font-mono text-sm text-muted-foreground">local-ai.md</span>
+            <span className="font-mono text-sm text-muted-foreground">silicon-to-satellite.md</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            Edge AI <span className="text-primary">&amp; Local RAG</span>
+            Silicon-to-Satellite <span className="text-primary">Systems</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl leading-relaxed mb-12">
-            Cloud inference is a solved problem. Running a self-hosted LLM and local RAG on your own
-            hardware&mdash;for example, a MacBook Pro M4 Max with 128GB RAM&mdash;keeps inference off the
-            cloud when it matters. I build and test local RAG pipelines so not every call has to leave your network.
+            The next chapter of this portfolio is not another web app. It is a networked edge lab:
+            ESP32 sensor nodes, Raspberry Pi 5 gateways, machine vision, and GCP analytics wired into
+            a public operations board. AI belongs in the control plane, not as a thin wrapper on top of CRUD.
           </p>
 
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-6">
               {[
                 {
-                  title: 'Local RAG Pipeline Architecture',
-                  desc: 'End-to-end retrieval-augmented generation on your own hardware. Vector embeddings, semantic search, and context-aware LLM responses without cloud dependency.',
+                  title: 'ESP32 Sensor Fleet',
+                  desc: 'Telemetry at the edge: environmental sensing, heartbeat signals, OTA coordination, and real sampling cadence on physical hardware.',
                 },
                 {
-                  title: 'Model Optimization for Local Inference',
-                  desc: 'Quantization and optimization for local serving: GGUF, KV-cache tuning, memory-mapped inference. Models that run well on high-end Apple Silicon.',
+                  title: 'Pi 5 Edge Gateway',
+                  desc: 'Local buffering, MQTT ingress, Frigate workloads, and edge-side rules so the system remains useful even when the cloud is unavailable.',
                 },
                 {
-                  title: 'Self-Hosted Inference',
-                  desc: 'The LLM backing this site runs on a MacBook Pro M4 Max (128GB). Real inference on real hardware—no Raspberry Pis, no cloud required for the model.',
+                  title: 'GCP Analytics Plane',
+                  desc: 'Cloud Run services normalize events, BigQuery stores long-horizon telemetry, and dashboards expose the system as an operator surface instead of a hobby project.',
                 },
                 {
-                  title: 'Hardware/Software Integration',
-                  desc: 'Bridging ML models and local compute. Custom inference servers (e.g. Inferencia, OpenAI-compatible APIs) and efficient batch processing on Apple Silicon.',
+                  title: 'Agentic Operations Layer',
+                  desc: 'Runbooks, RAG, and event summarization sit on top of real telemetry so AI helps operators reason about incidents instead of pretending to be the product.',
                 },
               ].map((item) => (
                 <div key={item.title} className="p-5 rounded-lg bg-card/40 border border-border/50 hover:border-primary/30 transition-colors">
@@ -299,28 +298,31 @@ service:
                 <div className="size-3 rounded-full bg-red-500/60" />
                 <div className="size-3 rounded-full bg-yellow-500/60" />
                 <div className="size-3 rounded-full bg-green-500/60" />
-                <span className="ml-2 text-xs text-muted-foreground font-mono">local-inference.sh</span>
+                <span className="ml-2 text-xs text-muted-foreground font-mono">edge-fleet.yaml</span>
               </div>
               <pre className="p-5 text-xs sm:text-sm font-mono text-muted-foreground overflow-x-auto leading-relaxed">
-{`#!/bin/bash
-# Local RAG / inference — MacBook Pro M4 Max 128GB
-# OpenAI-compatible API (e.g. Inferencia) + RAG on your own hardware
+{`fleet:
+  sensor_nodes:
+    - esp32-soil-01
+    - esp32-climate-02
+  edge_gateway:
+    host: raspberry-pi-5
+    services: [mqtt, frigate, heartbeat-watcher]
 
-# Start local inference server (OpenAI-compatible)
-# Serves the model that backs gimenez.dev/chat
-inferencia serve \\
-  --model /path/to/model \\
-  --port 8080
+cloud:
+  ingest_api: cloud-run
+  analytics: bigquery
+  observability: [cloud-monitoring, war-room]
 
-# RAG: embeddings + retrieval + context
-# This site: knowledge base + optional pgvector, no cloud LLM required
-echo "Local inference ready."`}
+ai:
+  role: incident summarization + runbook retrieval
+  source_of_truth: live telemetry, not guesses`}
               </pre>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-3 mt-10">
-            {['Apple Silicon', 'M4 Max', 'Self-hosted LLM', 'GGUF Quantization', 'llama.cpp', 'Local RAG', 'Inferencia', 'OpenAI-compatible API'].map((tag) => (
+            {['ESP32', 'Raspberry Pi 5', 'Frigate', 'Cloud Run', 'BigQuery', 'OpenTelemetry', 'RAG', 'Agentic Ops'].map((tag) => (
               <span key={tag} className="px-3 py-1.5 text-xs font-mono bg-card/60 border border-border/50 rounded-lg text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors">
                 {tag}
               </span>
@@ -339,7 +341,7 @@ echo "Local inference ready."`}
             </span>
             <Radio className="size-4 text-emerald-400" />
             <p className="text-sm font-mono text-muted-foreground">
-              accepting interviews &mdash; senior, staff &amp; architect roles
+              accepting interviews &mdash; staff, principal-track, and AI infrastructure roles
             </p>
           </div>
         </div>
@@ -352,7 +354,7 @@ echo "Local inference ready."`}
             '@context': 'https://schema.org',
             '@type': 'Person',
             name: 'Luis Gimenez',
-            jobTitle: 'Systems Architect & Backend Engineer',
+            jobTitle: 'Systems and AI Architect',
             url: 'https://gimenez.dev',
             sameAs: [
               'https://github.com/menezmethod',
@@ -363,7 +365,7 @@ echo "Local inference ready."`}
               '@type': 'Organization',
               name: 'The Home Depot',
             },
-            knowsAbout: ['Go', 'Distributed Systems', 'GCP', 'Edge AI', 'OpenTelemetry', 'Payment Architecture'],
+            knowsAbout: ['Go', 'Distributed Systems', 'GCP', 'Edge AI', 'ESP32', 'OpenTelemetry', 'Payment Architecture'],
           }),
         }}
       />

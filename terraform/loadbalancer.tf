@@ -71,7 +71,8 @@ resource "google_compute_backend_service" "default" {
 
   log_config {
     enable      = true
-    sample_rate = 0.5
+    # Keep a thin sample for edge visibility without paying to log half of all requests.
+    sample_rate = 0.1
   }
 }
 

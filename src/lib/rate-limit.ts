@@ -63,7 +63,7 @@ const CACHED_RESPONSES = new Map<string, string>([
   ],
   [
     "is luis open to remote work?",
-    "Yes. Luis is based in Florida and is seeking Senior, Staff, SRE, or Architect roles.\n\n" +
+    "Yes. Luis is based in Florida and is seeking Staff, Principal-track, SRE, or AI infrastructure architecture roles.\n\n" +
       "Open to remote, hybrid, or relocation — particularly Atlanta, Austin, NYC, SF/Bay Area, Seattle, or Denver.\n\n" +
       "US work authorized. No sponsorship required.",
   ],

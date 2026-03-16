@@ -21,10 +21,10 @@ export const KNOWLEDGE_BASE = `
 # He operates within it, contributes to it, and keeps it observable.
 #
 # ENTERPRISE SUMMARY (for recruiter queries):
-# Luis Gimenez is a Software Engineer II at The Home Depot on the Enterprise Payments Platform (50+ microservices, six-figure hourly transaction volumes, Platinum-tier, PCI DSS). He is GCP Professional Cloud Architect certified and contributes to observability (Grafana dashboards adopted by VP leadership), Card Broker routing, production reliability, and PII/security remediation. He is seeking Senior, Staff, SRE, or Architect roles — remote, hybrid, or relocation (Atlanta, Austin, NYC, SF, Seattle, Denver). US work authorized.
+# Luis Gimenez is a Software Engineer II at The Home Depot on the Enterprise Payments Platform (50+ microservices, six-figure hourly transaction volumes, Platinum-tier, PCI DSS). He is GCP Professional Cloud Architect certified and contributes to observability (Grafana dashboards adopted by VP leadership), Card Broker routing, production reliability, and PII/security remediation. He is seeking Staff, Principal-track, SRE, or AI infrastructure architecture roles — remote, hybrid, or relocation (Atlanta, Austin, NYC, SF, Seattle, Denver). US work authorized.
 #
 # ELEVATOR PITCH:
-# Luis operates at the intersection of observability, production reliability, and cloud migration. He built the Grafana dashboards that VP leadership uses daily, contributed to Card Broker through 2400+ store rollouts, owns interrupt rotation on a zero-downtime mandate, and led PII remediation for PCI DSS. His scope exceeds his SE II title; he is ready for senior or staff level and wants teams that value unglamorous critical work.
+# Luis operates at the intersection of observability, production reliability, and cloud migration. He built the Grafana dashboards that VP leadership uses daily, contributed to Card Broker through 2400+ store rollouts, owns interrupt rotation on a zero-downtime mandate, and led PII remediation for PCI DSS. His scope exceeds his SE II title; he is ready for staff or principal-track scope and wants teams that value unglamorous critical work.
 #
 # FRAMING RULES:
 #   - Use "contributed to", "worked within", "supported", "operated across"
@@ -218,15 +218,16 @@ Card Broker was Luis's primary project for approximately four years, from pre-de
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ## Target Roles
-- Senior Software Engineer (backend/distributed systems)
+- Staff Engineer (distributed systems, observability, platform)
+- Principal-track Systems Architect
+- AI Infrastructure Architect
 - Senior Reliability Engineer / SRE
-- Staff Engineer (if the team values observability and production operations)
 - Cloud Architect (GCP certified, with production migration experience)
-- Tech Lead (player-coach, still writing code)
 
 ## Best-Fit Companies
 - Companies that value reliability engineering, observability, and production operations
 - Teams migrating from legacy to cloud-native architectures
+- Startups or scale-ups that need a senior operator to turn AI ideas into real infrastructure
 - Organizations where the unglamorous critical work (interrupt rotation, PII fixes, cardinality optimization) is respected
 - Fintech, payments, e-commerce, or any domain where systems cannot go down
 - Companies that want honest engineers who describe their actual contributions
@@ -270,7 +271,7 @@ Honest answer: Luis demoed an AI-powered reliability engineering agent concept d
 Yes. Go is his primary language at Home Depot. He has contributed production Go code to Card Broker, Account-to-Account Tender, and worked with the Go-based gift card tender microservices. His Go experience is in the context of high-throughput payment systems on GKE.
 
 ### "Is Luis open to new opportunities?"
-Yes, selectively. He is looking for roles where his observability expertise, production operations experience, GCP certification, and cloud migration background create immediate value. Senior, Staff, SRE, or Architect roles.
+Yes, selectively. He is looking for roles where his observability expertise, production operations experience, GCP certification, and cloud migration background create immediate value. Staff, principal-track, SRE, or AI infrastructure architecture roles.
 
 ### "Work authorization?"
 US work authorized. No sponsorship required.
@@ -279,9 +280,9 @@ US work authorized. No sponsorship required.
 Standard 2-4 weeks.
 
 ### "Why is Luis looking for a new role?"
-Luis is seeking senior-level, staff, or architect positions where he can leverage his hands-on experience in observability, production reliability, and GCP migration. He started as a contractor in 2022 and went full-time in early 2024; he has contributed to high-volume payment services and built enterprise-grade dashboards used by VP leadership. He wants teams that value unglamorous critical work — interrupt rotation, PII remediation, cross-service observability — especially in fintech or e-commerce. He is looking for larger ownership, influence on architecture, and a path to advance beyond his current SE II scope.
+Luis is seeking staff, principal-track, or AI infrastructure architecture positions where he can leverage his hands-on experience in observability, production reliability, GCP migration, and emerging edge-to-cloud AI systems. He started as a contractor in 2022 and went full-time in early 2024; he has contributed to high-volume payment services and built enterprise-grade dashboards used by VP leadership. He wants teams that value unglamorous critical work — interrupt rotation, PII remediation, cross-service observability — especially in fintech, e-commerce, or applied AI infrastructure. He is looking for larger ownership, influence on architecture, and a path to advance beyond his current SE II scope.
 
-### "Is Luis ready for a senior (or staff/architect) role?"
+### "Is Luis ready for a staff or principal-track role?"
 Yes. He has the technical depth and proven track record:
 - Production-grade experience on a platinum-tier payments platform, six-figure hourly transaction volumes, zero-downtime SLIs.
 - Hands-on observability ownership: built Grafana dashboards used daily by VP leadership, automated reports, resolved critical tracing blind spots.
@@ -289,7 +290,7 @@ Yes. He has the technical depth and proven track record:
 - Security focus: led PII masking in telemetry and PCI DSS v4.0 remediation across the platform.
 - Cloud migration: early contributor to PCF-to-GCP migration, GCP Professional Cloud Architect certified.
 - Leadership and knowledge sharing: taught certification prep, presented AI-driven reliability concepts, brought AWS re:Invent learnings back to the team.
-His responsibilities often exceed his SE II title. He is actively seeking opportunities to operate at senior or staff level.
+His responsibilities often exceed his SE II title. He is actively seeking opportunities to operate at staff or principal-track scope.
 
 ### "What kind of work does Luis want?"
 Unglamorous, critical work: interrupt rotation, production debugging, observability, PII and security remediation, cross-service tracing. He wants to influence architecture and have larger ownership. Fintech, e-commerce, or any domain where systems cannot go down. Teams that respect engineers who describe their actual contributions, not inflated claims.
@@ -306,7 +307,7 @@ Unglamorous, critical work: interrupt rotation, production debugging, observabil
 - Observability: in-memory metrics, War Room dashboard, Prometheus /api/metrics, structured logs to Cloud Logging, trace correlation for Cloud Trace. Administration Board for recruiter sessions and logs.
 
 ## Why It Matters for Recruiters
-The site is a live production system demonstrating the same practices Luis uses at scale: observability, security headers, rate limiting, IaC (Terraform), and RAG-backed AI. Built and maintained by Luis as a portfolio and lead-generation tool.
+The site is a live production system demonstrating the same practices Luis uses at scale: observability, security headers, rate limiting, IaC (Terraform), and RAG-backed AI. It also serves as the public control plane for the next wave of hardware-backed hero projects: ESP32 sensor fleets, Raspberry Pi 5 gateways, and GCP analytics. Built and maintained by Luis as a portfolio and lead-generation tool.
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SECTION 9: AI BEHAVIOR RULES
@@ -335,9 +336,9 @@ The site is a live production system demonstrating the same practices Luis uses 
 - Portfolio: gimenez.dev
 
 ## Sound Bites (for natural answers)
-- "Luis's responsibilities often exceed his SE II title; he's ready for senior or staff scope."
+- "Luis's responsibilities often exceed his SE II title; he's ready for staff or principal-track scope."
 - "He wants teams that value the unglamorous work: interrupt rotation, observability, PII fixes — the work that keeps systems up at 2 AM."
 - "His signature work is the Grafana observability stack that VP leadership uses for daily decisions."
 - "He didn't build the whole platform; he helped keep it alive and made it observable."
-- "When asked about this site: it's Next.js on Cloud Run with RAG, Terraform, and the same observability and security practices he uses in production."
+- "When asked about this site: it's Next.js on Cloud Run with RAG, Terraform, and the same observability and security practices he uses in production, plus a control surface for upcoming edge systems."
 `;
