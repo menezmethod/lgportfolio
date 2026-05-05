@@ -79,6 +79,41 @@ function normalizeAssistantContent(text: string): string {
   return out.trim();
 }
 
+function extractAssistantFromRawStream(raw: string): string {
+  if (!raw?.trim()) return '';
+  const parts: string[] = [];
+  const lines = raw.split('\n');
+
+  for (const line of lines) {
+    const idx = line.indexOf(':');
+    if (idx <= 0) continue;
+    const payload = line.slice(idx + 1).trim();
+    if (!payload) continue;
+
+    try {
+      const parsed = JSON.parse(payload) as
+        | string
+        | { text?: string; content?: string; reasoning?: string; delta?: { text?: string } };
+
+      if (typeof parsed === 'string') {
+        parts.push(parsed);
+        continue;
+      }
+
+      if (parsed.text) parts.push(parsed.text);
+      if (parsed.content) parts.push(parsed.content);
+      if (parsed.delta?.text) parts.push(parsed.delta.text);
+      if (parsed.reasoning && !parsed.text && !parsed.content && !parsed.delta?.text) {
+        parts.push(parsed.reasoning);
+      }
+    } catch {
+      // Non-JSON payload line; ignore protocol control chunks.
+    }
+  }
+
+  return parts.join('').trim();
+}
+
 /** Remove duplicated block if the model repeated the same content twice (e.g. full answer copy-pasted). */
 function dedupeRepeatedResponse(text: string): string {
   if (!text?.trim()) return text;
@@ -207,6 +242,7 @@ export default function Chat() {
 
         const decoder = new TextDecoder();
         let assistantContent = '';
+        let rawStream = '';
         let usedDataStream = false;
 
         while (true) {
@@ -214,6 +250,7 @@ export default function Chat() {
           if (done) break;
 
           const decoded = decoder.decode(value, { stream: true });
+          rawStream += decoded;
           const lines = decoded.split('\n');
           let hadDataStreamLine = false;
 
@@ -244,6 +281,28 @@ export default function Chat() {
               const last = next[next.length - 1];
               if (last?.role === 'assistant') last.content = assistantContent;
               else next.push({ id: Date.now().toString(), role: 'assistant', content: assistantContent });
+              return next;
+            });
+          }
+        }
+        if (!assistantContent.trim()) {
+          const extracted = extractAssistantFromRawStream(rawStream);
+          if (extracted) {
+            assistantContent = extracted;
+            setMessages((prev) => {
+              const next = [...prev];
+              const last = next[next.length - 1];
+              if (last?.role === 'assistant') last.content = assistantContent;
+              else next.push({ id: Date.now().toString(), role: 'assistant', content: assistantContent });
+              return next;
+            });
+          } else {
+            const fallback = 'The model returned an empty response. Please retry in a few seconds.';
+            setMessages((prev) => {
+              const next = [...prev];
+              const last = next[next.length - 1];
+              if (last?.role === 'assistant') last.content = fallback;
+              else next.push({ id: Date.now().toString(), role: 'assistant', content: fallback });
               return next;
             });
           }
