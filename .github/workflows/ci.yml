@@ -1,5 +1,5 @@
 # CI: lint, build, unit tests, e2e (Cypress), Terraform validate.
-# Required to pass before merging to main. Cloud Run deploy is unchanged (Cloud Build on push to main).
+# Required to pass before merging to main. Production is Vercel on push to main; Cloud Build/terraform remain optional for GCP rollback.
 
 name: CI
 

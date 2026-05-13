@@ -26,8 +26,11 @@ const securityHeaders = [
   },
 ];
 
+/** Vercel sets `VERCEL=1` at build time; Docker/Cloud Run builds omit it and use standalone output. */
+const isVercel = Boolean(process.env.VERCEL);
+
 const nextConfig: NextConfig = {
-  output: "standalone",
+  ...(!isVercel ? { output: "standalone" as const } : {}),
   images: {
     unoptimized: true,
   },
