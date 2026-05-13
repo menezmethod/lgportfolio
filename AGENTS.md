@@ -8,27 +8,36 @@
 
 ### Overview
 
-This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature and live War Room observability dashboard. Single Next.js process deployed on **GCP Cloud Run**. Default production mode keeps a **Global External Application Load Balancer** with Cloud CDN and Cloud Armor in front of the custom domain. Low-cost mode is optional and uses the direct Cloud Run URL instead.
+This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature and live War Room observability dashboard.
 
-### Deployment (auto-deploy on)
+**Primary production hosting:** **Vercel** (GitHub integration; push to `main` deploys). See **`docs/VERCEL-DEPLOY.md`** for env vars and Namecheap DNS.
 
-**Push to `main` = deploy.** Cloud Build is connected to the repo; each push to `main` triggers a build that:
+**GCP path (preserved, optional rollback):** `terraform/`, `cloudbuild.yaml`, and `Dockerfile` are kept. You can still deploy to **Cloud Run** behind a Global External ALB with Cloud CDN and Cloud Armor, or use low-cost direct Cloud Run ingress. Nothing in this migration deletes that stack.
 
-1. Builds the Docker image (Dockerfile uses `--platform=linux/amd64` for Cloud Run).
-2. Pushes to Artifact Registry (`portfolio/app`).
-3. Deploys to Cloud Run with `--set-secrets` for `INFERENCIA_API_KEY` and `INFERENCIA_BASE_URL` from Secret Manager.
+### Deployment
 
-**Trigger hygiene:** The GitHub trigger should use **`cloudbuild.yaml`** and push to the managed Artifact Registry repo **`portfolio`**. Avoid leaving a Cloud Run UI "source deploy" trigger active long-term; it creates a second repo (`cloud-run-source-deploy`) that can accumulate stale images and cost drift.
+**Vercel (default)**
 
-So: **code, docs, and build fixes → commit and push to main**; the next build will deploy. **You do not need to run `docker build` / `docker push` / `gcloud run services update` manually** when auto-deploy is on. Use that manual flow only if the Cloud Build trigger isn't connected or you need a one-off deploy without pushing. No need to run Terraform for app-only changes. Use Terraform only when changing infrastructure (LB, WAF, DNS, monitoring). Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`).
+1. Import the GitHub repo in Vercel; set Production branch to `main`.
+2. Configure environment variables (Inferencia, admin, optional Firebase, etc.) — see **`docs/VERCEL-DEPLOY.md`**.
+3. Add `gimenez.dev` / `www` under **Domains** and apply the DNS records Vercel shows (Namecheap: usually **A `@` → `76.76.21.21`**, **CNAME `www` → `cname.vercel-dns.com`**).
+4. After traffic is on Vercel, **disable the Cloud Build trigger** in GCP (optional but recommended) so pushes to `main` do not keep building container images you are not serving.
 
-**Preventing "old version" after Terraform apply:** Terraform has `lifecycle { ignore_changes = [template[0].containers[0].image] }` on the Cloud Run service so **the container image is only updated by Cloud Build**. A plain `terraform apply` will not overwrite the live image with an older `portfolio/app:latest`; it only updates env, secrets, and scaling. Deploy app changes by pushing to `main` (Cloud Build) or running `gcloud builds submit --config=cloudbuild.yaml .`.
+**GCP / Cloud Run (optional rollback)**
+
+When you want the old path again: re-enable Cloud Build, point DNS back at the load balancer IP (or Run URL in low-cost mode), and follow **`docs/DEPLOY-CLOUDRUN.md`**. Push to `main` with the trigger on builds the Docker image (`--platform=linux/amd64`), pushes to Artifact Registry, and deploys to Cloud Run with `--set-secrets` for Inferencia.
+
+**Trigger hygiene (GCP):** The GitHub trigger should use **`cloudbuild.yaml`** and push to the managed Artifact Registry repo **`portfolio`**.
+
+**Preventing "old version" after Terraform apply:** Terraform has `lifecycle { ignore_changes = [template[0].containers[0].image] }` on the Cloud Run service so **the container image is only updated by Cloud Build**. A plain `terraform apply` will not overwrite the live image with an older `portfolio/app:latest`; it only updates env, secrets, and scaling.
+
+Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`).
 
 ### Running the app
 
 - **Node:** 20.9+ required (see `engines` in `package.json`).
 - `npm run dev` — starts dev server on port 3000
-- `npm run build` — production build (standalone output for Cloud Run)
+- `npm run build` — production build (**Vercel:** default Next output; **Docker/Cloud Run:** `standalone` when `VERCEL` is unset — see `next.config.ts`)
 - `npm run lint` — ESLint (currently 0 errors, 0 warnings)
 
 **Verify before commit / after changes:** Run `npm run build`, `npm run lint`, and `cd terraform && terraform init -input=false && terraform validate`. All must pass.
@@ -65,7 +74,7 @@ So: **code, docs, and build fixes → commit and push to main**; the next build 
 - Copy `.env.example` to `.env.local`. All portfolio pages work without API keys.
 - `INFERENCIA_API_KEY` + `INFERENCIA_BASE_URL` are needed for the AI chat. Without them, chat returns 503 but all pages work.
 - **RAG:** By default the chat uses the file-based knowledge base. For vector search, use GCP Cloud SQL (PostgreSQL + pgvector): set `enable_rag_cloud_sql = true` in Terraform; apply schema (`scripts/init-rag-db.sql`) and seed (`npx tsx scripts/seed-rag-db.ts`). Cloud Run gets `CLOUD_SQL_CONNECTION_NAME`, `RAG_DB_*` from Terraform when enabled.
-- In production on Cloud Run, these are set via **GCP Secret Manager** (never in env vars directly); `cloudbuild.yaml` passes them with `--set-secrets`.
+- In production on **Vercel**, set secrets in the Vercel project (or use `vercel env`). On **GCP Cloud Run**, Inferencia values come from **Secret Manager** via `cloudbuild.yaml` `--set-secrets`.
 - Optional: `NEXT_PUBLIC_GA_MEASUREMENT_ID` for Google Analytics 4.
 - **`GOOGLE_CLOUD_PROJECT`** — Set in Terraform for Cloud Run so logs include `logging.googleapis.com/trace` and appear in **Trace** and Logs Explorer. Required for Observability → Trace to show requests.
 

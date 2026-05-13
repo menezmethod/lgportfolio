@@ -2,18 +2,17 @@
 
 **Live site:** [gimenez.dev](https://gimenez.dev) · **War Room:** [gimenez.dev/war-room](https://gimenez.dev/war-room)
 
-A **production Next.js portfolio** on GCP Cloud Run with an AI-powered recruiter chat, live observability (War Room), session analytics, and infra-as-code. Built to demonstrate the same engineering practices used in high-availability systems: observability, security, rate limiting, and cost control.
+A **production Next.js portfolio** deployed primarily on **Vercel** (`gimenez.dev`), with an AI-powered recruiter chat, live observability (War Room), session analytics, and optional **GCP** infra preserved in-repo for rollback (Cloud Run, ALB, Terraform, Cloud Build — not removed).
+
 
 ---
 
 ## What this repo is
 
 - **Portfolio** — Professional site (about, work, architecture case study, contact). Responsive, dark theme.
-- **AI chat** — RAG-backed assistant for recruiters; answers from a structured knowledge base. Rate-limited, prompt-injection hardened, with optional conversation memory and session analytics (Firestore).
-- **War Room** — Real-time dashboard: health tiles, latency charts, error feed, “Explain with AI” for errors. Same mindset as production NOC dashboards.
-- **Infrastructure** — Single Next.js app on Cloud Run behind a Global External ALB, Cloud CDN, and Cloud Armor (WAF). Terraform for all GCP resources. Push to `main` → Cloud Build → deploy. Optional **$20 budget kill switch**: when the threshold is exceeded, a Cloud Function scales Cloud Run to zero so cost stops even if you’re not online. Free tier used wherever possible (scale-to-zero, file-based RAG by default, CDN caching).
-
-No placeholder content. The site is live; the chat, health checks, and War Room are wired to real endpoints and (in prod) to GCP.
+- **AI chat** — RAG-backed assistant for recruiters; rate-limited and prompt-injection hardened; optional Firestore memory.
+- **War Room** — Health tiles, latency charts, error feed, “Explain with AI”.
+- **Hosting** — **Vercel** by default; full **GCP** stack (Cloud Run + ALB + Terraform + Cloud Build) remains in-repo if you switch back.
 
 ---
 
@@ -21,11 +20,11 @@ No placeholder content. The site is live; the chat, health checks, and War Room 
 
 | Area | What’s in this repo |
 |------|----------------------|
-| **Cloud & IaC** | GCP Cloud Run, ALB, CDN, Armor, Secret Manager, Terraform (services, LB, WAF, monitoring, budget + Pub/Sub → function). |
+| **Cloud & IaC** | **Vercel** production path; optional **GCP** Cloud Run, ALB, CDN, Armor, Secret Manager, Terraform (services, LB, WAF, monitoring, budget + Pub/Sub → function). |
 | **Observability** | In-app War Room (metrics, errors, events), structured JSON logs, trace IDs, uptime checks, alert policy. |
-| **Security** | CSP/HSTS/X-Frame-Options, rate limiting (app + Cloud Armor), prompt-injection defense (OWASP LLM01/07), secrets in Secret Manager, ingress only from ALB. |
+| **Security** | CSP/HSTS/X-Frame-Options, rate limiting in the app, prompt-injection defense (OWASP LLM01/07), optional Cloud Armor on the GCP path. |
 | **AI / LLM** | RAG over a local knowledge base, streaming chat (OpenAI-compatible API), response caching, token/message limits. |
-| **Reliability & cost** | Health checks, scale-to-zero, optional **$20 budget kill switch** (Pub/Sub → function sets Cloud Run max-instances=0). Free tier first; CDN caching. |
+| **Reliability & cost** | Health checks; optional **$20 budget kill switch** on GCP (Pub/Sub → function sets Cloud Run max-instances=0). |
 
 **Target roles:** Senior / Staff / SRE / Cloud Architect — backend, distributed systems, observability, GCP. Open to remote and select markets.
 
@@ -45,12 +44,12 @@ No placeholder content. The site is live; the chat, health checks, and War Room 
 
 ## Features
 
-- **Next.js 16** — App Router, React 19, TypeScript, Tailwind. Standalone output for Cloud Run.
+- **Next.js 16** — App Router, React 19, TypeScript, Tailwind. `standalone` output for Docker/Cloud Run only; Vercel uses the default serverless build.
 - **AI chat** — Inferencia (OpenAI-compatible). RAG from a file-based knowledge base or **GCP Cloud SQL (PostgreSQL + pgvector)** for vector search. Per-IP and session rate limits, daily budget, response cache. Prompt-injection checks; conversation memory and session analytics in Firestore when configured.
 - **War Room** — Status tiles (inference, RAG, rate limiter, logging, trace), P50/P95 latency, request/error volume, recent events (errors, cold starts, rate limits). “Explain with AI” sends error context to the same LLM for plain-language explanation.
 - **Admin** — **Administration Board** at `/admin` or `/admin/board`: single pane with System (War Room), Recruiters (sessions + emails + conversation drill-down), Logs (Cloud Run logs with trace links), and Metrics (Prometheus exposition). Also `/admin/conversations` and `/admin/logs` as deep links. Protected by admin secret; same secret for UI and API.
-- **Infrastructure** — Terraform: Cloud Run, Artifact Registry, Secret Manager, global static IP, serverless NEG, backend + CDN, Cloud Armor (rate limits, scanner block, path traversal, adaptive DDoS), URL map, HTTPS redirect, managed SSL, uptime checks, alert policy. Optional: **$20** billing budget with email + Pub/Sub; Cloud Function subscribes and sets Cloud Run `max-instances=0` when threshold is exceeded.
-- **CI/CD** — Cloud Build on push to `main`: build image (linux/amd64), push to Artifact Registry, deploy to Cloud Run with secrets.
+- **Infrastructure (optional GCP)** — Terraform: Cloud Run, Artifact Registry, Secret Manager, global static IP, serverless NEG, backend + CDN, Cloud Armor, URL map, managed SSL, uptime checks, budget + Pub/Sub → function. **Primary production:** Vercel — see [docs/VERCEL-DEPLOY.md](./docs/VERCEL-DEPLOY.md).
+- **CI/CD** — GitHub Actions on every PR/push to `main`. **Production deploy:** Vercel on push to `main` when the GitHub integration is enabled. `cloudbuild.yaml` remains for optional GCP image builds.
 
 ---
 
@@ -61,10 +60,10 @@ No placeholder content. The site is live; the chat, health checks, and War Room 
 | App | Next.js 16, React 19, TypeScript, Tailwind |
 | AI | Vercel AI SDK, Inferencia (OpenAI-compatible), local RAG; optional **Cloud SQL + pgvector** + Gemini embeddings |
 | Data | Firestore (chat sessions, memory, analytics when configured) |
-| Hosting | GCP Cloud Run (scale-to-zero, 1 max instance) |
-| Edge | Global External ALB, Cloud CDN, Cloud Armor |
+| Hosting | **Vercel** (primary) · optional GCP Cloud Run (rollback in `terraform/`) |
+| Edge | Vercel Edge Network · optional GCP ALB + Cloud CDN + Cloud Armor |
 | IaC | Terraform (Run, LB, WAF, Pub/Sub, Cloud Function for budget kill) |
-| CI/CD | Cloud Build; secrets from Secret Manager |
+| CI/CD | GitHub Actions + **Vercel** Git integration; optional Cloud Build + Secret Manager |
 | Observability | In-memory telemetry → War Room; **Prometheus** `/api/metrics` (text format, admin-only); stdout JSON → Cloud Logging; trace IDs → Cloud Trace; uptime checks + alert |
 
 ---
@@ -120,16 +119,16 @@ Open [http://localhost:3000](http://localhost:3000). Chat: [http://localhost:300
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | No | Google Analytics 4 |
 | Optional RAG | `GOOGLE_API_KEY`; on GCP, Terraform sets Cloud SQL (pgvector) env; locally use Cloud SQL Proxy + `RAG_DB_*` | File-based RAG by default; vector RAG when Cloud SQL is configured |
 
-See `.env.example` for the full list. **Do not commit secrets.** Production uses GCP Secret Manager (see [AGENTS.md](./AGENTS.md) and [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md)).
+See `.env.example` for the full list. **Do not commit secrets.** On Vercel, set secrets in the project dashboard (or `vercel env`). On GCP, Secret Manager + Cloud Build still apply if you use that path — see [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md) and [docs/VERCEL-DEPLOY.md](./docs/VERCEL-DEPLOY.md).
 
 ---
 
 ## Deployment
 
-- **App:** Push to `main` → Cloud Build builds the image, pushes to Artifact Registry, deploys to Cloud Run with secrets. No manual deploy needed when the trigger is connected.
-- **Infrastructure:** `cd terraform && terraform init && terraform plan && terraform apply`. Use `terraform.tfvars` for `project_id`, `region`, optional `billing_account_id` / `budget_alert_email` for budget and automatic kill switch.
+- **Primary (Vercel):** Import the GitHub repo, configure env vars, add `gimenez.dev` in Vercel Domains, then point Namecheap DNS as shown in [docs/VERCEL-DEPLOY.md](./docs/VERCEL-DEPLOY.md). Push to `main` deploys production.
+- **Optional GCP rollback:** `terraform/`, `cloudbuild.yaml`, and `Dockerfile` are unchanged. To redeploy on Cloud Run, re-enable your Cloud Build trigger and follow [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md).
 
-Details: [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md), [AGENTS.md](./AGENTS.md).
+Details: [docs/VERCEL-DEPLOY.md](./docs/VERCEL-DEPLOY.md), [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md), [AGENTS.md](./AGENTS.md).
 
 **Scripts:** `npm run dev` · `npm run build` · `npm run start` · `npm run lint`  
 **Docker:** `docker build -t lgportfolio .` then run with `-e INFERENCIA_API_KEY` and `-e INFERENCIA_BASE_URL`; see `Dockerfile` for platform (linux/amd64).
@@ -139,7 +138,7 @@ Details: [docs/DEPLOY-CLOUDRUN.md](./docs/DEPLOY-CLOUDRUN.md), [AGENTS.md](./AGE
 Run these before pushing or to confirm the repo is healthy:
 
 ```bash
-npm run build          # Production build (must succeed for Cloud Run)
+npm run build          # Production build (must succeed on Vercel and locally)
 npm run lint           # ESLint (0 errors, 0 warnings)
 npm run test           # Vitest unit tests (security, rate-limit, version)
 npm run test:e2e       # Cypress smoke tests (requires app running on :3000)
@@ -150,14 +149,14 @@ cd terraform && terraform init -input=false && terraform validate   # IaC valid
 
 ## Production readiness
 
-- **Build** — `output: "standalone"`; `npm run build` and `npm run lint` (0 errors).
+- **Build** — `standalone` output only for Docker/Cloud Run; Vercel uses the default Next.js build. `npm run build` and `npm run lint` (0 errors).
 - **Tests** — Vitest unit tests (security, rate-limit, version); Cypress e2e smoke tests; CI via GitHub Actions.
 - **Version** — Single source of truth in `package.json`, read via `src/lib/version.ts`. Health API, War Room, and UI all read from this one place.
-- **Security** — CSP, HSTS, X-Frame-Options; rate limiting (app + Cloud Armor); prompt-injection defense; secrets in Secret Manager; Cloud Run ingress only from ALB. No secrets in client responses or logs.
+- **Security** — CSP, HSTS, X-Frame-Options; rate limiting in the app; prompt-injection defense; no secrets in client responses or logs. (Optional GCP Cloud Armor when using the ALB path.)
 - **SLOs** — Tracked in War Room: availability (99.5%), P95 latency (<500ms), error rate (<5%), budget headroom (>10%). See [ADRs](./docs/adr/).
 - **Health** — `/api/health` for uptime checks; 503 when degraded.
 - **Telemetry** — Structured JSON logs, trace IDs, in-memory metrics for the War Room; metrics reset on cold start (documented).
-- **Cost control** — Optional **$20** budget kill switch; when configured in Terraform (`billing_account_id`, `budget_alert_email`), a Cloud Function automatically scales Cloud Run to 0 on threshold breach. Manual fallback: `./scripts/disable-project-spend.sh`. See [docs/CHECKLIST-FINAL-SWEEP.md](./docs/CHECKLIST-FINAL-SWEEP.md) for a full sweep checklist.
+- **Cost control** — Vercel billing + optional GCP **$20** budget kill switch when that stack is active; see [docs/CHECKLIST-FINAL-SWEEP.md](./docs/CHECKLIST-FINAL-SWEEP.md) for a full sweep checklist.
 
 ---
 

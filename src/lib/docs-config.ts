@@ -11,6 +11,7 @@ export interface DocEntry {
 
 export const docsNav: DocEntry[] = [
   { slug: "setup", file: "SETUP.md", title: "Setup" },
+  { slug: "vercel", file: "VERCEL-DEPLOY.md", title: "Deployment (Vercel)" },
   { slug: "deploy", file: "DEPLOY-CLOUDRUN.md", title: "Deployment (Cloud Run)" },
   { slug: "gcp-observability", file: "GCP-OBSERVABILITY-MAP.md", title: "GCP Observability (Console & Mobile)" },
   { slug: "traffic-cost", file: "TRAFFIC-AND-COST.md", title: "Traffic & Cost" },
