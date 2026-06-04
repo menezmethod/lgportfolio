@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Terminal, Radio, Sparkles } from 'lucide-react';
+import { ArrowRight, Terminal, Radio } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -9,37 +9,77 @@ import { Suspense } from 'react';
 const titles = [
   'GCP Professional Cloud Architect',
   'Go · Platform & Infrastructure',
-  'Edge Systems & Observability',
-  'AI Infrastructure & Agentic Ops',
-  'Silicon-to-Satellite Operator',
+  'Distributed Systems & Reliability',
+  'Payment Infrastructure Engineering',
+  'Platform Engineering at Scale',
 ];
 
 const heroSignals = [
   {
     label: 'store footprint',
     value: '2400+',
-    note: 'retail nodes influenced through enterprise payments',
+    note: 'enterprise payment nodes influenced through platform infrastructure',
     status: 'up' as const,
   },
   {
     label: 'service graph',
     value: '50+',
-    note: 'payment services across the platform surface area',
+    note: 'payment microservices across the platform surface area',
     status: 'up' as const,
   },
   {
     label: 'critical path',
     value: '<50ms',
-    note: 'p99 latency target on the hottest transaction paths',
+    note: 'p99 latency on the hottest transaction paths',
     status: 'live' as const,
   },
   {
-    label: 'edge lab',
-    value: 'Pi 5 · ESP32',
-    note: 'hardware-in-the-loop gateway and sensor control plane',
+    label: 'platform uptime',
+    value: '99.99%',
+    note: 'platinum-tier reliability across payment infrastructure',
     status: 'up' as const,
   },
 ] as const;
+
+const migrationCards = [
+  {
+    title: 'Zero-Downtime Tender Migrations',
+    desc: 'Led multi-phase migration strategies for enterprise tender systems. Blue-green deployments, traffic shadowing, and automated rollback gates ensuring zero customer impact.',
+    tags: ['Blue-Green', 'Traffic Shadow', 'Rollback Gates'],
+    status: 'up' as const,
+  },
+  {
+    title: 'Monolith Decomposition',
+    desc: 'Refactored legacy monolithic payment services into isolated, type-safe Go microservices. Each service owns its data, its deployment, and its on-call rotation.',
+    tags: ['Go', 'Domain Isolation', 'Cloud Run'],
+    status: 'up' as const,
+  },
+  {
+    title: 'Type-Safe Contract Evolution',
+    desc: 'Introduced protobuf contracts and backwards-compatible API versioning. Breaking changes are caught at compile time, not in production during peak hours.',
+    tags: ['Protobuf', 'gRPC', 'API Versioning'],
+    status: 'up' as const,
+  },
+];
+
+const platformPatterns = [
+  {
+    title: 'Service Mesh & Traffic Management',
+    desc: 'Wire-level observability and traffic splitting across service boundaries. No-code canary deployments with automatic rollback on error budget depletion.',
+  },
+  {
+    title: 'OpenTelemetry Instrumentation',
+    desc: 'End-to-end tracing, metrics, and structured logging unified under a single standard. Every service publishes its contract through telemetry, not documentation.',
+  },
+  {
+    title: 'Incident Response & War Rooms',
+    desc: 'Structured investigation with flame graphs, span waterfalls, and metric correlation. Postmortems produce action items, not finger-pointing.',
+  },
+  {
+    title: 'Platform API & Self-Service',
+    desc: 'Internal developer platform abstractions that let service teams deploy, observe, and debug without waiting for infrastructure. Infrastructure as product, not as ticket queue.',
+  },
+];
 
 function PortfolioContent() {
   const searchParams = useSearchParams();
@@ -80,7 +120,7 @@ function PortfolioContent() {
   return (
     <div className="min-h-screen bg-background text-foreground pt-16 pb-20">
 
-      {/* ── HERO — OPERATIONS CONSOLE ── */}
+      {/* ── HERO ── */}
       <section className="min-h-[90vh] flex items-center justify-center px-4 md:px-6 py-16 md:py-24">
         <div className="max-w-5xl mx-auto space-y-8 md:space-y-10">
 
@@ -121,15 +161,15 @@ function PortfolioContent() {
           <div>
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight">
               <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
-                Systems that start
+                Platforms that move
               </span>
               <br />
               <span className="bg-gradient-to-r from-primary via-primary to-code bg-clip-text text-transparent">
-                at silicon and end
+                money reliably at
               </span>
               <br />
               <span className="bg-gradient-to-r from-code via-primary to-secondary bg-clip-text text-transparent">
-                in the cloud.
+                Fortune 50 scale.
               </span>
             </h1>
           </div>
@@ -151,23 +191,23 @@ function PortfolioContent() {
               <strong className="text-foreground">Currently: Software Engineer II building Fortune 50 payment infrastructure.</strong>{' '}
               Targeting Senior Platform Engineer roles.{' '}
               Tampa Bay based, open to remote and hybrid (≤2 days/week).{' '}
-              I build Go services, payment rails, observability pipelines, and edge-to-cloud systems.
+              I build Go services, payment rails, observability pipelines, and platform infrastructure.
               Current proof point: a Fortune 50 payments domain with{' '}
               <strong className="text-foreground">2400+ stores, platinum-tier uptime expectations, and sub-50ms critical paths</strong>.
             </p>
           ) : (
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl leading-relaxed">
-              I design systems that start at hardware and end in measurable cloud outcomes.
-              Today that means Go services and mission-critical payment infrastructure at a{' '}
-              <strong className="text-foreground">Fortune 50 retailer</strong>. Next it means
-              public edge labs built from <strong className="text-foreground">ESP32 nodes, Raspberry Pi 5 gateways, and GCP observability</strong>.
+              I design and operate distributed systems that move money reliably at Fortune 50 scale.{' '}
+              Today that means Go microservices, protobuf contracts, and OpenTelemetry pipelines at{' '}
+              <strong className="text-foreground">The Home Depot</strong> —{' '}
+              2,400+ stores, platinum-tier uptime, and sub-50ms critical paths.
             </p>
           )}
 
-          {/* Telemetry Tiles */}
+          {/* Key Metrics */}
           <div>
             <div className="section-indicator mb-4">
-              <span>Telemetry</span>
+              <span>Metrics</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
               {heroSignals.map((signal) => (
@@ -178,8 +218,7 @@ function PortfolioContent() {
                   </div>
                   <div className={`telemetry-value ${
                     signal.status === 'live' ? 'text-primary' :
-                    signal.label === 'store footprint' ? 'text-foreground' :
-                    signal.label === 'edge lab' ? 'text-code' : 'text-foreground'
+                    'text-foreground'
                   }`}>
                     {signal.value}
                   </div>
@@ -224,7 +263,7 @@ function PortfolioContent() {
               className="inline-flex items-center gap-2 px-8 py-4 bg-card/40 text-foreground border border-border/50 rounded-lg
                 hover:bg-card/60 transition-all text-base font-mono"
             >
-              <Sparkles className="w-5 h-5 text-code" />
+              <Radio className="w-5 h-5 text-code" />
               AI Chat
             </Link>
           </div>
@@ -234,126 +273,23 @@ function PortfolioContent() {
       {/* ── DIVIDER ── */}
       <div className="section-divider" />
 
-      {/* ── WAR ROOM & OBSERVABILITY ── */}
-      <section id="war-room" className="py-20 md:py-32 px-4 md:px-6">
+      {/* ── MIGRATIONS & ARCHITECTURE ── */}
+      <section id="migrations" className="py-20 md:py-32 px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
           <div className="section-indicator mb-4">
-            <span>Observability</span>
+            <span>Architecture</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            War Room <span className="text-primary">&amp; Observability</span>
+            Migration <span className="text-primary">&amp; Architecture</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl leading-relaxed mb-12">
-            I don&apos;t just write code; I make distributed systems{' '}
-            <em className="text-foreground not-italic font-semibold">visible</em>.
-            When legacy architectures fail silently, I build the OpenTelemetry pipelines
-            and tracing standards that expose the gaps, allowing teams to navigate
-            production War Rooms with actual data instead of guesswork.
+            I lead complex migrations in high-stakes environments. At enterprise payment scale,
+            &ldquo;move fast and break things&rdquo; is not an option — every deployment goes through
+            blue-green gates, traffic shadowing, and automated rollback validation.
           </p>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              {[
-                { label: 'OpenTelemetry', desc: 'End-to-end instrumentation of distributed services. Traces, metrics, and logs unified under a single standard.' },
-                { label: 'Distributed Tracing (Tempo)', desc: 'Full request lifecycle visibility across microservice boundaries. Pinpoint latency sources in seconds, not hours.' },
-                { label: 'Payload Mapping', desc: 'Correlate business payloads with infrastructure telemetry. When a transaction fails, know exactly where, why, and what data was involved.' },
-                { label: 'Root Cause Analysis', desc: 'Structured incident investigation. Flame graphs, span waterfalls, and metric correlation to eliminate guesswork from postmortems.' },
-              ].map((item) => (
-                <div key={item.label} className="telemetry-tile">
-                  <h3 className="font-mono text-primary text-sm font-semibold mb-2">{item.label}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Terminal Code Block */}
-            <div className="terminal-window self-start">
-              <div className="terminal-header">
-                <div className="terminal-dot terminal-dot-red" />
-                <div className="terminal-dot terminal-dot-yellow" />
-                <div className="terminal-dot terminal-dot-green" />
-                <span className="terminal-title">otel-collector.yaml</span>
-                <span className="ml-auto badge-up">running</span>
-              </div>
-              <pre className="p-5 text-xs sm:text-sm font-mono text-muted-foreground overflow-x-auto leading-relaxed">
-{`receivers:
-  otlp:
-    protocols:
-      grpc:
-        endpoint: 0.0.0.0:4317
-
-processors:
-  batch:
-    timeout: 5s
-    send_batch_size: 1024
-  attributes:
-    actions:
-      - key: service.team
-        value: tender-services
-        action: upsert
-
-exporters:
-  otlp/tempo:
-    endpoint: tempo.observability:4317
-  prometheus:
-    endpoint: 0.0.0.0:8889
-    namespace: payment_system
-
-service:
-  pipelines:
-    traces:
-      receivers: [otlp]
-      processors: [batch, attributes]
-      exporters: [otlp/tempo]
-    metrics:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [prometheus]`}
-              </pre>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── DIVIDER ── */}
-      <div className="section-divider" />
-
-      {/* ── ENTERPRISE MIGRATION ── */}
-      <section id="migration" className="py-20 md:py-32 px-4 md:px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="section-indicator mb-4">
-            <span>Deployments</span>
-          </div>
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            Enterprise <span className="text-primary">Migration</span>
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl leading-relaxed mb-12">
-            Massive structural shifts don&apos;t happen by accident. I lead complex,
-            zero-downtime backend migrations&mdash;decomposing monolithic payment systems
-            into type-safe, scalable Golang microservices without dropping a single transaction.
-          </p>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                title: 'Zero-Downtime Tender Migrations',
-                desc: 'Led multi-phase migration strategies for enterprise tender systems. Blue-green deployments, traffic shadowing, and automated rollback gates ensuring zero customer impact.',
-                tags: ['Blue-Green', 'Traffic Shadow', 'Rollback Gates'],
-                status: 'up' as const,
-              },
-              {
-                title: 'Monolith Decomposition',
-                desc: 'Refactored legacy monolithic payment services into isolated, type-safe Go microservices. Each service owns its data, its deployment, and its on-call rotation.',
-                tags: ['Go', 'Domain Isolation', 'Cloud Run'],
-                status: 'up' as const,
-              },
-              {
-                title: 'Type-Safe Contract Evolution',
-                desc: 'Introduced protobuf contracts and backwards-compatible API versioning. Breaking changes are caught at compile time, not in production at 2 AM.',
-                tags: ['Protobuf', 'gRPC', 'API Versioning'],
-                status: 'up' as const,
-              },
-            ].map((item) => (
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {migrationCards.map((item) => (
               <div key={item.title} className="telemetry-tile group">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{item.title}</h3>
@@ -376,41 +312,24 @@ service:
       {/* ── DIVIDER ── */}
       <div className="section-divider" />
 
-      {/* ── SILICON TO SATELLITE ── */}
-      <section id="edge-ai" className="py-20 md:py-32 px-4 md:px-6">
+      {/* ── PLATFORM PATTERNS ── */}
+      <section id="platform" className="py-20 md:py-32 px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
           <div className="section-indicator mb-4">
-            <span>Edge Fleet</span>
+            <span>Platform</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            Silicon-to-Satellite <span className="text-primary">Systems</span>
+            Platform <span className="text-primary">Engineering Patterns</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl leading-relaxed mb-12">
-            The next chapter of this portfolio is not another web app. It is a networked edge lab:
-            ESP32 sensor nodes, Raspberry Pi 5 gateways, machine vision, and GCP analytics wired into
-            a public operations board. AI belongs in the control plane, not as a thin wrapper on top of CRUD.
+            Platform engineering is not about tools — it is about reducing cognitive load for service teams.
+            The platform is the product, and every abstraction should either speed up delivery or
+            reduce incident response time.
           </p>
 
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-6">
-              {[
-                {
-                  title: 'ESP32 Sensor Fleet',
-                  desc: 'Telemetry at the edge: environmental sensing, heartbeat signals, OTA coordination, and real sampling cadence on physical hardware.',
-                },
-                {
-                  title: 'Pi 5 Edge Gateway',
-                  desc: 'Local buffering, MQTT ingress, Frigate workloads, and edge-side rules so the system remains useful even when the cloud is unavailable.',
-                },
-                {
-                  title: 'GCP Analytics Plane',
-                  desc: 'Cloud Run services normalize events, BigQuery stores long-horizon telemetry, and dashboards expose the system as an operator surface instead of a hobby project.',
-                },
-                {
-                  title: 'Agentic Operations Layer',
-                  desc: 'Runbooks, RAG, and event summarization sit on top of real telemetry so AI helps operators reason about incidents instead of pretending to be the product.',
-                },
-              ].map((item) => (
+              {platformPatterns.map((item) => (
                 <div key={item.title} className="telemetry-tile">
                   <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
@@ -424,33 +343,41 @@ service:
                 <div className="terminal-dot terminal-dot-red" />
                 <div className="terminal-dot terminal-dot-yellow" />
                 <div className="terminal-dot terminal-dot-green" />
-                <span className="terminal-title">edge-fleet.yaml</span>
+                <span className="terminal-title">platform-config.yaml</span>
                 <span className="ml-auto badge-live">live</span>
               </div>
               <pre className="p-5 text-xs sm:text-sm font-mono text-muted-foreground overflow-x-auto leading-relaxed">
-{`fleet:
-  sensor_nodes:
-    - esp32-soil-01
-    - esp32-climate-02
-  edge_gateway:
-    host: raspberry-pi-5
-    services: [mqtt, frigate, heartbeat-watcher]
+{`platform:
+  services:
+    - name: tender-processor
+      lang: go
+      runtime: cloud-run
+      sla_p99: 50ms
+    - name: payment-orchestrator
+      lang: go
+      runtime: gke
+      sla_p99: 100ms
 
-cloud:
-  ingest_api: cloud-run
-  analytics: bigquery
-  observability: [cloud-monitoring, war-room]
+observability:
+  tracing: opentelemetry
+  backend: tempo
+  alerting: [pagerduty, war-room]
 
-ai:
-  role: incident summarization + runbook retrieval
-  source_of_truth: live telemetry, not guesses`}
+deployment:
+  strategy: blue-green
+  rollback: automated
+  shadow_period: 15m
+
+contracts:
+  format: protobuf
+  registry: buf`}
               </pre>
             </div>
           </div>
 
           {/* Tag Cloud */}
           <div className="flex flex-wrap gap-3 mt-10">
-            {['Go', 'GCP', 'Terraform', 'GKE / Kubernetes', 'ESP32', 'Raspberry Pi 5', 'Frigate', 'Cloud Run', 'BigQuery', 'OpenTelemetry', 'Distributed Tracing', 'RAG'].map((tag) => (
+            {['Go', 'GCP', 'Terraform', 'GKE', 'Kubernetes', 'Cloud Run', 'BigQuery', 'OpenTelemetry', 'Prometheus', 'Grafana', 'gRPC', 'Protobuf', 'Docker', 'CI/CD', 'Distributed Tracing', 'PostgreSQL', 'Redis'].map((tag) => (
               <span key={tag} className="px-3 py-1.5 text-xs font-mono bg-card/40 border border-border/50 rounded text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors">
                 {tag}
               </span>

@@ -1,14 +1,12 @@
-import { Cpu, Eye, Shield } from 'lucide-react';
+import { Eye, Shield, GitBranch } from 'lucide-react';
 
 const skills: Record<string, string[]> = {
-  'programming languages': ['Go (Proficient)', 'Java (Proficient)', 'TypeScript (Working)', 'Python (Working)', 'Rust (Learning)', 'SQL (Proficient)'],
+  'programming languages': ['Go (Proficient)', 'Java (Proficient)', 'TypeScript (Working)', 'Python (Working)', 'SQL (Proficient)'],
   'cloud infrastructure': ['GCP (Proficient)', 'GKE (Working)', 'Cloud Run (Proficient)', 'BigQuery (Working)', 'Terraform (Working)', 'Cloud Armor (Working)'],
   'systems architecture': ['Distributed Systems (Proficient)', 'Event-Driven Design (Proficient)', 'Microservices (Proficient)', 'Domain Boundaries (Proficient)', 'System Design (Proficient)'],
   'platform engineering': ['Kubernetes (Working)', 'Docker (Proficient)', 'CI/CD (Proficient)', 'gRPC (Proficient)', 'Protobuf (Working)', 'API Design (Proficient)'],
-  'edge systems': ['ESP32 (Working)', 'Raspberry Pi 5 (Working)', 'MQTT (Working)', 'Frigate (Learning)', 'OTA Workflows (Working)'],
-  'observability': ['OpenTelemetry (Proficient)', 'Prometheus (Proficient)', 'Grafana (Proficient)', 'Tempo (Working)', 'PromQL (Working)'],
-  'data & storage': ['CockroachDB (Working)', 'PostgreSQL (Proficient)', 'Redis (Working)', 'pgvector (Learning)', 'Pub/Sub (Working)'],
-  'ai infrastructure': ['Self-hosted LLMs (Working)', 'RAG Pipelines (Working)', 'Agentic Ops (Working)', 'Inference APIs (Working)', 'Runbook Retrieval (Working)'],
+  'observability': ['OpenTelemetry (Proficient)', 'Prometheus (Proficient)', 'Grafana (Proficient)', 'Tempo (Working)', 'PromQL (Working)', 'Alerting (Proficient)'],
+  'data & storage': ['CockroachDB (Working)', 'PostgreSQL (Proficient)', 'Redis (Working)', 'Pub/Sub (Working)', 'BigQuery (Proficient)'],
 };
 
 export default function About() {
@@ -19,7 +17,7 @@ export default function About() {
           <span>About</span>
         </div>
         <h1 className="mb-10 text-3xl font-bold md:mb-16 md:text-5xl">
-          Senior Platform Engineer. <span className="text-primary">Infrastructure Engineer.</span>
+          Senior Platform Engineer. <span className="text-primary">Payment Infrastructure.</span>
         </h1>
 
         <div className="grid gap-10 md:grid-cols-3 md:gap-16">
@@ -42,9 +40,9 @@ export default function About() {
               in platform engineering, infrastructure, and systems architecture.
             </p>
             <p>
-              The next layer is hardware-cloud fusion: ESP32 nodes, Raspberry Pi 5 gateways, machine
-              vision, and GCP analytics tied into public observability boards. I care about the whole
-              chain, from noisy sensors and power budgets to trace-linked cloud events and operator tooling.
+              The next frontier is platform-as-product: internal developer platforms that abstract
+              infrastructure complexity, self-service deployment pipelines, and observability-driven
+              operations that let teams ship fast without sacrificing reliability.
             </p>
 
             <h2 className="mt-10 mb-6 flex items-center gap-3 text-2xl font-bold text-foreground">
@@ -87,15 +85,16 @@ export default function About() {
               <li className="group">
                 <div className="flex items-start gap-4 rounded-lg border border-transparent p-4 transition-colors hover:border-border/50 hover:bg-card/50">
                   <div className="mt-1 rounded-lg bg-primary/10 p-2 text-primary">
-                    <Cpu className="size-5" />
+                    <GitBranch className="size-5" />
                   </div>
                   <div>
                     <span className="mb-1 block text-lg font-semibold text-foreground">
-                      Build Edge-to-Cloud AI Systems
+                      Build Platform Abstractions
                     </span>
                     <p className="text-muted-foreground">
-                      I am less interested in chatbot wrappers than in AI control planes:
-                      local inference, retrieval-backed runbooks, public telemetry, and hardware that reports into the cloud as a coherent system.
+                      I create the internal developer platform tooling that lets service teams
+                      deploy, observe, and debug without tickets. Infrastructure as product,
+                      not as bottleneck.
                     </p>
                   </div>
                 </div>
@@ -117,8 +116,8 @@ export default function About() {
                   description: 'Rollback paths, cache expiry, replay protection, and error budgets matter more than pretty architecture diagrams.',
                 },
                 {
-                  title: 'Use AI where operators need leverage',
-                  description: 'AI is valuable when it summarizes incidents, retrieves runbooks, or helps reason about edge fleets. It is not valuable as decorative product frosting.',
+                  title: 'Platforms reduce cognitive load',
+                  description: 'Every platform abstraction should either speed up delivery or reduce incident response time. If it does neither, it is infrastructure theater.',
                 },
               ].map((item) => (
                 <div
