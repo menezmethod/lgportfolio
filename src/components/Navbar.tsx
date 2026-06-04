@@ -12,7 +12,7 @@ const navLinks = [
   { href: '/work', label: 'Work' },
   { href: '/architecture', label: 'Architecture' },
   { href: '/war-room', label: 'War Room' },
-{ href: '/about', label: 'About' },
+  { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ];
 
@@ -32,17 +32,29 @@ export default function Navbar() {
   return (
     <nav
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent",
-        scrolled ? "glass border-border/40 py-2" : "bg-transparent py-4"
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        scrolled
+          ? "bg-background/80 backdrop-blur-xl border-b border-border/40 py-2"
+          : "bg-transparent py-4"
       )}
       aria-label="Main navigation"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-12 items-center justify-between">
           <Link href="/" aria-label="Luis Gimenez - Home" className="group flex items-center gap-2">
-            <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 text-primary font-mono text-sm font-bold group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+            <div
+              className={cn(
+                "flex items-center justify-center size-8 rounded-lg font-mono text-sm font-bold transition-all",
+                "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground"
+              )}
+            >
               LG
             </div>
+            {scrolled && (
+              <span className="hidden sm:inline text-[11px] font-mono text-muted-foreground tracking-wider">
+                /home
+              </span>
+            )}
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">
@@ -52,8 +64,11 @@ export default function Navbar() {
                 variant="ghost"
                 asChild
                 className={cn(
-                  "rounded-full px-4 text-sm font-medium transition-colors hover:bg-primary/10 hover:text-primary",
-                  pathname === link.href ? 'text-primary bg-primary/5' : 'text-muted-foreground'
+                  "rounded-lg px-4 text-sm font-medium transition-colors",
+                  "hover:bg-primary/10 hover:text-primary",
+                  pathname === link.href
+                    ? 'text-primary bg-primary/8'
+                    : 'text-muted-foreground'
                 )}
               >
                 <Link href={link.href}>{link.label}</Link>
@@ -62,7 +77,7 @@ export default function Navbar() {
             <div className="mx-2 h-4 w-px bg-border/50" />
             <Button
               asChild
-              className="gap-2 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground shadow-sm hover:shadow-glow-primary transition-all duration-300"
+              className="gap-2 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300"
             >
               <Link href="/chat">
                 <Terminal className="size-4" />
@@ -83,7 +98,9 @@ export default function Navbar() {
         </div>
 
         {isOpen && (
-          <div className="absolute top-full left-0 right-0 glass border-t border-border/40 p-4 flex flex-col gap-2 md:hidden animate-fadeIn shadow-2xl">
+          <div
+            className="absolute top-full left-0 right-0 bg-background/95 backdrop-blur-xl border-b border-t border-border/40 p-4 flex flex-col gap-2 md:hidden shadow-2xl"
+          >
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -103,7 +120,7 @@ export default function Navbar() {
             <Link
               href="/chat"
               onClick={() => setIsOpen(false)}
-              className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/20"
+              className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-lg"
             >
               <Terminal className="size-4" />
               AI Chat

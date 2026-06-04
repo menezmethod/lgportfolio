@@ -72,18 +72,18 @@ export default function RootLayout({
               href={social.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-primary transition-all hover:-translate-y-1"
+              className="text-muted-foreground/60 hover:text-primary transition-all hover:-translate-y-1"
               aria-label={social.label}
             >
-              <social.icon className="w-6 h-6" />
+              <social.icon className="w-5 h-5" />
             </a>
           ))}
-          <div className="w-px h-24 bg-primary/20 mx-auto mt-2"></div>
+          <div className="w-px h-24 bg-gradient-to-b from-primary/30 to-transparent mx-auto" />
         </div>
 
         <a
           href="/contact"
-          className="fixed z-50 bottom-6 right-6 md:bottom-10 md:right-10 inline-flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground font-semibold rounded-full shadow-lg shadow-primary/25 hover:scale-105 transition-transform animate-in fade-in slide-in-from-bottom-4 duration-700 delay-1000"
+          className="fixed z-50 bottom-6 right-6 md:bottom-10 md:right-10 inline-flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground font-semibold rounded-lg glow-primary hover:scale-105 transition-transform duration-200"
           aria-label="Connect now"
         >
           <Mail className="w-5 h-5" />

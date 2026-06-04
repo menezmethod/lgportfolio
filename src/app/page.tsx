@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Sparkles, Terminal, Eye, GitMerge, Cpu, Radio } from 'lucide-react';
+import { ArrowRight, Terminal, Radio, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -16,28 +16,28 @@ const titles = [
 
 const heroSignals = [
   {
-    label: 'Store Footprint',
+    label: 'store footprint',
     value: '2400+',
     note: 'retail nodes influenced through enterprise payments',
-    valueClassName: 'text-foreground',
+    status: 'up' as const,
   },
   {
-    label: 'Service Graph',
+    label: 'service graph',
     value: '50+',
     note: 'payment services across the platform surface area',
-    valueClassName: 'text-foreground',
+    status: 'up' as const,
   },
   {
-    label: 'Critical Path',
+    label: 'critical path',
     value: '<50ms',
     note: 'p99 latency target on the hottest transaction paths',
-    valueClassName: 'text-primary',
+    status: 'live' as const,
   },
   {
-    label: 'Edge Lab',
-    value: 'Pi 5 + ESP32',
+    label: 'edge lab',
+    value: 'Pi 5 · ESP32',
     note: 'hardware-in-the-loop gateway and sensor control plane',
-    valueClassName: 'text-emerald-400',
+    status: 'up' as const,
   },
 ] as const;
 
@@ -45,44 +45,107 @@ function PortfolioContent() {
   const searchParams = useSearchParams();
   const isRecruiter = searchParams.get('ref') === 'recruiter';
   const [currentTitle, setCurrentTitle] = useState(0);
+  const [typedLine, setTypedLine] = useState('');
+  const [showCursor, setShowCursor] = useState(true);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const titleInterval = setInterval(() => {
       setCurrentTitle((prev) => (prev + 1) % titles.length);
     }, 3000);
-    return () => clearInterval(interval);
+    return () => clearInterval(titleInterval);
+  }, []);
+
+  // Terminal typing effect for the intro line
+  useEffect(() => {
+    const fullText = './identify --role';
+    let idx = 0;
+    const typeInterval = setInterval(() => {
+      if (idx < fullText.length) {
+        setTypedLine(fullText.slice(0, idx + 1));
+        idx++;
+      } else {
+        clearInterval(typeInterval);
+        // Blink cursor after typing
+        const blink = setInterval(() => {
+          setShowCursor((prev) => !prev);
+        }, 530);
+        return () => clearInterval(blink);
+      }
+    }, 40);
+    return () => clearInterval(typeInterval);
   }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground pt-16 pb-20">
 
-      {/* ── HERO ── */}
+      {/* ── HERO — OPERATIONS CONSOLE ── */}
       <section className="min-h-[90vh] flex items-center justify-center px-4 md:px-6 py-16 md:py-24">
-        <div className="max-w-5xl mx-auto text-center space-y-6 md:space-y-8 animate-fadeIn">
+        <div className="max-w-5xl mx-auto space-y-8 md:space-y-10">
 
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-card/60 border border-border/50 font-mono text-sm text-muted-foreground">
-            <span className="text-emerald-400">$</span>
-            <span>whoami</span>
-            <span className="animate-pulse text-primary">_</span>
+          {/* Terminal Intro */}
+          <div className="terminal-window max-w-md mx-auto md:mx-0">
+            <div className="terminal-header">
+              <div className="terminal-dot terminal-dot-red" />
+              <div className="terminal-dot terminal-dot-yellow" />
+              <div className="terminal-dot terminal-dot-green" />
+              <span className="terminal-title">~/session.sh — zsh</span>
+            </div>
+            <div className="terminal-body space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-code">❯</span>
+                <span className="text-foreground/90">{typedLine}</span>
+                {showCursor && typedLine.length === './identify --role'.length && (
+                  <span className="inline-block w-2 h-4 bg-primary animate-pulse" />
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-foreground/90">
+                <span className="text-code">◈</span>
+                <span className="font-semibold text-foreground">Luis Gimenez</span>
+                <span className="text-muted-foreground">|</span>
+                <span className="text-code">Senior Platform Engineer</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <span className="text-code">❯</span>
+                <span>cat /etc/location</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <span className="text-code">◈</span>
+                <span>Tampa Bay, FL · Remote / Hybrid</span>
+              </div>
+            </div>
           </div>
 
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold">
-            <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">Senior Platform Engineer.</span>
-            <br />
-            <span className="text-primary">Go. GCP. Observability.</span>
-          </h1>
-
-          <div className="h-[50px] md:h-[60px] mb-6" aria-label="Current role" aria-live="polite">
-            <p className="text-2xl md:text-3xl lg:text-4xl font-mono text-muted-foreground">
-              <span className="text-primary/80 transition-all duration-500">
-                {titles[currentTitle]}
+          {/* Hero Headline */}
+          <div>
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight">
+              <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
+                Systems that start
               </span>
-              <span className="animate-pulse ml-1 text-primary" aria-hidden="true">_</span>
-            </p>
+              <br />
+              <span className="bg-gradient-to-r from-primary via-primary to-code bg-clip-text text-transparent">
+                at silicon and end
+              </span>
+              <br />
+              <span className="bg-gradient-to-r from-code via-primary to-secondary bg-clip-text text-transparent">
+                in the cloud.
+              </span>
+            </h1>
           </div>
 
+          {/* Rotating Subtitle */}
+          <div className="h-[50px] md:h-[60px] flex items-center">
+            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-lg bg-card/40 border border-border/50">
+              <span className="badge-live">active</span>
+              <span className="font-mono text-sm md:text-base text-muted-foreground transition-all duration-500">
+                <span className="text-primary/90">{titles[currentTitle]}</span>
+                <span className="animate-pulse ml-1 text-primary" aria-hidden="true">▎</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Description */}
           {isRecruiter ? (
-            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4 border-l-2 border-primary/50 pl-6 text-left">
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl leading-relaxed border-l-2 border-primary/30 pl-6">
               <strong className="text-foreground">Currently: Software Engineer II building Fortune 50 payment infrastructure.</strong>{' '}
               Targeting Senior Platform Engineer roles.{' '}
               Tampa Bay based, open to remote and hybrid (≤2 days/week).{' '}
@@ -91,7 +154,7 @@ function PortfolioContent() {
               <strong className="text-foreground">2400+ stores, platinum-tier uptime expectations, and sub-50ms critical paths</strong>.
             </p>
           ) : (
-            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl leading-relaxed">
               I design systems that start at hardware and end in measurable cloud outcomes.
               Today that means Go services and mission-critical payment infrastructure at a{' '}
               <strong className="text-foreground">Fortune 50 retailer</strong>. Next it means
@@ -99,71 +162,81 @@ function PortfolioContent() {
             </p>
           )}
 
-          <div className="my-10 text-left">
-            <div className="mb-3 flex items-center justify-center gap-3 font-mono text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
-              <span className="h-px w-8 bg-primary/50" />
-              <span>Operational Signals</span>
-              <span className="h-px w-8 bg-emerald-500/40" />
+          {/* Telemetry Tiles */}
+          <div>
+            <div className="section-indicator mb-4">
+              <span>Telemetry</span>
             </div>
-            <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card/35 shadow-2xl shadow-black/20 backdrop-blur-sm">
-              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:22px_22px] opacity-30" />
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
-              <div className="relative grid grid-cols-1 divide-y divide-white/6 md:grid-cols-2 md:divide-x md:divide-y-0 xl:grid-cols-4">
-                {heroSignals.map((signal) => (
-                  <div key={signal.label} className="p-5 md:p-6">
-                    <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                      {signal.label}
-                    </div>
-                    <div className={`text-3xl md:text-[2.6rem] font-bold leading-none tracking-tight ${signal.valueClassName}`}>
-                      {signal.value}
-                    </div>
-                    <p className="mt-3 max-w-[20rem] text-sm leading-relaxed text-muted-foreground">
-                      {signal.note}
-                    </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+              {heroSignals.map((signal) => (
+                <div key={signal.label} className="telemetry-tile">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="telemetry-label">{signal.label}</span>
+                    <span className={signal.status === 'live' ? 'badge-live' : 'badge-up'} />
                   </div>
-                ))}
-              </div>
+                  <div className={`telemetry-value ${
+                    signal.status === 'live' ? 'text-primary' :
+                    signal.label === 'store footprint' ? 'text-foreground' :
+                    signal.label === 'edge lab' ? 'text-code' : 'text-foreground'
+                  }`}>
+                    {signal.value}
+                  </div>
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    {signal.note}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="flex justify-center mb-12">
-            <span className="px-6 py-3 bg-card/60 border border-emerald-500/30 rounded-lg text-emerald-400 text-sm font-mono tracking-wide">
-              Google Cloud Professional Cloud Architect &mdash; Active
-            </span>
+          {/* Credential Badge */}
+          <div className="flex justify-center">
+            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-lg bg-card/40 border border-border/50">
+              <span className="badge-up">verified</span>
+              <span className="text-xs font-mono text-muted-foreground tracking-wide">
+                <span className="text-code">gcp:</span> Google Cloud Professional Cloud Architect — Active
+              </span>
+            </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center items-center">
+          {/* CTA Row */}
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center items-center pt-4">
             <Link
               href="/contact"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-all text-lg shadow-lg shadow-primary/20 hover:scale-105 duration-200"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-lg
+                hover:bg-primary/90 transition-all text-lg glow-primary hover:scale-[1.03] duration-200"
               aria-label="Get in touch"
             >
               Get in Touch <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
               href="/architecture"
-              className="inline-flex items-center gap-2 px-8 py-4 border border-border/50 text-foreground rounded-lg hover:bg-card/60 transition-all text-base font-mono"
+              className="inline-flex items-center gap-2 px-8 py-4 border border-border/50 text-foreground rounded-lg
+                hover:bg-card/60 transition-all text-base font-mono"
             >
               <Terminal className="w-5 h-5 text-primary" />
               View Architecture
             </Link>
             <Link
               href="/chat"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-card/40 text-foreground border border-white/5 rounded-lg hover:bg-card/60 transition-all text-lg"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-card/40 text-foreground border border-border/50 rounded-lg
+                hover:bg-card/60 transition-all text-base font-mono"
             >
-              <Sparkles className="w-5 h-5 text-primary" />
+              <Sparkles className="w-5 h-5 text-code" />
               AI Chat
             </Link>
           </div>
         </div>
       </section>
 
+      {/* ── DIVIDER ── */}
+      <div className="section-divider" />
+
       {/* ── WAR ROOM & OBSERVABILITY ── */}
-      <section id="war-room" className="py-20 md:py-32 px-4 md:px-6 border-t border-white/5">
+      <section id="war-room" className="py-20 md:py-32 px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-3 mb-4">
-            <Eye className="size-5 text-primary" />
-            <span className="font-mono text-sm text-muted-foreground">war-room.md</span>
+          <div className="section-indicator mb-4">
+            <span>Observability</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
             War Room <span className="text-primary">&amp; Observability</span>
@@ -184,19 +257,21 @@ function PortfolioContent() {
                 { label: 'Payload Mapping', desc: 'Correlate business payloads with infrastructure telemetry. When a transaction fails, know exactly where, why, and what data was involved.' },
                 { label: 'Root Cause Analysis', desc: 'Structured incident investigation. Flame graphs, span waterfalls, and metric correlation to eliminate guesswork from postmortems.' },
               ].map((item) => (
-                <div key={item.label} className="p-5 rounded-lg bg-card/40 border border-border/50 hover:border-primary/30 transition-colors">
-                  <h3 className="font-mono text-primary font-semibold mb-2">{item.label}</h3>
+                <div key={item.label} className="telemetry-tile">
+                  <h3 className="font-mono text-primary text-sm font-semibold mb-2">{item.label}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
                 </div>
               ))}
             </div>
 
-            <div className="rounded-xl border border-border/60 bg-[#0a0a0f] overflow-hidden shadow-2xl self-start">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-card/20">
-                <div className="size-3 rounded-full bg-red-500/60" />
-                <div className="size-3 rounded-full bg-yellow-500/60" />
-                <div className="size-3 rounded-full bg-green-500/60" />
-                <span className="ml-2 text-xs text-muted-foreground font-mono">otel-collector.yaml</span>
+            {/* Terminal Code Block */}
+            <div className="terminal-window self-start">
+              <div className="terminal-header">
+                <div className="terminal-dot terminal-dot-red" />
+                <div className="terminal-dot terminal-dot-yellow" />
+                <div className="terminal-dot terminal-dot-green" />
+                <span className="terminal-title">otel-collector.yaml</span>
+                <span className="ml-auto badge-up">running</span>
               </div>
               <pre className="p-5 text-xs sm:text-sm font-mono text-muted-foreground overflow-x-auto leading-relaxed">
 {`receivers:
@@ -238,12 +313,14 @@ service:
         </div>
       </section>
 
+      {/* ── DIVIDER ── */}
+      <div className="section-divider" />
+
       {/* ── ENTERPRISE MIGRATION ── */}
-      <section id="migration" className="py-20 md:py-32 px-4 md:px-6 border-t border-white/5">
+      <section id="migration" className="py-20 md:py-32 px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-3 mb-4">
-            <GitMerge className="size-5 text-primary" />
-            <span className="font-mono text-sm text-muted-foreground">migration-playbook.md</span>
+          <div className="section-indicator mb-4">
+            <span>Deployments</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
             Enterprise <span className="text-primary">Migration</span>
@@ -260,24 +337,30 @@ service:
                 title: 'Zero-Downtime Tender Migrations',
                 desc: 'Led multi-phase migration strategies for enterprise tender systems. Blue-green deployments, traffic shadowing, and automated rollback gates ensuring zero customer impact.',
                 tags: ['Blue-Green', 'Traffic Shadow', 'Rollback Gates'],
+                status: 'up' as const,
               },
               {
                 title: 'Monolith Decomposition',
                 desc: 'Refactored legacy monolithic payment services into isolated, type-safe Go microservices. Each service owns its data, its deployment, and its on-call rotation.',
                 tags: ['Go', 'Domain Isolation', 'Cloud Run'],
+                status: 'up' as const,
               },
               {
                 title: 'Type-Safe Contract Evolution',
                 desc: 'Introduced protobuf contracts and backwards-compatible API versioning. Breaking changes are caught at compile time, not in production at 2 AM.',
                 tags: ['Protobuf', 'gRPC', 'API Versioning'],
+                status: 'up' as const,
               },
             ].map((item) => (
-              <div key={item.title} className="p-6 rounded-lg bg-card/40 border border-border/50 hover:border-primary/30 transition-colors group">
-                <h3 className="font-semibold text-lg text-foreground mb-3 group-hover:text-primary transition-colors">{item.title}</h3>
+              <div key={item.title} className="telemetry-tile group">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{item.title}</h3>
+                  <span className="badge-up" />
+                </div>
                 <p className="text-sm text-muted-foreground leading-relaxed mb-4">{item.desc}</p>
                 <div className="flex flex-wrap gap-2">
                   {item.tags.map((tag) => (
-                    <span key={tag} className="px-2 py-1 text-xs font-mono bg-primary/5 border border-primary/10 rounded text-primary/80">
+                    <span key={tag} className="px-2 py-1 text-[11px] font-mono bg-primary/5 border border-primary/10 rounded text-primary/70">
                       {tag}
                     </span>
                   ))}
@@ -288,12 +371,14 @@ service:
         </div>
       </section>
 
+      {/* ── DIVIDER ── */}
+      <div className="section-divider" />
+
       {/* ── SILICON TO SATELLITE ── */}
-      <section id="edge-ai" className="py-20 md:py-32 px-4 md:px-6 border-t border-white/5">
+      <section id="edge-ai" className="py-20 md:py-32 px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-3 mb-4">
-            <Cpu className="size-5 text-primary" />
-            <span className="font-mono text-sm text-muted-foreground">silicon-to-satellite.md</span>
+          <div className="section-indicator mb-4">
+            <span>Edge Fleet</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
             Silicon-to-Satellite <span className="text-primary">Systems</span>
@@ -324,19 +409,21 @@ service:
                   desc: 'Runbooks, RAG, and event summarization sit on top of real telemetry so AI helps operators reason about incidents instead of pretending to be the product.',
                 },
               ].map((item) => (
-                <div key={item.title} className="p-5 rounded-lg bg-card/40 border border-border/50 hover:border-primary/30 transition-colors">
+                <div key={item.title} className="telemetry-tile">
                   <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
                 </div>
               ))}
             </div>
 
-            <div className="rounded-xl border border-border/60 bg-[#0a0a0f] overflow-hidden shadow-2xl self-start">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-card/20">
-                <div className="size-3 rounded-full bg-red-500/60" />
-                <div className="size-3 rounded-full bg-yellow-500/60" />
-                <div className="size-3 rounded-full bg-green-500/60" />
-                <span className="ml-2 text-xs text-muted-foreground font-mono">edge-fleet.yaml</span>
+            {/* Terminal Code Block */}
+            <div className="terminal-window self-start">
+              <div className="terminal-header">
+                <div className="terminal-dot terminal-dot-red" />
+                <div className="terminal-dot terminal-dot-yellow" />
+                <div className="terminal-dot terminal-dot-green" />
+                <span className="terminal-title">edge-fleet.yaml</span>
+                <span className="ml-auto badge-live">live</span>
               </div>
               <pre className="p-5 text-xs sm:text-sm font-mono text-muted-foreground overflow-x-auto leading-relaxed">
 {`fleet:
@@ -359,9 +446,10 @@ ai:
             </div>
           </div>
 
+          {/* Tag Cloud */}
           <div className="flex flex-wrap gap-3 mt-10">
             {['Go', 'GCP', 'Terraform', 'GKE / Kubernetes', 'ESP32', 'Raspberry Pi 5', 'Frigate', 'Cloud Run', 'BigQuery', 'OpenTelemetry', 'Distributed Tracing', 'RAG'].map((tag) => (
-              <span key={tag} className="px-3 py-1.5 text-xs font-mono bg-card/60 border border-border/50 rounded-lg text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors">
+              <span key={tag} className="px-3 py-1.5 text-xs font-mono bg-card/40 border border-border/50 rounded text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors">
                 {tag}
               </span>
             ))}
@@ -369,22 +457,27 @@ ai:
         </div>
       </section>
 
-      {/* ── STATUS ── */}
-      <section className="py-12 px-4 border-t border-white/5">
+      {/* ── DIVIDER ── */}
+      <div className="section-divider" />
+
+      {/* ── STATUS BAR ── */}
+      <section className="py-12 px-4">
         <div className="max-w-5xl mx-auto flex justify-center">
-          <div className="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-card/40 border border-border/50">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-            </span>
-            <Radio className="size-4 text-emerald-400" />
+          <div className="inline-flex items-center gap-3 px-5 py-3 rounded-lg bg-card/40 border border-border/50">
+            <span className="badge-live">available</span>
+            <Radio className="size-4 text-code" />
             <p className="text-sm font-mono text-muted-foreground">
               accepting interviews &mdash; Senior Platform Engineer roles
             </p>
+            <span className="h-4 w-px bg-border/50" />
+            <span className="text-[11px] font-mono text-muted-foreground tracking-wide">
+              status: <span className="text-code">open</span>
+            </span>
           </div>
         </div>
       </section>
 
+      {/* JSON-LD Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -413,7 +506,7 @@ ai:
 
 export default function Home() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-primary font-mono">loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-mono text-primary">booting...</div>}>
       <PortfolioContent />
     </Suspense>
   );
