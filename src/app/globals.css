@@ -122,40 +122,41 @@
     font-feature-settings: "ss01", "ss02", "cv01", "cv02";
     min-height: 100vh;
     position: relative;
-    background-image:
-      /* Radial monitor glow corners */
-      radial-gradient(ellipse at 0% 0%, oklch(0.65 0.18 195 / 0.08), transparent 45%),
-      radial-gradient(ellipse at 100% 100%, oklch(0.62 0.18 50 / 0.06), transparent 40%),
-      /* Console grid — finer, more technical */
-      repeating-linear-gradient(0deg, oklch(0.65 0.18 195 / 0.04) 0px, transparent 1px, transparent 32px),
-      repeating-linear-gradient(90deg, oklch(0.65 0.18 195 / 0.04) 0px, transparent 1px, transparent 32px);
-    background-attachment: fixed;
   }
 
-  /* CRT scanline overlay */
-  body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 9999;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      oklch(0 0 0 / 0.035) 2px,
-      oklch(0 0 0 / 0.035) 4px
-    );
-  }
-
-  /* Ambient phosphor bleed */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
     pointer-events: none;
+    z-index: -1;
+    background-image:
+      /* Radial monitor glow corners */
+      radial-gradient(ellipse at 0% 0%, oklch(0.65 0.18 195 / 0.08), transparent 45%),
+      radial-gradient(ellipse at 100% 100%, oklch(0.62 0.18 50 / 0.06), transparent 40%),
+      /* Console grid — fixed position via pseudo-element */
+      repeating-linear-gradient(0deg, oklch(0.65 0.18 195 / 0.04) 0px, transparent 1px, transparent 32px),
+      repeating-linear-gradient(90deg, oklch(0.65 0.18 195 / 0.04) 0px, transparent 1px, transparent 32px);
+  }
+
+  /* CRT scanline overlay + phosphor bleed */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
     background:
-      radial-gradient(circle at 50% 30%, oklch(0.65 0.18 195 / 0.03), transparent 60%);
+      /* Phosphor glow */
+      radial-gradient(circle at 50% 30%, oklch(0.65 0.18 195 / 0.03), transparent 60%),
+      /* Scanlines */
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        oklch(0 0 0 / 0.035) 2px,
+        oklch(0 0 0 / 0.035) 4px
+      );
   }
 
   ::-webkit-scrollbar {
@@ -310,12 +311,7 @@
   50% { opacity: 0.3; }
 }
 
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
-}
-
-/* ── Chat specific styles (unchanged) ── */
+/* ── Chat specific styles ── */
 .chat-markdown {
   @apply text-base leading-relaxed;
 }
