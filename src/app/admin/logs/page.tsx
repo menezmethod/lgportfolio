@@ -69,7 +69,7 @@ export default function AdminLogsPage() {
   useEffect(() => {
     if (storedSecret && entries.length === 0 && !loading) fetchLogs();
     // Intentionally only re-run when storedSecret changes (initial load); adding fetchLogs/loading/entries would re-fetch on every state change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [storedSecret]);
 
   const logout = () => {

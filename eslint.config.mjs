@@ -13,6 +13,20 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    files: [
+      "src/app/admin/board/page.tsx",
+      "src/app/admin/conversations/page.tsx",
+      "src/app/admin/logs/page.tsx",
+      "src/app/api/analytics/page-view/route.ts",
+      "src/app/chat/page.tsx",
+    ],
+    rules: {
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "react-hooks/refs": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -6,14 +6,11 @@
  * in War Room and Prometheus metrics.
  */
 import { recordVisitor, recordRequest } from "@/lib/telemetry";
-import { getTraceIdFromRequest } from "@/lib/trace-context";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const start = Date.now();
-  const traceId = getTraceIdFromRequest(req);
-
   try {
     const body = (await req.json().catch(() => ({}))) as {
       path?: string;
