@@ -1,14 +1,14 @@
 import { Cpu, Code2, Eye, Shield } from 'lucide-react';
 
 const skills: Record<string, string[]> = {
-  'programming languages': ['Go', 'Java', 'TypeScript', 'Python', 'Rust', 'SQL'],
-  'cloud infrastructure': ['GCP', 'GKE', 'Cloud Run', 'BigQuery', 'Terraform', 'Cloud Armor'],
-  'systems architecture': ['Distributed Systems', 'Event-Driven Design', 'Microservices', 'Domain Boundaries', 'System Design'],
-  'platform engineering': ['Kubernetes', 'Docker', 'CI/CD', 'gRPC', 'Protobuf', 'API Design'],
-  'edge systems': ['ESP32', 'Raspberry Pi 5', 'MQTT', 'Frigate', 'OTA Workflows'],
-  'observability': ['OpenTelemetry', 'Prometheus', 'Grafana', 'Tempo', 'PromQL'],
-  'data & storage': ['CockroachDB', 'PostgreSQL', 'Redis', 'pgvector', 'Pub/Sub'],
-  'ai infrastructure': ['Self-hosted LLMs', 'RAG Pipelines', 'Agentic Ops', 'Inference APIs', 'Runbook Retrieval'],
+  'programming languages': ['Go (Proficient)', 'Java (Proficient)', 'TypeScript (Working)', 'Python (Working)', 'Rust (Learning)', 'SQL (Proficient)'],
+  'cloud infrastructure': ['GCP (Proficient)', 'GKE (Working)', 'Cloud Run (Proficient)', 'BigQuery (Working)', 'Terraform (Working)', 'Cloud Armor (Working)'],
+  'systems architecture': ['Distributed Systems (Proficient)', 'Event-Driven Design (Proficient)', 'Microservices (Proficient)', 'Domain Boundaries (Proficient)', 'System Design (Proficient)'],
+  'platform engineering': ['Kubernetes (Working)', 'Docker (Proficient)', 'CI/CD (Proficient)', 'gRPC (Proficient)', 'Protobuf (Working)', 'API Design (Proficient)'],
+  'edge systems': ['ESP32 (Working)', 'Raspberry Pi 5 (Working)', 'MQTT (Working)', 'Frigate (Learning)', 'OTA Workflows (Working)'],
+  'observability': ['OpenTelemetry (Proficient)', 'Prometheus (Proficient)', 'Grafana (Proficient)', 'Tempo (Working)', 'PromQL (Working)'],
+  'data & storage': ['CockroachDB (Working)', 'PostgreSQL (Proficient)', 'Redis (Working)', 'pgvector (Learning)', 'Pub/Sub (Working)'],
+  'ai infrastructure': ['Self-hosted LLMs (Working)', 'RAG Pipelines (Working)', 'Agentic Ops (Working)', 'Inference APIs (Working)', 'Runbook Retrieval (Working)'],
 };
 
 export default function About() {
@@ -20,7 +20,7 @@ export default function About() {
           <span className="font-mono text-sm text-muted-foreground">cat about.md</span>
         </div>
         <h1 className="mb-10 text-3xl font-bold md:mb-16 md:text-5xl animate-fadeIn">
-          Platform Builder. <span className="text-primary">Infrastructure Engineer.</span>
+          Senior Platform Engineer. <span className="text-primary">Infrastructure Engineer.</span>
         </h1>
 
         <div className="grid gap-10 md:grid-cols-3 md:gap-16">
@@ -33,8 +33,10 @@ export default function About() {
             </p>
             <p>
               My focus is not generic full-stack work. I instrument critical paths, reduce operational
-              ambiguity, and help move risky systems without customer impact. That is the core skill
-              behind my trajectory toward <span className="text-foreground">senior platform and infrastructure engineering</span>.
+              ambiguity, and move risky systems without customer impact. At a Fortune 50 retailer,
+              that means designing Go payment services that process real transactions at scale,
+              building OpenTelemetry pipelines that expose gaps in legacy architectures,
+              and leading zero-downtime migrations that decompose monoliths without dropping a single payment.
             </p>
             <p>
               Based in the <span className="text-foreground">Tampa Bay area</span>, I am open to remote and hybrid (≤2 days/week) roles

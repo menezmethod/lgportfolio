@@ -67,7 +67,7 @@ function PortfolioContent() {
           </div>
 
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold">
-            <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">Platform Engineer.</span>
+            <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">Senior Platform Engineer.</span>
             <br />
             <span className="text-primary">Go. GCP. Observability.</span>
           </h1>
@@ -84,7 +84,7 @@ function PortfolioContent() {
           {isRecruiter ? (
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4 border-l-2 border-primary/50 pl-6 text-left">
               <strong className="text-foreground">Currently: Software Engineer II building Fortune 50 payment infrastructure.</strong>{' '}
-              Targeting senior platform and infrastructure roles.{' '}
+              Targeting Senior Platform Engineer roles.{' '}
               Tampa Bay based, open to remote and hybrid (≤2 days/week).{' '}
               I build Go services, payment rails, observability pipelines, and edge-to-cloud systems.
               Current proof point: a Fortune 50 payments domain with{' '}
@@ -379,7 +379,7 @@ ai:
             </span>
             <Radio className="size-4 text-emerald-400" />
             <p className="text-sm font-mono text-muted-foreground">
-              accepting interviews &mdash; senior platform and infrastructure roles
+              accepting interviews &mdash; Senior Platform Engineer roles
             </p>
           </div>
         </div>
@@ -392,7 +392,7 @@ ai:
             '@context': 'https://schema.org',
             '@type': 'Person',
             name: 'Luis Gimenez',
-            jobTitle: 'Platform Engineer',
+            jobTitle: 'Senior Platform Engineer',
             url: 'https://gimenez.dev',
             sameAs: [
               'https://github.com/menezmethod',
