@@ -1,11 +1,13 @@
 import { Cpu, Code2, Eye, Shield } from 'lucide-react';
 
 const skills: Record<string, string[]> = {
+  'programming languages': ['Go', 'Java', 'TypeScript', 'Python', 'Rust', 'SQL'],
+  'cloud infrastructure': ['GCP', 'GKE', 'Cloud Run', 'BigQuery', 'Terraform', 'Cloud Armor'],
   'systems architecture': ['Distributed Systems', 'Event-Driven Design', 'Microservices', 'Domain Boundaries', 'System Design'],
-  'cloud architecture': ['GKE', 'Cloud Run', 'BigQuery', 'Terraform', 'Cloud Armor'],
+  'platform engineering': ['Kubernetes', 'Docker', 'CI/CD', 'gRPC', 'Protobuf', 'API Design'],
   'edge systems': ['ESP32', 'Raspberry Pi 5', 'MQTT', 'Frigate', 'OTA Workflows'],
   'observability': ['OpenTelemetry', 'Prometheus', 'Grafana', 'Tempo', 'PromQL'],
-  'platform and data': ['CockroachDB', 'PostgreSQL', 'Redis', 'pgvector', 'Pub/Sub'],
+  'data & storage': ['CockroachDB', 'PostgreSQL', 'Redis', 'pgvector', 'Pub/Sub'],
   'ai infrastructure': ['Self-hosted LLMs', 'RAG Pipelines', 'Agentic Ops', 'Inference APIs', 'Runbook Retrieval'],
 };
 
@@ -18,21 +20,25 @@ export default function About() {
           <span className="font-mono text-sm text-muted-foreground">cat about.md</span>
         </div>
         <h1 className="mb-10 text-3xl font-bold md:mb-16 md:text-5xl animate-fadeIn">
-          Systems Operator. <span className="text-primary">Architect.</span>
+          Platform Builder. <span className="text-primary">Infrastructure Engineer.</span>
         </h1>
 
         <div className="grid gap-10 md:grid-cols-3 md:gap-16">
           <div className="space-y-8 text-lg leading-relaxed text-muted-foreground md:col-span-2">
             <p>
               I work inside one of the hardest engineering environments to fake: enterprise payments.
-              At <span className="font-semibold text-primary">The Home Depot</span>, I contribute to a
-              tender ecosystem that supports <span className="font-semibold text-foreground">2400+ stores</span>,
+              At <span className="font-semibold text-primary">The Home Depot</span>, I design and build
+              Go-based payment services that support <span className="font-semibold text-foreground">2400+ stores</span>,
               high-throughput transaction flows, and platinum-tier uptime expectations.
             </p>
             <p>
               My focus is not generic full-stack work. I instrument critical paths, reduce operational
               ambiguity, and help move risky systems without customer impact. That is the core skill
-              behind my career shift toward <span className="text-foreground">staff and principal-scope systems architecture</span>.
+              behind my trajectory toward <span className="text-foreground">senior platform and infrastructure engineering</span>.
+            </p>
+            <p>
+              Based in the <span className="text-foreground">Tampa Bay area</span>, I am open to remote and hybrid (≤2 days/week) roles
+              in platform engineering, infrastructure, and systems architecture.
             </p>
             <p>
               The next layer is hardware-cloud fusion: ESP32 nodes, Raspberry Pi 5 gateways, machine

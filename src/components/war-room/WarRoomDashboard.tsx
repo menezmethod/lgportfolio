@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Cpu, Zap, Shield, Database, Radio, Clock, AlertTriangle, BarChart3, Wifi, Bot, ChevronDown, ChevronUp } from 'lucide-react';
+import { Cpu, Zap, Shield, Database, Radio, Clock, AlertTriangle, BarChart3, Wifi, Bot, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
@@ -41,6 +41,7 @@ export interface WarRoomData {
   slos?: Array<{ name: string; target: number; unit: string; current: number; met: boolean }>;
   recent_events: Array<{ timestamp: string; type: string; message: string }>;
   recent_errors: Array<{ timestamp: string; endpoint: string; status_code: number; message: string; trace_id?: string }>;
+  recent_visitors?: Array<{ timestamp: string; category: string; path: string; referrer: string; userAgent: string; uaSummary: string }>;
   timeseries: {
     latency_1h: Array<{ t: number; p50: number; p95: number }>;
     requests_1h: Array<{ t: number; count: number; errors: number }>;
@@ -323,6 +324,40 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
             <div className="divide-y divide-white/5">
               {(d.recent_errors ?? []).slice(0, compact ? 5 : 10).map((err, i) => (
                 <RecentErrorRow key={i} error={err} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {(d.recent_visitors ?? []).length > 0 && !compact && (
+        <section>
+          <h3 className="text-xs font-mono text-gray-500 uppercase mb-4 flex items-center gap-2">
+            <Users className="size-3.5 text-blue-400" /> Recent Visitors
+          </h3>
+          <div className="rounded-lg border border-white/5 bg-[#161b22] overflow-hidden">
+            <div className="divide-y divide-white/5">
+              {(d.recent_visitors ?? []).slice(0, 10).map((v, i) => (
+                <div key={i} className="flex items-center gap-3 px-4 py-2 hover:bg-white/[0.02] transition-colors text-xs font-mono">
+                  <span className="text-[10px] text-gray-600 min-w-[70px]">{new Date(v.timestamp).toLocaleTimeString()}</span>
+                  <span className={`min-w-[20px] text-center ${
+                    v.category === 'recruiter' ? 'text-amber-400' :
+                    v.category === 'person' ? 'text-emerald-400' :
+                    v.category === 'crawler' ? 'text-purple-400' :
+                    v.category === 'bot' ? 'text-gray-500' : 'text-gray-600'
+                  }`}>
+                    {v.category === 'recruiter' ? '🎯' :
+                     v.category === 'person' ? '👤' :
+                     v.category === 'crawler' ? '🤖' :
+                     v.category === 'bot' ? '⚙️' : '❓'}
+                  </span>
+                  <span className={`font-semibold uppercase tracking-wider ${
+                    v.category === 'recruiter' ? 'text-amber-400' : 'text-gray-400'
+                  }`}>{v.category}</span>
+                  <span className="text-gray-500 min-w-[80px] truncate">{v.uaSummary}</span>
+                  <span className="text-gray-300 truncate flex-1">{v.path}</span>
+                  {v.referrer && <span className="text-gray-600 truncate max-w-[200px]" title={v.referrer}>↳ {v.referrer.replace(/https?:\/\//, '').split('/')[0]}</span>}
+                </div>
               ))}
             </div>
           </div>
