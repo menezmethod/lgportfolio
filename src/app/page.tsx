@@ -59,20 +59,22 @@ function PortfolioContent() {
   useEffect(() => {
     const fullText = './identify --role';
     let idx = 0;
+    let blinkInterval: ReturnType<typeof setInterval> | null = null;
     const typeInterval = setInterval(() => {
       if (idx < fullText.length) {
         setTypedLine(fullText.slice(0, idx + 1));
         idx++;
       } else {
         clearInterval(typeInterval);
-        // Blink cursor after typing
-        const blink = setInterval(() => {
+        blinkInterval = setInterval(() => {
           setShowCursor((prev) => !prev);
         }, 530);
-        return () => clearInterval(blink);
       }
     }, 40);
-    return () => clearInterval(typeInterval);
+    return () => {
+      clearInterval(typeInterval);
+      if (blinkInterval) clearInterval(blinkInterval);
+    };
   }, []);
 
   return (
@@ -133,7 +135,7 @@ function PortfolioContent() {
           </div>
 
           {/* Rotating Subtitle */}
-          <div className="h-[50px] md:h-[60px] flex items-center">
+          <div className="h-[50px] md:h-[60px] flex items-center" aria-label="Current role" aria-live="polite">
             <div className="inline-flex items-center gap-3 px-4 py-2 rounded-lg bg-card/40 border border-border/50">
               <span className="badge-live">active</span>
               <span className="font-mono text-sm md:text-base text-muted-foreground transition-all duration-500">
