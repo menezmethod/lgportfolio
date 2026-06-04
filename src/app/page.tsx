@@ -284,7 +284,7 @@ function PortfolioContent() {
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl leading-relaxed mb-12">
             I lead complex migrations in high-stakes environments. At enterprise payment scale,
-            "move fast and break things" is not an option — every deployment goes through
+            &ldquo;move fast and break things&rdquo; is not an option — every deployment goes through
             blue-green gates, traffic shadowing, and automated rollback validation.
           </p>
 
