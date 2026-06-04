@@ -84,6 +84,18 @@ This section describes the environment Luis operates in. He did not build this p
 - Infrastructure-as-code via CDK8s governing all Kubernetes resource definitions
 - Spinnaker pipelines for auto-deployment on merge to main
 
+### Go Experience
+Luis has been writing production Go since mid-2022 (approximately 4 years). He started with Go at The Home Depot when the Card Broker service was in development, and Go is now his primary language. He writes Go services in a high-throughput payment environment — not pet projects or tutorials.
+
+Key Go-specific contributions:
+- Contributed production Go code to Card Broker (credit/debit routing) for approximately 2 years of active development, including rollout across 2400+ stores
+- Writes Go services that process high-volume payment transactions with strict latency requirements (sub-second P90 across bank networks)
+- Uses Go with gRPC/Protobuf for inter-service contracts, CockroachDB for persistence, and OpenTelemetry SDK for observability
+- Contributed to multiple Go microservices across the payments domain (gift card tender, account-to-account routing, authorization routing)
+- Builds Grafana dashboards and Prometheus alert rules for Go services in production
+
+Outside of work, Luis uses Go for personal infrastructure projects including edge gateway services, MQTT ingestion, and CLI tooling. His Go depth is in systems programming, concurrent request handling, database interactions, and observability instrumentation — not web frameworks or CRUD APIs.
+
 ### Core Services Luis Has Worked Across
 - Card Broker: Primary credit/debit card routing service; drives significant cost optimization through optimal bank fee routing
 - Enterprise Gift Card Tender: Multiple API operations, extensive telemetry, SLO-based alert rules
