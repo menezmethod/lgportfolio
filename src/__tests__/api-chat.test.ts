@@ -128,10 +128,10 @@ describe("/api/chat — Inferencia configuration", () => {
     );
   });
 
-  it("calls streamText with maxOutputTokens 500", async () => {
+  it("calls streamText with maxOutputTokens 1500", async () => {
     await POST(makeChatRequest(validBody));
     expect(mockStreamText).toHaveBeenCalledWith(
-      expect.objectContaining({ maxOutputTokens: 500 })
+      expect.objectContaining({ maxOutputTokens: 1500 })
     );
   });
 
