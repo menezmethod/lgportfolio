@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Terminal, Radio, Shield } from 'lucide-react';
+import { ArrowRight, Terminal, Radio } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
