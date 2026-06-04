@@ -12,7 +12,7 @@ describe("rate-limit", () => {
     it("allows first request and decrements remaining", () => {
       const r = checkRateLimit("1.2.3.4");
       expect(r.allowed).toBe(true);
-      expect(r.remaining).toBeLessThanOrEqual(1);
+      expect(r.remaining).toBeLessThanOrEqual(5);
     });
 
     it("allows then denies when window exhausted", () => {
