@@ -4,6 +4,7 @@ import { Github, Linkedin, Twitter, Mail } from "lucide-react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import PageViewTracker from "@/components/PageViewTracker";
 
 const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -16,20 +17,24 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Luis Gimenez | Systems & AI Architect — GCP, Observability, Edge Systems",
+  title: "Luis Gimenez | Platform Engineer — Go, GCP, Observability, Infrastructure",
   description:
-    "Systems and AI architect focused on distributed systems, observability, and edge-to-cloud infrastructure. GCP Professional Cloud Architect with production payments experience.",
+    "Platform engineer specializing in Go, GCP, observability, and edge-to-cloud infrastructure. GCP Professional Cloud Architect building production payment systems at Fortune 50 scale. Tampa Bay / remote.",
   keywords: [
-    "Systems and AI Architect",
-    "GCP Cloud Architect",
+    "Platform Engineer",
+    "Go",
+    "GCP",
+    "Cloud Infrastructure",
+    "Terraform",
+    "Kubernetes",
     "Observability",
-    "Edge Systems",
-    "ESP32",
-    "Raspberry Pi 5",
-    "Distributed Systems",
     "OpenTelemetry",
+    "Distributed Systems",
     "Payment Systems",
+    "Edge Systems",
     "AI Infrastructure",
+    "Edge Computing",
+    "Google Cloud",
   ],
   authors: [{ name: "Luis Gimenez" }],
   openGraph: {
@@ -90,6 +95,7 @@ export default function RootLayout({
           <span className="hidden sm:inline">Connect</span>
         </a>
         <GoogleAnalytics />
+        <PageViewTracker />
       </body>
     </html>
   );

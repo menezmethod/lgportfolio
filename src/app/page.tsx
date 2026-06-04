@@ -8,8 +8,9 @@ import { Suspense } from 'react';
 
 const titles = [
   'GCP Professional Cloud Architect',
-  'Principal-Track Systems Architect',
-  'Edge AI Infrastructure Builder',
+  'Go · Platform & Infrastructure',
+  'Edge Systems & Observability',
+  'AI Infrastructure & Agentic Ops',
   'Silicon-to-Satellite Operator',
 ];
 
@@ -66,9 +67,9 @@ function PortfolioContent() {
           </div>
 
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold">
-            <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">Systems Architect.</span>
+            <span className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">Platform Engineer.</span>
             <br />
-            <span className="text-primary">Edge Systems. AI Infrastructure.</span>
+            <span className="text-primary">Go. GCP. Observability.</span>
           </h1>
 
           <div className="h-[50px] md:h-[60px] mb-6" aria-label="Current role" aria-live="polite">
@@ -82,15 +83,17 @@ function PortfolioContent() {
 
           {isRecruiter ? (
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4 border-l-2 border-primary/50 pl-6 text-left">
-              <strong className="text-foreground">Available for Staff, Principal-track, and AI infrastructure roles.</strong>{' '}
-              I build the systems under the interface: payment rails, observability, and edge-to-cloud AI control planes.
+              <strong className="text-foreground">Currently: Software Engineer II building Fortune 50 payment infrastructure.</strong>{' '}
+              Targeting senior platform and infrastructure roles.{' '}
+              Tampa Bay based, open to remote and hybrid (≤2 days/week).{' '}
+              I build Go services, payment rails, observability pipelines, and edge-to-cloud systems.
               Current proof point: a Fortune 50 payments domain with{' '}
               <strong className="text-foreground">2400+ stores, platinum-tier uptime expectations, and sub-50ms critical paths</strong>.
             </p>
           ) : (
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
               I design systems that start at hardware and end in measurable cloud outcomes.
-              Today that means mission-critical payment infrastructure at a{' '}
+              Today that means Go services and mission-critical payment infrastructure at a{' '}
               <strong className="text-foreground">Fortune 50 retailer</strong>. Next it means
               public edge labs built from <strong className="text-foreground">ESP32 nodes, Raspberry Pi 5 gateways, and GCP observability</strong>.
             </p>
@@ -357,7 +360,7 @@ ai:
           </div>
 
           <div className="flex flex-wrap gap-3 mt-10">
-            {['ESP32', 'Raspberry Pi 5', 'Frigate', 'Cloud Run', 'BigQuery', 'OpenTelemetry', 'RAG', 'Agentic Ops'].map((tag) => (
+            {['Go', 'GCP', 'Terraform', 'GKE / Kubernetes', 'ESP32', 'Raspberry Pi 5', 'Frigate', 'Cloud Run', 'BigQuery', 'OpenTelemetry', 'Distributed Tracing', 'RAG'].map((tag) => (
               <span key={tag} className="px-3 py-1.5 text-xs font-mono bg-card/60 border border-border/50 rounded-lg text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors">
                 {tag}
               </span>
@@ -376,7 +379,7 @@ ai:
             </span>
             <Radio className="size-4 text-emerald-400" />
             <p className="text-sm font-mono text-muted-foreground">
-              accepting interviews &mdash; staff, principal-track, and AI infrastructure roles
+              accepting interviews &mdash; senior platform and infrastructure roles
             </p>
           </div>
         </div>
@@ -389,7 +392,7 @@ ai:
             '@context': 'https://schema.org',
             '@type': 'Person',
             name: 'Luis Gimenez',
-            jobTitle: 'Systems and AI Architect',
+            jobTitle: 'Platform Engineer',
             url: 'https://gimenez.dev',
             sameAs: [
               'https://github.com/menezmethod',
@@ -400,7 +403,7 @@ ai:
               '@type': 'Organization',
               name: 'The Home Depot',
             },
-            knowsAbout: ['Go', 'Distributed Systems', 'GCP', 'Edge AI', 'ESP32', 'OpenTelemetry', 'Payment Architecture'],
+            knowsAbout: ['Go', 'Java', 'GCP', 'Terraform', 'Kubernetes', 'OpenTelemetry', 'Distributed Systems', 'Payment Architecture'],
           }),
         }}
       />

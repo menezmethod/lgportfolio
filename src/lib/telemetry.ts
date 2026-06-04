@@ -28,6 +28,103 @@ const MAX_OBSERVATIONS = 2000;
 const MAX_TIMESERIES_POINTS = 360; // 1h at 10s intervals
 const MAX_EVENTS = 50;
 const MAX_RECENT_ERRORS = 20;
+const MAX_RECENT_VISITORS = 50;
+
+// ── Visitor Analytics ────────────────────────────────────────────────────────
+
+export type VisitorCategory = "recruiter" | "person" | "crawler" | "bot" | "unknown";
+
+export interface VisitorRecord {
+  timestamp: string;
+  category: VisitorCategory;
+  path: string;
+  referrer: string;
+  userAgent: string;
+  uaSummary: string;
+}
+
+/** Classify a User-Agent string into a visitor category. */
+export function classifyVisitor(userAgent: string): VisitorCategory {
+  if (!userAgent || userAgent.length < 10) return "unknown";
+  const ua = userAgent.toLowerCase();
+
+  // Recruiter / ATS tools
+  const recruiterSignals = [
+    "linkedin", "greenhouse", "lever.co", "workday", "indeed",
+    "glassdoor", "ziprecruiter", "hackerrank", "codility",
+    "hire." , "ashbyhq", "breezy", "smartrecruiters", "icims",
+    "recruitee", "jazzhr", "bullhorn", "jobvite"
+  ];
+  if (recruiterSignals.some((s) => ua.includes(s))) return "recruiter";
+
+  // Known crawlers
+  const crawlerSignals = [
+    "googlebot", "bingbot", "slurp", "duckduckbot", "baiduspider",
+    "yandexbot", "facebot", "facebookexternalhit", "twitterbot",
+    "linkedinbot", "applebot", "semrush", "ahrefsbot", "majestic",
+    "dotbot", "rogerbot", "crawler", "spider", "scrapy"
+  ];
+  if (crawlerSignals.some((s) => ua.includes(s))) return "crawler";
+
+  // Known non-human bots (API clients, curl, etc)
+  const botSignals = [
+    "curl/", "wget/", "python-requests", "go-http-client", "axios",
+    "node-fetch", "httpx", "aiohttp", "okhttp", "postman",
+    "insomnia", "httpie", "java/", "libcurl", "fetch/"
+  ];
+  if (botSignals.some((s) => ua.includes(s))) return "bot";
+
+  // Real browsers
+  const browserSignals = ["mozilla", "chrome/", "safari/", "firefox/", "edg/", "opr/", "gecko"];
+  if (browserSignals.some((s) => ua.includes(s))) return "person";
+
+  return "unknown";
+}
+
+function summarizeUA(userAgent: string): string {
+  const ua = userAgent.toLowerCase();
+  if (ua.includes("linkedin")) return "LinkedIn";
+  if (ua.includes("greenhouse")) return "Greenhouse";
+  if (ua.includes("googlebot")) return "Googlebot";
+  if (ua.includes("bingbot")) return "Bingbot";
+  if (ua.includes("chrome/")) return "Chrome";
+  if (ua.includes("firefox/")) return "Firefox";
+  if (ua.includes("safari/") && !ua.includes("chrome")) return "Safari";
+  if (ua.includes("edg/")) return "Edge";
+  if (ua.includes("curl/")) return "curl";
+  if (ua.includes("python-requests")) return "Python";
+  if (ua.includes("postman")) return "Postman";
+  return userAgent.slice(0, 60);
+}
+
+const recentVisitors: VisitorRecord[] = [];
+
+export function recordVisitor(
+  path: string,
+  userAgent: string,
+  referrer: string
+): void {
+  const category = classifyVisitor(userAgent);
+  const record: VisitorRecord = {
+    timestamp: new Date().toISOString(),
+    category,
+    path,
+    referrer: referrer?.slice(0, 200) || "",
+    userAgent: userAgent?.slice(0, 200) || "",
+    uaSummary: summarizeUA(userAgent),
+  };
+  recentVisitors.push(record);
+  if (recentVisitors.length > MAX_RECENT_VISITORS) recentVisitors.shift();
+
+  // Counters with category + path labels for Prometheus
+  increment(`visitors_total{category="${category}"}`);
+  increment(`visitors_total{category="${category}",path="${path}"}`);
+  if (referrer) increment("visitors_with_referrer_total");
+}
+
+export function getRecentVisitors(): VisitorRecord[] {
+  return [...recentVisitors].reverse();
+}
 
 // ── Counters ────────────────────────────────────────────────────────────────
 
@@ -414,6 +511,7 @@ export interface WarRoomData {
   slos: SLODefinition[];
   recent_events: TelemetryEvent[];
   recent_errors: RecentError[];
+  recent_visitors: VisitorRecord[];
   timeseries: {
     latency_1h: Array<{ t: number; p50: number; p95: number }>;
     requests_1h: Array<{ t: number; count: number; errors: number }>;
@@ -462,6 +560,7 @@ export function getWarRoomData(): WarRoomData {
     slos: computeSLOs(),
     recent_events: [...events].reverse(),
     recent_errors: getRecentErrors(),
+    recent_visitors: getRecentVisitors(),
     timeseries: (() => {
       const oneHourAgo = Date.now() - 3600000;
       const buckets = timeSeriesBuckets.filter((b) => b.t > oneHourAgo);
