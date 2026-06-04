@@ -19,7 +19,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Luis Gimenez | Senior Platform Engineer — Go, GCP, Observability, Infrastructure",
   description:
-    "Senior platform engineer specializing in Go, GCP, observability, and edge-to-cloud infrastructure. GCP Professional Cloud Architect building production payment systems at Fortune 50 scale. Tampa Bay / remote.",
+    "Senior platform engineer building payment infrastructure at Fortune 50 scale. Go microservices, OpenTelemetry pipelines, and zero-downtime migrations. GCP Professional Cloud Architect. Tampa Bay / remote.",
   keywords: [
     "Senior Platform Engineer",
     "Go",
@@ -31,13 +31,14 @@ export const metadata: Metadata = {
     "OpenTelemetry",
     "Distributed Systems",
     "Payment Systems",
-    "Edge Systems",
+    "Platform Engineering",
+    "Infrastructure as Code",
   ],
   authors: [{ name: "Luis Gimenez" }],
   openGraph: {
-    title: "Luis Gimenez | Senior Platform Engineer — Go, GCP, Observability, Edge Systems",
+    title: "Luis Gimenez | Senior Platform Engineer — Go, GCP, Observability, Infrastructure",
     description:
-      "Senior platform engineer — Go, GCP, observability, and edge-to-cloud infrastructure. GCP-certified with production-scale payments experience and hardware-backed system design.",
+      "Senior platform engineer — Go, GCP, observability, and payment infrastructure. GCP-certified with production-scale payment systems experience at Fortune 50.",
     url: "https://gimenez.dev",
     siteName: "Luis Gimenez",
   },
