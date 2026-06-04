@@ -21,9 +21,7 @@ export default function Contact() {
 
         <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
           Selectively accepting interviews for{' '}
-          <span className="text-foreground font-semibold">Staff</span>,{' '}
-          <span className="text-foreground font-semibold">Principal-track</span>, and{' '}
-          <span className="text-foreground font-semibold">AI Infrastructure Architect</span> roles.
+          <span className="text-foreground font-semibold">Senior Platform Engineer</span> roles.
           If you need someone who can own observability, migrations, and edge-to-cloud systems design,
           let&apos;s talk.
         </p>
