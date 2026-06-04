@@ -18,12 +18,17 @@ const eslintConfig = defineConfig([
       "src/app/admin/board/page.tsx",
       "src/app/admin/conversations/page.tsx",
       "src/app/admin/logs/page.tsx",
-      "src/app/api/analytics/page-view/route.ts",
       "src/app/chat/page.tsx",
     ],
     rules: {
       "react-hooks/set-state-in-effect": "off",
-      "react-hooks/exhaustive-deps": "off",
+    },
+  },
+  {
+    files: [
+      "src/app/chat/page.tsx",
+    ],
+    rules: {
       "react-hooks/refs": "off",
     },
   },
