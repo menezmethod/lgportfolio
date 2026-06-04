@@ -85,7 +85,7 @@ export function checkRateLimit(ip: string): RateLimitResult {
 
   const now = Date.now();
   const windowMs = 60 * 1000;
-  const maxRequests = parseInt(process.env.CHAT_MAX_RPM_PER_IP || "2");
+  const maxRequests = parseInt(process.env.CHAT_MAX_RPM_PER_IP || "6");
 
   const existing = ipRateLimits.get(ip);
 
@@ -188,7 +188,7 @@ export function incrementSessionMessageCount(): number {
 export function isSessionLimitReached(): boolean {
   if (RATE_LIMITS_DISABLED) return false;
   const maxMessages = parseInt(
-    process.env.NEXT_PUBLIC_CHAT_MAX_MESSAGES || "10"
+    process.env.NEXT_PUBLIC_CHAT_MAX_MESSAGES || "30"
   );
   return getSessionMessageCount() >= maxMessages;
 }
