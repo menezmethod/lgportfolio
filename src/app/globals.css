@@ -5,74 +5,79 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Industrial edge-lab palette */
+  /* ── Operations Console Palette ──
+     Deep monitor-screen background, cyber-teal primary, warm amber secondary,
+     terminal green for code. Feels like a production observability dashboard. */
 
-  --primary: oklch(0.72 0.15 215);
+  --primary: oklch(0.65 0.18 195);
   --primary-foreground: oklch(0.98 0 0);
 
-  --secondary: oklch(0.74 0.16 52);
-  --secondary-foreground: oklch(0.15 0 0);
+  --secondary: oklch(0.62 0.18 50);
+  --secondary-foreground: oklch(0.12 0 0);
 
-  --accent: oklch(0.23 0.04 215);
+  --accent: oklch(0.52 0.18 285);
   --accent-foreground: oklch(0.98 0 0);
 
-  --muted: oklch(0.20 0.02 230);
-  --muted-foreground: oklch(0.70 0.02 230);
+  --muted: oklch(0.14 0.02 260);
+  --muted-foreground: oklch(0.55 0.04 260);
 
-  --destructive: oklch(0.60 0.20 20);
+  --destructive: oklch(0.62 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
 
-  --border: oklch(0.27 0.02 230);
-  --input: oklch(0.27 0.02 230);
-  --ring: oklch(0.72 0.15 215);
+  --border: oklch(0.20 0.025 260);
+  --input: oklch(0.20 0.025 260);
+  --ring: oklch(0.65 0.18 195);
 
-  --background: oklch(0.12 0.02 230);
-  --foreground: oklch(0.95 0.01 230);
+  --background: oklch(0.07 0.012 260);
+  --foreground: oklch(0.95 0.005 260);
 
-  --card: oklch(0.16 0.03 230);
-  --card-foreground: oklch(0.95 0.01 230);
+  --card: oklch(0.10 0.02 260);
+  --card-foreground: oklch(0.95 0.005 260);
 
-  --popover: oklch(0.14 0.03 230);
-  --popover-foreground: oklch(0.95 0.01 230);
+  --popover: oklch(0.09 0.02 260);
+  --popover-foreground: oklch(0.95 0.005 260);
 
-  --radius: 0.75rem;
+  --code: oklch(0.62 0.16 145);
 
-  --chart-1: oklch(0.72 0.15 215);
-  --chart-2: oklch(0.74 0.16 52);
-  --chart-3: oklch(0.55 0.20 280);
-  --chart-4: oklch(0.60 0.15 140);
-  --chart-5: oklch(0.85 0.10 80);
+  --radius: 0.5rem;
 
-  --sidebar: oklch(0.14 0.03 230);
-  --sidebar-foreground: oklch(0.95 0.01 230);
-  --sidebar-primary: oklch(0.72 0.15 215);
+  --chart-1: oklch(0.65 0.18 195);
+  --chart-2: oklch(0.62 0.18 50);
+  --chart-3: oklch(0.52 0.18 285);
+  --chart-4: oklch(0.60 0.16 145);
+  --chart-5: oklch(0.78 0.14 80);
+
+  --sidebar: oklch(0.09 0.02 260);
+  --sidebar-foreground: oklch(0.95 0.005 260);
+  --sidebar-primary: oklch(0.65 0.18 195);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.20 0.04 230);
+  --sidebar-accent: oklch(0.14 0.025 260);
   --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(0.27 0.02 230);
-  --sidebar-ring: oklch(0.72 0.15 215);
+  --sidebar-border: oklch(0.20 0.025 260);
+  --sidebar-ring: oklch(0.65 0.18 195);
 }
 
 .dark {
-  --background: oklch(0.12 0.02 230);
-  --foreground: oklch(0.95 0.01 230);
-  --card: oklch(0.16 0.03 230);
-  --card-foreground: oklch(0.95 0.01 230);
-  --popover: oklch(0.14 0.03 230);
-  --popover-foreground: oklch(0.95 0.01 230);
-  --primary: oklch(0.72 0.15 215);
+  --background: oklch(0.07 0.012 260);
+  --foreground: oklch(0.95 0.005 260);
+  --card: oklch(0.10 0.02 260);
+  --card-foreground: oklch(0.95 0.005 260);
+  --popover: oklch(0.09 0.02 260);
+  --popover-foreground: oklch(0.95 0.005 260);
+  --primary: oklch(0.65 0.18 195);
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.74 0.16 52);
-  --secondary-foreground: oklch(0.15 0 0);
-  --muted: oklch(0.20 0.02 230);
-  --muted-foreground: oklch(0.70 0.02 230);
-  --accent: oklch(0.23 0.04 215);
+  --secondary: oklch(0.62 0.18 50);
+  --secondary-foreground: oklch(0.12 0 0);
+  --muted: oklch(0.14 0.02 260);
+  --muted-foreground: oklch(0.55 0.04 260);
+  --accent: oklch(0.52 0.18 285);
   --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.60 0.20 20);
+  --destructive: oklch(0.62 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.27 0.02 230);
-  --input: oklch(0.27 0.02 230);
-  --ring: oklch(0.72 0.15 215);
+  --border: oklch(0.20 0.025 260);
+  --input: oklch(0.20 0.025 260);
+  --ring: oklch(0.65 0.18 195);
+  --code: oklch(0.62 0.16 145);
 }
 
 @theme inline {
@@ -84,7 +89,6 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  /* Map theme colors to CSS variables */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -104,6 +108,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-code: var(--code);
 }
 
 @layer base {
@@ -118,24 +123,39 @@
     min-height: 100vh;
     position: relative;
     background-image:
-      radial-gradient(circle at top left, oklch(0.46 0.09 215 / 0.18), transparent 28%),
-      radial-gradient(circle at bottom right, oklch(0.62 0.11 52 / 0.1), transparent 24%),
-      linear-gradient(to right, oklch(0.27 0.02 230 / 0.22) 1px, transparent 1px),
-      linear-gradient(to bottom, oklch(0.27 0.02 230 / 0.22) 1px, transparent 1px);
-    background-size: auto, auto, 48px 48px, 48px 48px;
+      /* Radial monitor glow corners */
+      radial-gradient(ellipse at 0% 0%, oklch(0.65 0.18 195 / 0.08), transparent 45%),
+      radial-gradient(ellipse at 100% 100%, oklch(0.62 0.18 50 / 0.06), transparent 40%),
+      /* Console grid — finer, more technical */
+      repeating-linear-gradient(0deg, oklch(0.65 0.18 195 / 0.04) 0px, transparent 1px, transparent 32px),
+      repeating-linear-gradient(90deg, oklch(0.65 0.18 195 / 0.04) 0px, transparent 1px, transparent 32px);
     background-attachment: fixed;
   }
 
+  /* CRT scanline overlay */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      oklch(0 0 0 / 0.035) 2px,
+      oklch(0 0 0 / 0.035) 4px
+    );
+  }
+
+  /* Ambient phosphor bleed */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
     pointer-events: none;
     background:
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.015), transparent 22%),
-      linear-gradient(to right, rgba(255, 255, 255, 0.012), transparent 30%);
-    mix-blend-mode: screen;
-    opacity: 0.5;
+      radial-gradient(circle at 50% 30%, oklch(0.65 0.18 195 / 0.03), transparent 60%);
   }
 
   ::-webkit-scrollbar {
@@ -148,33 +168,154 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-primary/30 rounded-full hover:bg-primary/50 transition-colors;
+    @apply bg-primary/25 rounded-full hover:bg-primary/45 transition-colors;
+  }
+
+  /* Console-style text selection */
+  ::selection {
+    background: oklch(0.65 0.18 195 / 0.3);
+    color: oklch(0.98 0 0);
+  }
+}
+
+@layer components {
+  /* ── Terminal Window Chrome ── */
+  .terminal-window {
+    @apply rounded-lg border border-border/60 bg-card/40 overflow-hidden shadow-2xl shadow-black/30 backdrop-blur-sm;
+  }
+
+  .terminal-header {
+    @apply flex items-center gap-2 px-4 py-3 border-b border-border/40 bg-card/60;
+  }
+
+  .terminal-dot {
+    @apply size-2.5 rounded-full;
+  }
+
+  .terminal-dot-red { @apply bg-rose-500/80; }
+  .terminal-dot-yellow { @apply bg-amber-500/80; }
+  .terminal-dot-green { @apply bg-emerald-500/80; }
+
+  .terminal-title {
+    @apply ml-2 text-[11px] font-mono text-muted-foreground tracking-wide;
+  }
+
+  .terminal-body {
+    @apply p-5 text-sm font-mono leading-relaxed text-muted-foreground;
+  }
+
+  /* ── Status Badges ── */
+  .badge-live {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono uppercase tracking-wider
+      bg-emerald-500/10 text-emerald-400 border border-emerald-500/20;
+  }
+
+  .badge-live::before {
+    content: "";
+    @apply inline-block size-1.5 rounded-full bg-emerald-400;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  .badge-up {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono uppercase tracking-wider
+      bg-primary/10 text-primary border border-primary/20;
+  }
+
+  .badge-up::before {
+    content: "";
+    @apply inline-block size-1.5 rounded-full bg-primary;
+  }
+
+  .badge-warn {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono uppercase tracking-wider
+      bg-amber-500/10 text-amber-400 border border-amber-500/20;
+  }
+
+  .badge-err {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono uppercase tracking-wider
+      bg-rose-500/10 text-rose-400 border border-rose-500/20;
+  }
+
+  /* ── Console Telemetry Tile ── */
+  .telemetry-tile {
+    @apply relative overflow-hidden rounded-lg border border-border/50 bg-card/30 p-5
+      hover:border-primary/30 hover:bg-card/50 transition-all duration-300;
+  }
+
+  .telemetry-tile::before {
+    content: "";
+    @apply absolute top-0 left-0 w-full h-px;
+    background: linear-gradient(to right, transparent, oklch(0.65 0.18 195 / 0.3), transparent);
+  }
+
+  .telemetry-label {
+    @apply font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground;
+  }
+
+  .telemetry-value {
+    @apply text-3xl md:text-4xl font-bold tracking-tight;
+  }
+
+  /* ── Glow Utilities ── */
+  .glow-primary {
+    box-shadow: 0 0 30px -8px oklch(0.65 0.18 195 / 0.25),
+                0 0 60px -16px oklch(0.65 0.18 195 / 0.1);
+  }
+
+  .glow-secondary {
+    box-shadow: 0 0 30px -8px oklch(0.62 0.18 50 / 0.22);
+  }
+
+  .glow-code {
+    box-shadow: 0 0 25px -8px oklch(0.62 0.16 145 / 0.2);
+  }
+
+  /* ── Section Divider ── */
+  .section-divider {
+    @apply w-full h-px;
+    background: linear-gradient(to right, transparent, oklch(0.65 0.18 195 / 0.2), transparent);
   }
 }
 
 @layer utilities {
-  .glass {
-    @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-lg;
-  }
-
-  .glass-card {
-    @apply bg-card/40 backdrop-blur-xl border border-white/5 shadow-2xl shadow-black/20;
-  }
-
-  .glow-primary {
-    box-shadow: 0 0 30px -10px oklch(0.72 0.15 215 / 0.35);
-  }
-
-  .glow-secondary {
-    box-shadow: 0 0 30px -10px oklch(0.74 0.16 52 / 0.32);
-  }
-
   .text-balance-header {
     text-wrap: balance;
   }
+
+  /* Monospace label utility */
+  .console-label {
+    @apply font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground;
+  }
+
+  /* Section header line with dot */
+  .section-indicator {
+    @apply flex items-center gap-3 font-mono text-xs text-muted-foreground;
+  }
+
+  .section-indicator::before {
+    content: "";
+    @apply inline-block size-1.5 rounded-full bg-primary;
+  }
+
+  .section-indicator::after {
+    content: "";
+    @apply flex-1 h-px;
+    background: linear-gradient(to right, oklch(0.65 0.18 195 / 0.3), transparent);
+  }
 }
 
-/* Chat specific styles */
+/* ── Animations ── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+/* ── Chat specific styles (unchanged) ── */
 .chat-markdown {
   @apply text-base leading-relaxed;
 }

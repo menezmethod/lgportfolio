@@ -1,4 +1,4 @@
-import { Cpu, Code2, Eye, Shield } from 'lucide-react';
+import { Cpu, Eye, Shield } from 'lucide-react';
 
 const skills: Record<string, string[]> = {
   'programming languages': ['Go (Proficient)', 'Java (Proficient)', 'TypeScript (Working)', 'Python (Working)', 'Rust (Learning)', 'SQL (Proficient)'],
@@ -15,11 +15,10 @@ export default function About() {
   return (
     <div className="min-h-screen bg-background px-4 pb-16 pt-20 text-foreground md:px-6 md:pt-24">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-4 flex items-center gap-3">
-          <span className="font-mono text-sm text-emerald-400">$</span>
-          <span className="font-mono text-sm text-muted-foreground">cat about.md</span>
+        <div className="section-indicator mb-6">
+          <span>About</span>
         </div>
-        <h1 className="mb-10 text-3xl font-bold md:mb-16 md:text-5xl animate-fadeIn">
+        <h1 className="mb-10 text-3xl font-bold md:mb-16 md:text-5xl">
           Senior Platform Engineer. <span className="text-primary">Infrastructure Engineer.</span>
         </h1>
 
@@ -136,10 +135,12 @@ export default function About() {
           </div>
 
           <div className="md:col-span-1">
-            <div className="sticky top-24 overflow-hidden rounded-xl border border-border/50 bg-card/20">
-              <div className="flex items-center gap-2 border-b border-border/50 bg-card/40 px-5 py-3">
-                <Code2 className="size-4 text-primary" />
-                <span className="font-mono text-sm text-foreground">stack.yml</span>
+            <div className="terminal-window sticky top-24">
+              <div className="terminal-header">
+                <div className="terminal-dot terminal-dot-red" />
+                <div className="terminal-dot terminal-dot-yellow" />
+                <div className="terminal-dot terminal-dot-green" />
+                <span className="terminal-title">stack.yml</span>
               </div>
               <div className="space-y-6 p-5">
                 {Object.entries(skills).map(([category, items]) => (
