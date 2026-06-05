@@ -1,12 +1,11 @@
+"use client";
+
 import ReactMarkdown from "react-markdown";
 import { ArrowLeft, Calendar } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { useParams } from "next/navigation";
 import type { Components } from "react-markdown";
-import { getPostBySlug, getPostSlugs } from "@/lib/posts-data";
-
-export const dynamic = "force-static";
-export const dynamicParams = false;
+import { allPosts } from "@/lib/posts-generated";
 
 const markdownComponents: Partial<Components> = {
   code({ className, children, ...props }) {
@@ -18,9 +17,13 @@ const markdownComponents: Partial<Components> = {
   p({ children, ...props }) { return <p className="text-[15px] leading-relaxed text-foreground/85 mb-5" {...props}>{children}</p>; },
 };
 
-export default function Page({ params }: { params: { slug: string } }) {
-  const post = getPostBySlug(params.slug);
-  if (!post) notFound();
+export default function PostPage() {
+  const params = useParams();
+  const slug = params.slug as string;
+  const post = allPosts.find(p => p.slug === slug);
+
+  if (!post) return <div className="mx-auto max-w-3xl px-4 pt-32 pb-24 text-center"><h1 className="text-4xl font-bold">404</h1><p className="text-muted-foreground mt-4">Post not found.</p></div>;
+
   return (
     <article className="mx-auto max-w-3xl px-4 pt-32 pb-24">
       <Link href="/writing" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary mb-8"><ArrowLeft className="size-4" /> Back</Link>
@@ -36,14 +39,4 @@ export default function Page({ params }: { params: { slug: string } }) {
       </div>
     </article>
   );
-}
-
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const post = getPostBySlug(params.slug);
-  if (!post) return { title: "Not Found" };
-  return { title: post.title + " — Luis Gimenez", description: post.description };
-}
-
-export async function generateStaticParams() {
-  return getPostSlugs().map(slug => ({ slug }));
 }
