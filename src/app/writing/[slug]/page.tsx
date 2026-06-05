@@ -1,18 +1,12 @@
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
-import { notFound } from "next/navigation";
-import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import { ArrowLeft, Calendar } from "lucide-react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import type { Components } from "react-markdown";
+import { getPostBySlug, getPostSlugs } from "@/lib/posts-data";
 
-function getPost(slug: string) {
-  const fp = path.join(process.cwd(), "src/content/posts", slug + ".md");
-  if (!fs.existsSync(fp)) return null;
-  const { data, content } = matter(fs.readFileSync(fp, "utf-8"));
-  return { title: data.title || "Untitled", description: data.description || "", date: data.date || "", tags: (data.tags || []) as string[], content };
-}
+export const dynamic = "force-static";
+export const dynamicParams = false;
 
 const markdownComponents: Partial<Components> = {
   code({ className, children, ...props }) {
@@ -25,7 +19,7 @@ const markdownComponents: Partial<Components> = {
 };
 
 export default function Page({ params }: { params: { slug: string } }) {
-  const post = getPost(params.slug);
+  const post = getPostBySlug(params.slug);
   if (!post) notFound();
   return (
     <article className="mx-auto max-w-3xl px-4 pt-32 pb-24">
@@ -33,7 +27,7 @@ export default function Page({ params }: { params: { slug: string } }) {
       <header className="mb-10">
         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
           <span><Calendar className="size-3.5 inline mr-1" />{new Date(post.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
-          {(post.tags as string[]).map(t => <span key={t} className="text-xs font-mono bg-primary/10 text-primary px-2 py-0.5 rounded">{t}</span>)}
+          {post.tags.map(t => <span key={t} className="text-xs font-mono bg-primary/10 text-primary px-2 py-0.5 rounded">{t}</span>)}
         </div>
         <h1 className="text-3xl font-bold">{post.title}</h1>
       </header>
@@ -45,17 +39,11 @@ export default function Page({ params }: { params: { slug: string } }) {
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const post = getPost(params.slug);
+  const post = getPostBySlug(params.slug);
   if (!post) return { title: "Not Found" };
   return { title: post.title + " — Luis Gimenez", description: post.description };
 }
 
 export async function generateStaticParams() {
-  const slugs = [
-    "2026-06-01-inferencia-router-deep-dive",
-    "2026-06-04-watchdog-that-doesnt-bark",
-    "2026-06-07-rate-limit-postmortem",
-    "2026-06-10-file-based-rag-without-apology",
-  ];
-  return slugs.map(s => ({ slug: s }));
+  return getPostSlugs().map(slug => ({ slug }));
 }
