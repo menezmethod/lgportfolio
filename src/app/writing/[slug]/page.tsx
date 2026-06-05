@@ -38,7 +38,7 @@ export default function Page({ params }: { params: { slug: string } }) {
         <h1 className="text-3xl font-bold">{post.title}</h1>
       </header>
       <div className="prose prose-invert max-w-none">
-        <ReactMarkdown components={markdownComponents} />
+        <ReactMarkdown components={markdownComponents}>{post.content}</ReactMarkdown>
       </div>
     </article>
   );
