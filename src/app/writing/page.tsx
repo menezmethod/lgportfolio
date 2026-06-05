@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Calendar } from "lucide-react";
-import { getAllPosts } from "@/lib/posts-data";
+import { allPosts } from "@/lib/posts-generated";
 
 export default function WritingPage() {
-  const posts = getAllPosts();
+  const posts = allPosts;
   return (
     <div className="mx-auto max-w-3xl px-4 pt-32 pb-24">
       <h1 className="text-4xl font-bold mb-2">Writing</h1>

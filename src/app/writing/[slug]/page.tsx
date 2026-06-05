@@ -3,7 +3,7 @@ import { ArrowLeft, Calendar } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Components } from "react-markdown";
-import { getPostBySlug, getPostSlugs } from "@/lib/posts-data";
+import { getPostBySlug, getPostSlugs } from "@/lib/posts-generated";
 
 export const dynamic = "force-static";
 export const dynamicParams = false;
