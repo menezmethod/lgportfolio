@@ -51,7 +51,11 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export async function generateStaticParams() {
-  const dir = path.join(process.cwd(), "src/content/posts");
-  if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter(f => f.endsWith(".md")).map(f => ({ slug: f.replace(/\.md$/, "") }));
+  const slugs = [
+    "2026-06-01-inferencia-router-deep-dive",
+    "2026-06-04-watchdog-that-doesnt-bark",
+    "2026-06-07-rate-limit-postmortem",
+    "2026-06-10-file-based-rag-without-apology",
+  ];
+  return slugs.map(s => ({ slug: s }));
 }
