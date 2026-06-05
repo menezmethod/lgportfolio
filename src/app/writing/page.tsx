@@ -2,15 +2,15 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import Link from "next/link";
-import { Calendar, Tag } from "lucide-react";
+import { Calendar } from "lucide-react";
 
 function getPosts() {
   const dir = path.join(process.cwd(), "src/content/posts");
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir).filter(f => f.endsWith(".md")).map(f => {
     const { data } = matter(fs.readFileSync(path.join(dir, f), "utf-8"));
-    return { slug: f.replace(/\.md$/, ""), title: data.title, description: data.description, date: data.date, tags: data.tags || [] };
-  }).sort((a, b) => new Date(b.date) - new Date(a.date));
+    return { slug: f.replace(/\.md$/, ""), title: data.title || "Untitled", description: data.description || "", date: data.date || "", tags: data.tags || [] };
+  }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
 export default function Page() {

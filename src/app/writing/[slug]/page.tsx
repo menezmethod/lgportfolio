@@ -4,16 +4,16 @@ import matter from "gray-matter";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
-import { ArrowLeft, Calendar, Tag } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 
-function getPost(slug) {
+function getPost(slug: string) {
   const fp = path.join(process.cwd(), "src/content/posts", slug + ".md");
   if (!fs.existsSync(fp)) return null;
   const { data, content } = matter(fs.readFileSync(fp, "utf-8"));
-  return { title: data.title, description: data.description, date: data.date, tags: data.tags || [], content };
+  return { title: data.title || "Untitled", description: data.description || "", date: data.date || "", tags: data.tags || [], content };
 }
 
-export default function Page({ params }) {
+export default function Page({ params }: { params: { slug: string } }) {
   const post = getPost(params.slug);
   if (!post) notFound();
   return (
@@ -28,16 +28,16 @@ export default function Page({ params }) {
       </header>
       <div className="prose prose-invert max-w-none">
         <ReactMarkdown components={{
-          code({ className, children, ...props }) { return className ? <pre className="overflow-x-auto rounded-xl border border-border/40 bg-black/40 p-4 text-sm"><code {...props}>{children}</code></pre> : <code className="text-primary bg-primary/10 px-1 py-0.5 rounded text-sm font-mono" {...props}>{children}</code>; },
-          h2({ children, ...props }) { return <h2 className="text-xl font-semibold mt-10 mb-4" {...props}>{children}</h2>; },
-          p({ children, ...props }) { return <p className="text-[15px] leading-relaxed text-foreground/85 mb-5" {...props}>{children}</p>; },
+          code({ className, children, ...props }: any) { return className ? <pre className="overflow-x-auto rounded-xl border border-border/40 bg-black/40 p-4 text-sm"><code {...props}>{children}</code></pre> : <code className="text-primary bg-primary/10 px-1 py-0.5 rounded text-sm font-mono" {...props}>{children}</code>; },
+          h2({ children, ...props }: any) { return <h2 className="text-xl font-semibold mt-10 mb-4" {...props}>{children}</h2>; },
+          p({ children, ...props }: any) { return <p className="text-[15px] leading-relaxed text-foreground/85 mb-5" {...props}>{children}</p>; },
         }} />
       </div>
     </article>
   );
 }
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params }: { params: { slug: string } }) {
   const post = getPost(params.slug);
   if (!post) return { title: "Not Found" };
   return { title: post.title + " — Luis Gimenez", description: post.description };
