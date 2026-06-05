@@ -5,6 +5,9 @@ import { notFound } from "next/navigation";
 import type { Components } from "react-markdown";
 import { getPostBySlug, getPostSlugs } from "@/lib/posts-data";
 
+export const dynamic = "force-static";
+export const dynamicParams = false;
+
 const markdownComponents: Partial<Components> = {
   code({ className, children, ...props }) {
     return className
