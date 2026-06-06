@@ -38,6 +38,21 @@ export default function Navbar() {
           </div>
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsOpen(!isOpen)}>{isOpen ? <X className="size-5" /> : <Menu className="size-5" />}</Button>
         </div>
+        {isOpen && (
+          <div className="absolute top-full left-0 right-0 border-b bg-background/95 backdrop-blur-xl md:hidden">
+            <div className="flex flex-col gap-1 p-4">
+              {navLinks.map(link => (
+                <Button key={link.href} variant="ghost" asChild className={cn("w-full justify-start text-sm font-medium", pathname === link.href ? 'text-primary bg-primary/8' : 'text-muted-foreground')} onClick={() => setIsOpen(false)}>
+                  <Link href={link.href}>{link.label}</Link>
+                </Button>
+              ))}
+              <div className="my-2 h-px bg-border/50" />
+              <Button asChild className="w-full gap-2 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground" onClick={() => setIsOpen(false)}>
+                <Link href="/chat"><Terminal className="size-4" />AI Chat</Link>
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
