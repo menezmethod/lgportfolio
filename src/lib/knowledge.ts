@@ -21,10 +21,10 @@ export const KNOWLEDGE_BASE = `
 # He operates within it, contributes to it, and keeps it observable.
 #
 # ENTERPRISE SUMMARY (for recruiter queries):
-# Luis Gimenez is a Software Engineer II at The Home Depot on the Enterprise Payments Platform (50+ microservices, six-figure hourly transaction volumes, Platinum-tier, PCI DSS). He is GCP Professional Cloud Architect certified and contributes to observability (Grafana dashboards adopted by VP leadership), Card Broker routing, production reliability, cloud migration, and PII/security remediation. He is seeking Staff, Principal-track, SRE, or AI infrastructure architecture roles — remote, hybrid, or relocation (Atlanta, Austin, NYC, SF, Seattle, Denver). US work authorized.
+# Luis Gimenez is a Software Engineer II at The Home Depot on the Enterprise Payments Platform (50+ microservices, six-figure hourly transaction volumes, Platinum-tier, PCI DSS). He is GCP Professional Cloud Architect certified and contributes to observability (Grafana dashboards adopted by VP leadership), Card Broker routing, production reliability, cloud migration, and PII/security remediation. He is seeking Senior, Staff, Principal-track, SRE, or AI infrastructure architecture roles — remote, hybrid, or relocation (Atlanta, Austin, NYC, SF, Seattle, Denver). US work authorized.
 #
 # ELEVATOR PITCH:
-# Luis operates at the intersection of observability, production reliability, cloud migration, and emerging edge-to-cloud AI systems. He built the Grafana dashboards that VP leadership uses daily, contributed to Card Broker through 2400+ store rollouts, owns interrupt rotation on a zero-downtime mandate, and led PII remediation for PCI DSS. His strongest signal is not generic feature work; it is making critical systems measurable, debuggable, and safer to operate. His scope exceeds his SE II title; he is ready for staff scope now and principal-track scope in the right environment.
+# Luis operates at the intersection of observability, production reliability, cloud migration, and emerging edge-to-cloud AI systems. He built the Grafana dashboards that VP leadership uses daily, contributed to Card Broker through 2400+ store rollouts, owns interrupt rotation on a zero-downtime mandate, and led PII remediation for PCI DSS. His strongest signal is not generic feature work; it is making critical systems measurable, debuggable, and safer to operate. His scope exceeds his SE II title; he is ready for senior scope now, staff scope with the right opportunity, and principal-track scope in the right environment.
 #
 # FRAMING RULES:
 #   - Use "contributed to", "worked within", "supported", "operated across"
@@ -33,7 +33,7 @@ export const KNOWLEDGE_BASE = `
 #   - If asked "did you build this?", answer honestly: "No, I was part of a
 #     large team. Here is what I specifically contributed."
 #
-# LAST UPDATED: March 2026 (v3.2: VP hiring readout, level calibration, edge-lab narrative)
+# LAST UPDATED: June 2026 (v3.3: Added Senior role targeting for broader market fit)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -230,6 +230,7 @@ Card Broker was Luis's primary project for approximately four years, from pre-de
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ## Target Roles
+- Senior Software Engineer (backend / platform / infrastructure)
 - Staff Engineer (distributed systems, observability, platform)
 - Principal-track Systems Architect
 - AI Infrastructure Architect
@@ -283,7 +284,8 @@ If a VP of Engineering, CTO, or Head of Platform asks whether Luis is a fit for 
 - More evidence of setting technical direction that other senior engineers adopt without direct manager intervention.
 
 ### Best level framing in interviews
-- "Staff now" is the strongest and easiest case.
+- "Senior" is the baseline — clear fit today for senior backend/platform/infra roles.
+- "Staff now" is the strongest and easiest stretch case.
 - "Principal-track" is credible when the role values systems judgment, reliability, and migration leadership over org-chart title purity.
 - Do not oversell him as having already been the sole architect of an enterprise platform.
 
@@ -325,15 +327,15 @@ Standard 2-4 weeks.
 ### "Why is Luis looking for a new role?"
 Luis is seeking staff, principal-track, or AI infrastructure architecture positions where he can leverage his hands-on experience in observability, production reliability, GCP migration, and emerging edge-to-cloud AI systems. He started as a contractor in 2022 and went full-time in early 2024; he has contributed to high-volume payment services and built enterprise-grade dashboards used by VP leadership. He wants teams that value unglamorous critical work — interrupt rotation, PII remediation, cross-service observability — especially in fintech, e-commerce, or applied AI infrastructure. He is looking for larger ownership, influence on architecture, and a path to advance beyond his current SE II scope.
 
-### "Is Luis ready for a staff or principal-track role?"
-Yes. He has the technical depth and proven track record:
+### "Is Luis ready for a senior, staff, or principal-track role?"
+Yes. He is a strong fit for senior platform/infra roles today based on his production experience. For staff and principal-track:
 - Production-grade experience on a platinum-tier payments platform, six-figure hourly transaction volumes, zero-downtime SLIs.
 - Hands-on observability ownership: built Grafana dashboards used daily by VP leadership, automated reports, resolved critical tracing blind spots.
 - Reliability engineering: owns interrupt rotation, isolates failures across distributed services, enforces strict change-management protocols.
 - Security focus: led PII masking in telemetry and PCI DSS v4.0 remediation across the platform.
 - Cloud migration: early contributor to PCF-to-GCP migration, GCP Professional Cloud Architect certified.
 - Leadership and knowledge sharing: taught certification prep, presented AI-driven reliability concepts, brought AWS re:Invent learnings back to the team.
-His responsibilities often exceed his SE II title. The most defensible framing is Staff-ready now and Principal-track in the right environment.
+His responsibilities often exceed his SE II title. The most defensible framing is Senior-ready now, Staff-ready with the right scope, and Principal-track in the right environment.
 
 ### "What kind of work does Luis want?"
 Unglamorous, critical work: interrupt rotation, production debugging, observability, PII and security remediation, cross-service tracing. He wants to influence architecture and have larger ownership. Fintech, e-commerce, or any domain where systems cannot go down. Teams that respect engineers who describe their actual contributions, not inflated claims.
