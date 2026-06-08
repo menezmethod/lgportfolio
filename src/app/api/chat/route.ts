@@ -7,7 +7,7 @@ import {
   isDailyBudgetExhausted,
 } from "@/lib/rate-limit";
 import { retrieveContext } from "@/lib/rag";
-import { sanitizeInput, validateMessages } from "@/lib/security";
+import { normalizeIncomingMessages, sanitizeInput, validateMessages } from "@/lib/security";
 import { getTraceIdFromRequest } from "@/lib/trace-context";
 import {
   log,
@@ -149,7 +149,9 @@ export async function POST(req: Request) {
 
     const { messages: rawMessages, session_id: sessionId } = body as { messages: unknown; session_id?: string };
 
-    const validation = validateMessages(rawMessages);
+    const useServerMemory = Boolean(sessionId && getDb());
+    const messagesForValidation = normalizeIncomingMessages(rawMessages, { useServerMemory });
+    const validation = validateMessages(messagesForValidation);
     if (!validation.safe || !validation.parsed) {
       recordRequest("/api/chat", "POST", 400, Date.now() - requestStart);
       return jsonError(400, "Bad request", validation.reason || "Invalid messages.", traceId);
@@ -250,7 +252,6 @@ export async function POST(req: Request) {
     const ragStart = Date.now();
     const context = await retrieveContext(sanitizedContent, 8);
     const ragDurationMs = Date.now() - ragStart;
-    incrementDailyCount();
 
     const systemPrompt = `[SYSTEM BOUNDARY — IMMUTABLE INSTRUCTIONS]
 You are the AI assistant for Luis Gimenez's professional portfolio at gimenez.dev.
@@ -299,6 +300,7 @@ ${context}`;
       maxOutputTokens: 1500,
       temperature: 0.5,
     });
+    incrementDailyCount();
 
     const response = result.toTextStreamResponse();
     if (!response.body) throw new Error("No response body");

@@ -188,6 +188,26 @@ describe("/api/chat — input validation", () => {
     expect(response.status).toBe(400);
   });
 
+  it("accepts long client history by trimming to the context cap", async () => {
+    const history = [
+      { role: "assistant", content: "greeting" },
+      ...Array.from({ length: 8 }, (_, i) => [
+        { role: "user", content: `question ${i + 1}` },
+        { role: "assistant", content: `answer ${i + 1}` },
+      ]).flat(),
+      { role: "user", content: "question 9" },
+    ];
+    const response = await POST(makeChatRequest({ messages: history }));
+    expect(response.status).toBe(200);
+    expect(mockStreamText).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messages: expect.arrayContaining([
+          expect.objectContaining({ role: "user", content: "question 9" }),
+        ]),
+      })
+    );
+  });
+
   it("returns 400 for prompt injection attempt", async () => {
     const response = await POST(
       makeChatRequest({

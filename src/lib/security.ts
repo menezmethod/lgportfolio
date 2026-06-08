@@ -11,7 +11,7 @@
 
 const MAX_USER_MESSAGE_LENGTH = 1500;
 const MAX_ASSISTANT_MESSAGE_LENGTH = 8000; // RAG answers can be long; only user input kept strict
-const MAX_MESSAGES_IN_CONTEXT = 8;
+export const MAX_MESSAGES_IN_CONTEXT = 8;
 const MAX_TOTAL_CHARS = 24000;
 
 const INJECTION_PATTERNS: RegExp[] = [
@@ -104,6 +104,39 @@ export function sanitizeInput(content: string): SecurityCheckResult {
 interface ChatMessage {
   role: string;
   content: string;
+}
+
+/**
+ * Normalize client-sent history before validation.
+ * - With server memory (Firestore): validate only the latest user turn.
+ * - Without server memory: keep the most recent messages within the context cap.
+ */
+export function normalizeIncomingMessages(
+  messages: unknown,
+  options?: { useServerMemory?: boolean }
+): unknown {
+  if (!Array.isArray(messages)) return messages;
+
+  if (options?.useServerMemory) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
+      if (
+        msg &&
+        typeof msg === "object" &&
+        (msg as ChatMessage).role === "user" &&
+        typeof (msg as ChatMessage).content === "string"
+      ) {
+        return [msg];
+      }
+    }
+    return messages.slice(-1);
+  }
+
+  if (messages.length > MAX_MESSAGES_IN_CONTEXT) {
+    return messages.slice(-MAX_MESSAGES_IN_CONTEXT);
+  }
+
+  return messages;
 }
 
 export function validateMessages(messages: unknown): SecurityCheckResult & { parsed?: ChatMessage[] } {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sanitizeInput, validateMessages } from "@/lib/security";
+import { normalizeIncomingMessages, sanitizeInput, validateMessages } from "@/lib/security";
 
 describe("security", () => {
   describe("sanitizeInput", () => {
@@ -66,6 +66,30 @@ describe("security", () => {
       const r = sanitizeInput("hello\x00world");
       expect(r.safe).toBe(true);
       expect(r.sanitized).toBe("helloworld");
+    });
+  });
+
+  describe("normalizeIncomingMessages", () => {
+    it("keeps only the latest user message when server memory is enabled", () => {
+      const history = [
+        { role: "assistant", content: "greeting" },
+        { role: "user", content: "first" },
+        { role: "assistant", content: "answer" },
+        { role: "user", content: "latest question" },
+      ];
+      const normalized = normalizeIncomingMessages(history, { useServerMemory: true });
+      expect(normalized).toEqual([{ role: "user", content: "latest question" }]);
+    });
+
+    it("trims client history to the context cap when server memory is disabled", () => {
+      const history = Array.from({ length: 12 }, (_, i) => ({
+        role: i % 2 === 0 ? "user" : "assistant",
+        content: `msg-${i}`,
+      }));
+      const normalized = normalizeIncomingMessages(history) as typeof history;
+      expect(normalized).toHaveLength(8);
+      expect(normalized[0].content).toBe("msg-4");
+      expect(normalized[7].content).toBe("msg-11");
     });
   });
 
