@@ -18,8 +18,9 @@ const markdownComponents: Partial<Components> = {
   p({ children, ...props }) { return <p className="text-[15px] leading-relaxed text-foreground/85 mb-5" {...props}>{children}</p>; },
 };
 
-export default function Page({ params }: { params: { slug: string } }) {
-  const post = getPostBySlug(params.slug);
+export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
   if (!post) notFound();
   return (
     <article className="mx-auto max-w-3xl px-4 pt-32 pb-24">
@@ -38,8 +39,9 @@ export default function Page({ params }: { params: { slug: string } }) {
   );
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const post = getPostBySlug(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
   if (!post) return { title: "Not Found" };
   return { title: post.title + " — Luis Gimenez", description: post.description };
 }
