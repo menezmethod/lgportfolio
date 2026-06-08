@@ -90,10 +90,14 @@ export async function writeSessionSummary(params: {
   };
 
   if (!existing.exists) {
-    await ref.set({
-      ...data,
-      started_at: now,
-    });
+    // merge: true so concurrent setRecruiterEmail create does not lose stats or email
+    await ref.set(
+      {
+        ...data,
+        started_at: now,
+      },
+      { merge: true }
+    );
   } else {
     await ref.update(data);
   }
@@ -152,16 +156,16 @@ export async function setRecruiterEmail(sessionId: string, email: string): Promi
   const existing = await ref.get();
 
   if (!existing.exists) {
-    await ref.set({
-      session_id: sessionId,
-      recruiter_email: email,
-      last_activity_at: now,
-      started_at: now,
-      message_count: 0,
-      cache_hits: 0,
-      rate_limited: false,
-      status: "ok" as const,
-    });
+    // merge + email-only fields: avoid clobbering stats if writeSessionSummary creates first
+    await ref.set(
+      {
+        session_id: sessionId,
+        recruiter_email: email,
+        last_activity_at: now,
+        started_at: now,
+      },
+      { merge: true }
+    );
   } else {
     await ref.update({
       recruiter_email: email,
