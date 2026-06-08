@@ -208,6 +208,27 @@ describe("/api/chat — input validation", () => {
     );
   });
 
+  it("accepts long assistant replies by trimming to the char budget", async () => {
+    const longAnswer = "x".repeat(6000);
+    const history = [
+      { role: "assistant", content: "greeting" },
+      ...Array.from({ length: 4 }, (_, i) => [
+        { role: "user", content: `question ${i + 1}` },
+        { role: "assistant", content: longAnswer },
+      ]).flat(),
+      { role: "user", content: "question 5" },
+    ];
+    const response = await POST(makeChatRequest({ messages: history }));
+    expect(response.status).toBe(200);
+    expect(mockStreamText).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messages: expect.arrayContaining([
+          expect.objectContaining({ role: "user", content: "question 5" }),
+        ]),
+      })
+    );
+  });
+
   it("returns 400 for prompt injection attempt", async () => {
     const response = await POST(
       makeChatRequest({
