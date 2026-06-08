@@ -18,7 +18,7 @@ The flow had an idempotency check: read the `idempotency_key` row. If it exists,
 The trace told the truth:
 
 ```
-─── POST /charge/{orderID} ───────────────── (2.3s) ───
+─── POST /charge/{orderID} ──────────────── (2.3s) ───
   ├─ check-idempotency            [201ms]
   │  └─ SELECT idempotency_key    [42ms]   ← empty
   ├─ insert-idempotency-key       [35ms]
