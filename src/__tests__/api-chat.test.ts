@@ -47,6 +47,13 @@ vi.mock("@/lib/firestore", () => ({
 
 import { POST } from "@/app/api/chat/route";
 import { retrieveContext } from "@/lib/rag";
+import {
+  getDb,
+  getSessionMemory,
+  appendSessionMemory,
+  writeSessionSummary,
+  getSessionStats,
+} from "@/lib/firestore";
 
 beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => {});
@@ -281,6 +288,71 @@ describe("/api/chat — cached response short-circuit", () => {
 // ═══════════════════════════════════════════════════════════════════════════
 // STREAMING RESPONSE
 // ═══════════════════════════════════════════════════════════════════════════
+
+describe("/api/chat — Firestore session persistence", () => {
+  beforeEach(() => {
+    vi.mocked(getDb).mockReturnValue({} as ReturnType<typeof getDb>);
+    vi.mocked(getSessionMemory).mockResolvedValue([]);
+    vi.mocked(getSessionStats).mockResolvedValue({
+      message_count: 0,
+      engagement_score: 0,
+      cache_hits: 0,
+    });
+    vi.mocked(appendSessionMemory).mockResolvedValue(undefined);
+    vi.mocked(writeSessionSummary).mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.mocked(getDb).mockReturnValue(null);
+  });
+
+  it("awaits memory persistence before closing the stream", async () => {
+    let appendCompleted = false;
+    vi.mocked(appendSessionMemory).mockImplementation(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 15));
+      appendCompleted = true;
+    });
+
+    const response = await POST(
+      makeChatRequest({
+        session_id: "persist-before-close",
+        messages: [{ role: "user", content: "What is Luis's experience?" }],
+      })
+    );
+    expect(response.status).toBe(200);
+
+    const reader = response.body!.getReader();
+    while (true) {
+      const { done } = await reader.read();
+      if (done) {
+        expect(appendCompleted).toBe(true);
+        break;
+      }
+    }
+    expect(appendSessionMemory).toHaveBeenCalled();
+    expect(writeSessionSummary).toHaveBeenCalled();
+  });
+
+  it("awaits memory persistence before returning a cache hit", async () => {
+    const callOrder: string[] = [];
+    vi.mocked(appendSessionMemory).mockImplementation(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      callOrder.push("append");
+    });
+    vi.mocked(writeSessionSummary).mockImplementation(async () => {
+      callOrder.push("summary");
+    });
+
+    const response = await POST(
+      makeChatRequest({
+        session_id: "cache-persist",
+        messages: [{ role: "user", content: "tell me about luis" }],
+      })
+    );
+    expect(response.status).toBe(200);
+    expect(callOrder).toEqual(["append", "summary"]);
+  });
+});
 
 describe("/api/chat — streaming response", () => {
   it("returns streaming response on successful inference", async () => {

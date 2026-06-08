@@ -88,12 +88,14 @@ function wrapStreamForPersistence(
         if (!assistantText && buffer.trim()) assistantText = buffer.trim();
         const db = getDb();
         if (db && assistantText) {
-          appendSessionMemory(params.sessionId, [
-            { role: "user", content: params.userContent },
-            { role: "assistant", content: assistantText },
-          ]).catch(() => {});
-          getSessionStats(params.sessionId).then((stats) => {
-            writeSessionSummary({
+          // Await persistence before closing — server memory is authoritative when Firestore is enabled
+          try {
+            await appendSessionMemory(params.sessionId, [
+              { role: "user", content: params.userContent },
+              { role: "assistant", content: assistantText },
+            ]);
+            const stats = await getSessionStats(params.sessionId);
+            await writeSessionSummary({
               sessionId: params.sessionId,
               messageCount: stats.message_count + 1,
               cacheHits: stats.cache_hits,
@@ -102,8 +104,10 @@ function wrapStreamForPersistence(
               totalDurationMs: params.totalDurationMs,
               traceId: params.traceId,
               engagementScore: stats.message_count + 1,
-            }).catch(() => {});
-          });
+            });
+          } catch {
+            /* persistence failure must not break an already-streamed response */
+          }
         }
         controller.close();
         return;
@@ -230,21 +234,25 @@ export async function POST(req: Request) {
       if (sessionId && getDb()) {
         const userMsg = validation.parsed.filter((m) => m.role === "user").pop();
         if (userMsg) {
-          appendSessionMemory(sessionId, [
-            { role: "user", content: userMsg.content },
-            { role: "assistant", content: cached },
-          ]).catch(() => {});
-          const stats = await getSessionStats(sessionId);
-          writeSessionSummary({
-            sessionId,
-            messageCount: stats.message_count + 1,
-            cacheHits: stats.cache_hits + 1,
-            rateLimited: false,
-            status: "ok",
-            totalDurationMs: duration,
-            traceId,
-            engagementScore: stats.message_count + 1,
-          }).catch(() => {});
+          try {
+            await appendSessionMemory(sessionId, [
+              { role: "user", content: userMsg.content },
+              { role: "assistant", content: cached },
+            ]);
+            const stats = await getSessionStats(sessionId);
+            await writeSessionSummary({
+              sessionId,
+              messageCount: stats.message_count + 1,
+              cacheHits: stats.cache_hits + 1,
+              rateLimited: false,
+              status: "ok",
+              totalDurationMs: duration,
+              traceId,
+              engagementScore: stats.message_count + 1,
+            });
+          } catch {
+            /* persistence failure must not break cache response */
+          }
         }
       }
       log("INFO", "Chat response (cache hit)", {
