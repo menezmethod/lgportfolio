@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { Github, Linkedin, Twitter, Mail } from "lucide-react";
 import "./globals.css";
+import "highlight.js/styles/a11y-dark.css";
 import Navbar from "@/components/Navbar";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import PageViewTracker from "@/components/PageViewTracker";
@@ -51,6 +52,36 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Person",
+            name: "Luis Gimenez",
+            jobTitle: "Senior Platform Engineer",
+            description:
+              "Senior platform engineer building payment infrastructure at Fortune 50 scale. Go microservices, OpenTelemetry pipelines, and zero-downtime migrations. GCP Professional Cloud Architect.",
+            url: "https://gimenez.dev",
+            sameAs: [
+              "https://github.com/menezmethod",
+              "https://www.linkedin.com/in/gimenezdev/",
+              "https://twitter.com/menezmethod",
+            ],
+            knowsAbout: [
+              "Go",
+              "GCP",
+              "Cloud Infrastructure",
+              "Terraform",
+              "Kubernetes",
+              "OpenTelemetry",
+              "Distributed Systems",
+              "Payment Systems",
+              "Platform Engineering",
+            ],
+          }),
+        }}
+      />
       <body className={`${plexSans.className} ${plexMono.variable}`}>
         <a
           href="#main-content"
