@@ -149,8 +149,10 @@ export async function setRecruiterEmail(sessionId: string, email: string): Promi
   if (!db) return;
   const ref = db.collection(COLLECTIONS.SESSIONS).doc(sessionId);
   const now = new Date();
-  await ref.set(
-    {
+  const existing = await ref.get();
+
+  if (!existing.exists) {
+    await ref.set({
       session_id: sessionId,
       recruiter_email: email,
       last_activity_at: now,
@@ -159,9 +161,13 @@ export async function setRecruiterEmail(sessionId: string, email: string): Promi
       cache_hits: 0,
       rate_limited: false,
       status: "ok" as const,
-    },
-    { merge: true }
-  );
+    });
+  } else {
+    await ref.update({
+      recruiter_email: email,
+      last_activity_at: now,
+    });
+  }
 }
 
 /** List recent sessions for admin (no message content). */

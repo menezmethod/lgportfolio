@@ -159,18 +159,47 @@ describe("firestore", () => {
   });
 
   describe("setRecruiterEmail", () => {
-    it("upserts email with merge when session doc may not exist yet", async () => {
+    it("creates session doc with defaults when doc does not exist yet", async () => {
       vi.stubEnv("FIREBASE_SERVICE_ACCOUNT_JSON", '{"type":"service_account","project_id":"test"}');
+      mockGet.mockResolvedValueOnce({ exists: false, data: () => undefined });
 
       await setRecruiterEmail("session-123", "recruiter@example.com");
       expect(mockSet).toHaveBeenCalledWith(
         expect.objectContaining({
           session_id: "session-123",
           recruiter_email: "recruiter@example.com",
-        }),
-        { merge: true }
+          message_count: 0,
+        })
       );
       expect(mockUpdate).not.toHaveBeenCalled();
+    });
+
+    it("updates only email fields when session doc already exists", async () => {
+      vi.stubEnv("FIREBASE_SERVICE_ACCOUNT_JSON", '{"type":"service_account","project_id":"test"}');
+      mockGet.mockResolvedValueOnce({
+        exists: true,
+        data: () => ({
+          session_id: "session-123",
+          message_count: 12,
+          cache_hits: 3,
+          status: "ok",
+        }),
+      });
+
+      await setRecruiterEmail("session-123", "recruiter@example.com");
+      expect(mockUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          recruiter_email: "recruiter@example.com",
+        })
+      );
+      expect(mockUpdate).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          message_count: expect.anything(),
+          cache_hits: expect.anything(),
+          started_at: expect.anything(),
+        })
+      );
+      expect(mockSet).not.toHaveBeenCalled();
     });
   });
 
