@@ -159,13 +159,18 @@ describe("firestore", () => {
   });
 
   describe("setRecruiterEmail", () => {
-    it("calls update with email and last_activity_at", async () => {
+    it("upserts email with merge when session doc may not exist yet", async () => {
       vi.stubEnv("FIREBASE_SERVICE_ACCOUNT_JSON", '{"type":"service_account","project_id":"test"}');
 
       await setRecruiterEmail("session-123", "recruiter@example.com");
-      expect(mockUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({ recruiter_email: "recruiter@example.com" })
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          session_id: "session-123",
+          recruiter_email: "recruiter@example.com",
+        }),
+        { merge: true }
       );
+      expect(mockUpdate).not.toHaveBeenCalled();
     });
   });
 
