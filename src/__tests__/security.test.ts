@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { normalizeIncomingMessages, sanitizeInput, validateMessages } from "@/lib/security";
+import {
+  normalizeIncomingMessages,
+  sanitizeInput,
+  trimMessagesToContextCap,
+  validateMessages,
+} from "@/lib/security";
 
 describe("security", () => {
   describe("sanitizeInput", () => {
@@ -90,6 +95,40 @@ describe("security", () => {
       expect(normalized).toHaveLength(8);
       expect(normalized[0].content).toBe("msg-4");
       expect(normalized[7].content).toBe("msg-11");
+    });
+
+    it("drops oldest turns when trimmed history still exceeds the char budget", () => {
+      const longAnswer = "x".repeat(6000);
+      const history = [
+        { role: "assistant", content: "greeting" },
+        ...Array.from({ length: 4 }, (_, i) => [
+          { role: "user", content: `question ${i + 1}` },
+          { role: "assistant", content: longAnswer },
+        ]).flat(),
+        { role: "user", content: "question 5" },
+      ];
+      const normalized = normalizeIncomingMessages(history) as typeof history;
+      const validation = validateMessages(normalized);
+      expect(validation.safe).toBe(true);
+      expect((normalized[normalized.length - 1] as { content: string }).content).toBe("question 5");
+      expect(normalized.length).toBeLessThan(8);
+    });
+  });
+
+  describe("trimMessagesToContextCap", () => {
+    it("keeps the latest user turn when older assistant replies exceed the char budget", () => {
+      const longAnswer = "x".repeat(6000);
+      const history = [
+        { role: "user", content: "old question" },
+        { role: "assistant", content: longAnswer },
+        { role: "user", content: "old question 2" },
+        { role: "assistant", content: longAnswer },
+        { role: "user", content: "latest question" },
+      ];
+      const trimmed = trimMessagesToContextCap(history);
+      const validation = validateMessages(trimmed);
+      expect(validation.safe).toBe(true);
+      expect(trimmed[trimmed.length - 1].content).toBe("latest question");
     });
   });
 

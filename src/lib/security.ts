@@ -102,14 +102,29 @@ export function sanitizeInput(content: string): SecurityCheckResult {
 }
 
 interface ChatMessage {
-  role: string;
+  role: "user" | "assistant";
   content: string;
+}
+
+function totalMessageChars(messages: ChatMessage[]): number {
+  return messages.reduce((sum, m) => sum + m.content.length, 0);
+}
+
+/** Keep the newest messages that fit count and total-character context limits. */
+export function trimMessagesToContextCap(messages: ChatMessage[]): ChatMessage[] {
+  if (messages.length === 0) return messages;
+
+  let trimmed = messages.slice(-MAX_MESSAGES_IN_CONTEXT);
+  while (trimmed.length > 1 && totalMessageChars(trimmed) > MAX_TOTAL_CHARS) {
+    trimmed = trimmed.slice(1);
+  }
+  return trimmed;
 }
 
 /**
  * Normalize client-sent history before validation.
  * - With server memory (Firestore): validate only the latest user turn.
- * - Without server memory: keep the most recent messages within the context cap.
+ * - Without server memory: keep the most recent messages within count and char caps.
  */
 export function normalizeIncomingMessages(
   messages: unknown,
@@ -132,11 +147,15 @@ export function normalizeIncomingMessages(
     return messages.slice(-1);
   }
 
-  if (messages.length > MAX_MESSAGES_IN_CONTEXT) {
-    return messages.slice(-MAX_MESSAGES_IN_CONTEXT);
-  }
+  const parsed = messages.filter(
+    (msg): msg is ChatMessage =>
+      Boolean(msg) &&
+      typeof msg === "object" &&
+      typeof (msg as ChatMessage).role === "string" &&
+      typeof (msg as ChatMessage).content === "string"
+  );
 
-  return messages;
+  return trimMessagesToContextCap(parsed);
 }
 
 export function validateMessages(messages: unknown): SecurityCheckResult & { parsed?: ChatMessage[] } {
@@ -183,7 +202,7 @@ export function validateMessages(messages: unknown): SecurityCheckResult & { par
       return { safe: false, reason: "Total conversation too long." };
     }
 
-    parsed.push({ role: m.role, content: m.content });
+    parsed.push({ role: m.role as "user" | "assistant", content: m.content });
   }
 
   return { safe: true, parsed };

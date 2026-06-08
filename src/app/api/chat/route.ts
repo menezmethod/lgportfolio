@@ -7,7 +7,12 @@ import {
   isDailyBudgetExhausted,
 } from "@/lib/rate-limit";
 import { retrieveContext } from "@/lib/rag";
-import { normalizeIncomingMessages, sanitizeInput, validateMessages } from "@/lib/security";
+import {
+  normalizeIncomingMessages,
+  sanitizeInput,
+  trimMessagesToContextCap,
+  validateMessages,
+} from "@/lib/security";
 import { getTraceIdFromRequest } from "@/lib/trace-context";
 import {
   log,
@@ -189,10 +194,15 @@ export async function POST(req: Request) {
         const lastIncoming = validation.parsed[validation.parsed.length - 1];
         const lastIsUser = lastIncoming?.role === "user";
         if (lastIsUser) {
-          messagesForModel = [...memory.map((m) => ({ role: m.role, content: m.content })), ...messagesForModel];
+          messagesForModel = [
+            ...memory.map((m) => ({ role: m.role, content: m.content })),
+            ...messagesForModel,
+          ];
         }
       }
     }
+
+    messagesForModel = trimMessagesToContextCap(messagesForModel);
 
     const lastUserContent = validation.parsed.filter((m) => m.role === "user").pop()?.content || "";
     const inputCheck = sanitizeInput(lastUserContent);
