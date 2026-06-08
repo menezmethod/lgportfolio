@@ -8,6 +8,9 @@ import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { ArrowLeft, Calendar, Tag } from "lucide-react";
 
+export const dynamic = "force-static";
+export const dynamicParams = false;
+
 interface PostData {
   title: string;
   description: string;
@@ -173,7 +176,9 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
               );
             },
           }}
-        />
+        >
+          {post.content}
+        </ReactMarkdown>
       </div>
 
       <div className="mt-16 pt-8 border-t border-border/40">
