@@ -4,7 +4,7 @@
  */
 
 import { initializeApp, getApps, cert, type ServiceAccount } from "firebase-admin/app";
-import { getFirestore, type Firestore, Timestamp } from "firebase-admin/firestore";
+import { FieldValue, getFirestore, type Firestore, Timestamp } from "firebase-admin/firestore";
 
 let _db: Firestore | null = null;
 
@@ -60,13 +60,11 @@ const MAX_MEMORY_MESSAGES = 20;
 
 export async function writeSessionSummary(params: {
   sessionId: string;
-  messageCount: number;
-  cacheHits: number;
+  cacheHit?: boolean;
   rateLimited: boolean;
   status: "ok" | "error" | "rate_limited";
   totalDurationMs?: number;
   traceId?: string;
-  engagementScore?: number;
   recruiterEmail?: string | null;
 }): Promise<void> {
   const db = getDb();
@@ -76,30 +74,41 @@ export async function writeSessionSummary(params: {
   const ref = db.collection(COLLECTIONS.SESSIONS).doc(params.sessionId);
   const existing = await ref.get();
 
-  const data: Partial<ChatSessionDoc> = {
-    session_id: params.sessionId,
-    last_activity_at: now,
-    message_count: params.messageCount,
-    cache_hits: params.cacheHits,
-    rate_limited: params.rateLimited,
-    status: params.status,
-    total_duration_ms: params.totalDurationMs,
-    trace_id: params.traceId,
-    engagement_score: params.engagementScore,
-    ...(params.recruiterEmail !== undefined && { recruiter_email: params.recruiterEmail }),
-  };
-
   if (!existing.exists) {
     // merge: true so concurrent setRecruiterEmail create does not lose stats or email
     await ref.set(
       {
-        ...data,
+        session_id: params.sessionId,
         started_at: now,
+        last_activity_at: now,
+        message_count: 1,
+        cache_hits: params.cacheHit ? 1 : 0,
+        engagement_score: 1,
+        rate_limited: params.rateLimited,
+        status: params.status,
+        total_duration_ms: params.totalDurationMs,
+        trace_id: params.traceId,
+        ...(params.recruiterEmail !== undefined && { recruiter_email: params.recruiterEmail }),
       },
       { merge: true }
     );
   } else {
-    await ref.update(data);
+    const updateData: Record<string, unknown> = {
+      last_activity_at: now,
+      message_count: FieldValue.increment(1),
+      engagement_score: FieldValue.increment(1),
+      rate_limited: params.rateLimited,
+      status: params.status,
+      total_duration_ms: params.totalDurationMs,
+      trace_id: params.traceId,
+    };
+    if (params.cacheHit) {
+      updateData.cache_hits = FieldValue.increment(1);
+    }
+    if (params.recruiterEmail !== undefined) {
+      updateData.recruiter_email = params.recruiterEmail;
+    }
+    await ref.update(updateData);
   }
 }
 
@@ -121,13 +130,18 @@ export async function appendSessionMemory(
   if (!db) return;
 
   const ref = db.collection(COLLECTIONS.MEMORY).doc(sessionId);
-  const existing = await getSessionMemory(sessionId);
-  const merged = [...existing, ...newMessages].slice(-MAX_MEMORY_MESSAGES);
 
-  await ref.set({
-    session_id: sessionId,
-    updated_at: new Date(),
-    messages: merged,
+  await db.runTransaction(async (transaction) => {
+    const snap = await transaction.get(ref);
+    const existing = snap.exists
+      ? ((snap.data() as ChatMemoryDoc).messages ?? [])
+      : [];
+    const merged = [...existing, ...newMessages].slice(-MAX_MEMORY_MESSAGES);
+    transaction.set(ref, {
+      session_id: sessionId,
+      updated_at: new Date(),
+      messages: merged,
+    });
   });
 }
 

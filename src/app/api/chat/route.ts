@@ -94,16 +94,12 @@ function wrapStreamForPersistence(
               { role: "user", content: params.userContent },
               { role: "assistant", content: assistantText },
             ]);
-            const stats = await getSessionStats(params.sessionId);
             await writeSessionSummary({
               sessionId: params.sessionId,
-              messageCount: stats.message_count + 1,
-              cacheHits: stats.cache_hits,
               rateLimited: false,
               status: "ok",
               totalDurationMs: params.totalDurationMs,
               traceId: params.traceId,
-              engagementScore: stats.message_count + 1,
             });
           } catch {
             /* persistence failure must not break an already-streamed response */
@@ -239,16 +235,13 @@ export async function POST(req: Request) {
               { role: "user", content: userMsg.content },
               { role: "assistant", content: cached },
             ]);
-            const stats = await getSessionStats(sessionId);
             await writeSessionSummary({
               sessionId,
-              messageCount: stats.message_count + 1,
-              cacheHits: stats.cache_hits + 1,
+              cacheHit: true,
               rateLimited: false,
               status: "ok",
               totalDurationMs: duration,
               traceId,
-              engagementScore: stats.message_count + 1,
             });
           } catch {
             /* persistence failure must not break cache response */

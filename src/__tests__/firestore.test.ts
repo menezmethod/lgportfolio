@@ -14,7 +14,8 @@ const mockCollection = vi.fn(() => ({
   orderBy: mockOrderBy,
   where: mockWhere,
 }));
-const mockFirestore = { collection: mockCollection };
+const mockRunTransaction = vi.fn();
+const mockFirestore = { collection: mockCollection, runTransaction: mockRunTransaction };
 
 vi.mock("firebase-admin/app", () => ({
   initializeApp: vi.fn(),
@@ -25,17 +26,22 @@ vi.mock("firebase-admin/app", () => ({
 vi.mock("firebase-admin/firestore", () => ({
   getFirestore: vi.fn(() => mockFirestore),
   Timestamp: { now: vi.fn() },
+  FieldValue: {
+    increment: vi.fn((n: number) => ({ _increment: n })),
+  },
 }));
 
 // Must import AFTER mocks are set up
 import {
   writeSessionSummary,
+  appendSessionMemory,
   getSessionMemory,
   getSessionStats,
   setRecruiterEmail,
   listSessions,
   getBoardStats,
 } from "@/lib/firestore";
+import { FieldValue } from "firebase-admin/firestore";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -50,6 +56,9 @@ beforeEach(() => {
   });
   mockWhere.mockReturnValue({
     get: vi.fn().mockResolvedValue({ docs: [] }),
+  });
+  mockRunTransaction.mockImplementation(async (fn: (tx: { get: typeof mockGet; set: typeof mockSet }) => Promise<void>) => {
+    await fn({ get: mockGet, set: mockSet });
   });
 });
 
@@ -82,29 +91,66 @@ describe("firestore", () => {
 
       await writeSessionSummary({
         sessionId: "test-session-1",
-        messageCount: 3,
-        cacheHits: 1,
+        cacheHit: true,
         rateLimited: false,
         status: "ok",
       });
 
       expect(mockDoc).toHaveBeenCalledWith("test-session-1");
-      expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({ message_count: 3 }), { merge: true });
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({ message_count: 1, cache_hits: 1 }),
+        { merge: true }
+      );
     });
 
-    it("updates existing document when session exists", async () => {
+    it("updates existing document with atomic increments when session exists", async () => {
       vi.stubEnv("FIREBASE_SERVICE_ACCOUNT_JSON", '{"type":"service_account","project_id":"test"}');
       mockGet.mockResolvedValueOnce({ exists: true, data: () => ({ session_id: "existing" }) });
 
       await writeSessionSummary({
         sessionId: "existing-session",
-        messageCount: 5,
-        cacheHits: 2,
+        cacheHit: true,
         rateLimited: false,
         status: "ok",
       });
 
-      expect(mockUpdate).toHaveBeenCalled();
+      expect(mockUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message_count: FieldValue.increment(1),
+          engagement_score: FieldValue.increment(1),
+          cache_hits: FieldValue.increment(1),
+        })
+      );
+    });
+  });
+
+  describe("appendSessionMemory", () => {
+    it("appends messages inside a Firestore transaction", async () => {
+      vi.stubEnv("FIREBASE_SERVICE_ACCOUNT_JSON", '{"type":"service_account","project_id":"test"}');
+      mockGet.mockResolvedValueOnce({
+        exists: true,
+        data: () => ({
+          session_id: "tx-session",
+          messages: [{ role: "user", content: "prior" }],
+        }),
+      });
+
+      await appendSessionMemory("tx-session", [
+        { role: "user", content: "new question" },
+        { role: "assistant", content: "new answer" },
+      ]);
+
+      expect(mockRunTransaction).toHaveBeenCalledTimes(1);
+      expect(mockSet).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          messages: [
+            { role: "user", content: "prior" },
+            { role: "user", content: "new question" },
+            { role: "assistant", content: "new answer" },
+          ],
+        })
+      );
     });
   });
 
