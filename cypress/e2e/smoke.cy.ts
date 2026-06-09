@@ -23,4 +23,14 @@ describe("Smoke", () => {
     cy.visit("/work");
     cy.get("h1").should("exist");
   });
+
+  it("loads the experience page", () => {
+    cy.visit("/experience");
+    cy.contains("The Home Depot").should("be.visible");
+  });
+
+  it("loads the skills page", () => {
+    cy.visit("/skills");
+    cy.contains("Technical Skills").should("be.visible");
+  });
 });
