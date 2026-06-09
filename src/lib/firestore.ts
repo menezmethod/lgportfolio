@@ -72,27 +72,32 @@ export async function writeSessionSummary(params: {
 
   const now = new Date();
   const ref = db.collection(COLLECTIONS.SESSIONS).doc(params.sessionId);
-  const existing = await ref.get();
 
-  if (!existing.exists) {
-    // merge: true so concurrent setRecruiterEmail create does not lose stats or email
-    await ref.set(
-      {
-        session_id: params.sessionId,
-        started_at: now,
-        last_activity_at: now,
-        message_count: 1,
-        cache_hits: params.cacheHit ? 1 : 0,
-        engagement_score: 1,
-        rate_limited: params.rateLimited,
-        status: params.status,
-        total_duration_ms: params.totalDurationMs,
-        trace_id: params.traceId,
-        ...(params.recruiterEmail !== undefined && { recruiter_email: params.recruiterEmail }),
-      },
-      { merge: true }
-    );
-  } else {
+  // Transaction: concurrent first writes (e.g. duplicate tabs) must not both set message_count: 1.
+  await db.runTransaction(async (transaction) => {
+    const snap = await transaction.get(ref);
+
+    if (!snap.exists) {
+      transaction.set(
+        ref,
+        {
+          session_id: params.sessionId,
+          started_at: now,
+          last_activity_at: now,
+          message_count: 1,
+          cache_hits: params.cacheHit ? 1 : 0,
+          engagement_score: 1,
+          rate_limited: params.rateLimited,
+          status: params.status,
+          total_duration_ms: params.totalDurationMs,
+          trace_id: params.traceId,
+          ...(params.recruiterEmail !== undefined && { recruiter_email: params.recruiterEmail }),
+        },
+        { merge: true }
+      );
+      return;
+    }
+
     const updateData: Record<string, unknown> = {
       last_activity_at: now,
       message_count: FieldValue.increment(1),
@@ -108,8 +113,8 @@ export async function writeSessionSummary(params: {
     if (params.recruiterEmail !== undefined) {
       updateData.recruiter_email = params.recruiterEmail;
     }
-    await ref.update(updateData);
-  }
+    transaction.update(ref, updateData);
+  });
 }
 
 export async function getSessionMemory(sessionId: string): Promise<Array<{ role: "user" | "assistant"; content: string }>> {

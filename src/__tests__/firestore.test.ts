@@ -57,9 +57,11 @@ beforeEach(() => {
   mockWhere.mockReturnValue({
     get: vi.fn().mockResolvedValue({ docs: [] }),
   });
-  mockRunTransaction.mockImplementation(async (fn: (tx: { get: typeof mockGet; set: typeof mockSet }) => Promise<void>) => {
-    await fn({ get: mockGet, set: mockSet });
-  });
+  mockRunTransaction.mockImplementation(
+    async (fn: (tx: { get: typeof mockGet; set: typeof mockSet; update: typeof mockUpdate }) => Promise<void>) => {
+      await fn({ get: mockGet, set: mockSet, update: mockUpdate });
+    }
+  );
 });
 
 afterEach(() => {
@@ -85,7 +87,7 @@ describe("firestore", () => {
   });
 
   describe("writeSessionSummary", () => {
-    it("creates new document with merge when session does not exist", async () => {
+    it("creates new document inside a transaction when session does not exist", async () => {
       vi.stubEnv("FIREBASE_SERVICE_ACCOUNT_JSON", '{"type":"service_account","project_id":"test"}');
       mockGet.mockResolvedValueOnce({ exists: false, data: () => undefined });
 
@@ -96,14 +98,16 @@ describe("firestore", () => {
         status: "ok",
       });
 
+      expect(mockRunTransaction).toHaveBeenCalledTimes(1);
       expect(mockDoc).toHaveBeenCalledWith("test-session-1");
       expect(mockSet).toHaveBeenCalledWith(
+        expect.anything(),
         expect.objectContaining({ message_count: 1, cache_hits: 1 }),
         { merge: true }
       );
     });
 
-    it("updates existing document with atomic increments when session exists", async () => {
+    it("updates existing document with atomic increments inside a transaction", async () => {
       vi.stubEnv("FIREBASE_SERVICE_ACCOUNT_JSON", '{"type":"service_account","project_id":"test"}');
       mockGet.mockResolvedValueOnce({ exists: true, data: () => ({ session_id: "existing" }) });
 
@@ -114,7 +118,9 @@ describe("firestore", () => {
         status: "ok",
       });
 
+      expect(mockRunTransaction).toHaveBeenCalledTimes(1);
       expect(mockUpdate).toHaveBeenCalledWith(
+        expect.anything(),
         expect.objectContaining({
           message_count: FieldValue.increment(1),
           engagement_score: FieldValue.increment(1),
