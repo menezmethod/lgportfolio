@@ -46,6 +46,8 @@ export interface WarRoomData {
     latency_1h: Array<{ t: number; p50: number; p95: number }>;
     requests_1h: Array<{ t: number; count: number; errors: number }>;
   };
+  metrics_source?: 'prometheus' | 'memory' | 'hybrid';
+  platform?: 'vercel' | 'cloud-run' | 'local';
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -159,7 +161,21 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
       {!compact && (
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-muted-foreground">
           <span>Last refresh: {lastFetch || '—'}</span>
-          <span>Region: {d.service_status.region} · v{d.service_status.version}</span>
+          <span className="flex flex-wrap items-center gap-2">
+            {d.platform && (
+              <span className="bg-white/5 px-1.5 py-0.5 rounded border border-white/10 uppercase">{d.platform}</span>
+            )}
+            {d.metrics_source && (
+              <span className={`px-1.5 py-0.5 rounded border uppercase ${
+                d.metrics_source === 'prometheus'
+                  ? 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20'
+                  : 'bg-amber-400/10 text-amber-400 border-amber-400/20'
+              }`}>
+                {d.metrics_source === 'prometheus' ? 'prometheus' : `${d.metrics_source} fallback`}
+              </span>
+            )}
+            <span>Region: {d.service_status.region} · v{d.service_status.version}</span>
+          </span>
         </div>
       )}
       {error && (
@@ -220,7 +236,14 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
 
       <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: 'Uptime', value: formatUptime(d.infrastructure.uptime_seconds), icon: Clock, color: 'text-emerald-400' },
+          {
+            label: d.metrics_source === 'prometheus' ? 'Cold Starts (24h)' : 'Uptime',
+            value: d.metrics_source === 'prometheus'
+              ? d.infrastructure.cold_starts.toLocaleString()
+              : formatUptime(d.infrastructure.uptime_seconds),
+            icon: Clock,
+            color: 'text-emerald-400',
+          },
           { label: 'Requests', value: d.request_metrics.total_24h.toLocaleString(), icon: BarChart3, color: 'text-blue-400' },
           { label: 'P95 Latency', value: `${d.request_metrics.latency_p95}ms`, icon: Zap, color: 'text-amber-400' },
           { label: 'Error Rate', value: `${d.request_metrics.error_rate_1h.toFixed(1)}%`, icon: AlertTriangle, color: d.request_metrics.error_rate_1h > 5 ? 'text-red-400' : 'text-emerald-400' },

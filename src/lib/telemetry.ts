@@ -1,22 +1,14 @@
 /**
- * Lightweight observability engine for GCP Cloud Run.
+ * Lightweight observability engine for Vercel (and local dev).
  *
  * Architecture:
- *   - Structured JSON logs → stdout → Cloud Logging (auto-ingested)
- *   - In-memory metrics → /api/war-room/data + /api/health
- *   - Trace IDs via crypto.randomUUID → Cloud Logging correlation
- *   - Rolling time-series windows (1h) for dashboard charts
+ *   - Structured JSON logs → stdout → Vercel log drain
+ *   - In-memory metrics → /api/metrics (Prometheus scrape) + /api/health
+ *   - War Room aggregates from Prometheus when PROMETHEUS_URL is set
+ *   - Rolling time-series windows (1h) for dashboard charts (in-memory fallback)
  *
- * Why in-memory (not OTel SDK): Next.js on Cloud Run with scale-to-zero
- * and max 1 instance makes in-memory metrics practical. They reset on
- * cold starts — the dashboard shows this honestly.
- *
- * GCP products leveraged:
- *   Cloud Logging  — free 50GB/month (structured JSON via stdout)
- *   Cloud Trace    — free 2.5M spans/month (trace_id in logs)
- *   Cloud Run      — built-in request metrics (free)
- *   Uptime Checks  — free up to 100 (configured via Terraform)
- *   Error Reporting — free (structured error logs auto-detected)
+ * On Vercel serverless, in-memory counters are per-instance and reset on cold
+ * starts. Prometheus scrapes /api/metrics so War Room can show fleet-wide data.
  */
 
 import { APP_VERSION } from "./version";
@@ -260,8 +252,9 @@ export function getRecentErrors(): RecentError[] {
   return [...recentErrors].reverse();
 }
 
-// Record cold start on module load
+// Record cold start on module load (scraped as app_cold_starts_total)
 addEvent("cold_start", `Instance started (Node ${process.version})`);
+increment("app_cold_starts_total");
 
 // ── Structured Logging (stdout → Cloud Logging) ────────────────────────────
 
@@ -440,8 +433,8 @@ export function getHealthData(): HealthData {
       latency_ms: Math.round(percentile("chat_rag_retrieval_duration_seconds", 50, 300000)) || undefined,
     },
     rate_limiter: { status: "up", budget_remaining: budgetRemaining },
-    cloud_logging: { status: "up" },
-    cloud_trace: { status: "up" },
+    structured_logging: { status: "up" },
+    prometheus: { status: "up" },
   };
 
   const anyDown = Object.values(checks).some((c) => c.status === "down");
@@ -453,7 +446,7 @@ export function getHealthData(): HealthData {
     uptime_seconds: getUptimeSeconds(),
     checks,
     version: APP_VERSION,
-    region: process.env.GOOGLE_CLOUD_REGION || "us-east1",
+    region: process.env.VERCEL_REGION || process.env.GOOGLE_CLOUD_REGION || "local",
   };
 }
 

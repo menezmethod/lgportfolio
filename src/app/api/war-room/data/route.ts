@@ -1,5 +1,6 @@
 import { getTraceIdFromRequest } from "@/lib/trace-context";
-import { getWarRoomData, log, recordRequest } from "@/lib/telemetry";
+import { log, recordRequest } from "@/lib/telemetry";
+import { getWarRoomDataAsync } from "@/lib/war-room-metrics";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export async function GET(req: Request) {
     });
   }
 
-  const data = getWarRoomData();
+  const data = await getWarRoomDataAsync();
 
   log("INFO", "War room data request", {
     endpoint: "/api/war-room/data",

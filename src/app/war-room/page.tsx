@@ -73,8 +73,8 @@ export default function WarRoom() {
             <span className="text-xs bg-emerald-400/10 text-emerald-400 px-2 py-0.5 rounded font-mono border border-emerald-400/20">LIVE</span>
           </div>
           <p className="text-sm text-gray-500 max-w-2xl">
-            Real operational data from this portfolio&apos;s GCP infrastructure, instrumented with the same
-            observability patterns used for enterprise payment systems.
+            Live metrics from this portfolio on Vercel — aggregated via Prometheus when configured,
+            with the same observability patterns used for enterprise payment systems.
           </p>
         </header>
 
@@ -84,28 +84,28 @@ export default function WarRoom() {
           <h3 className="text-xs font-mono text-gray-500 uppercase mb-4">Observability Stack</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {[
-              { name: 'Cloud Logging', desc: 'Structured logs', href: 'https://cloud.google.com/logging', free: '50 GB/mo' },
-              { name: 'Cloud Trace', desc: 'Distributed tracing', href: 'https://cloud.google.com/trace', free: '2.5M spans/mo' },
-              { name: 'Cloud Monitoring', desc: 'Metrics & alerts', href: 'https://cloud.google.com/monitoring', free: 'Free tier' },
-              { name: 'Uptime Checks', desc: 'Endpoint monitoring', href: 'https://cloud.google.com/monitoring/uptime-checks', free: '100 checks' },
-              { name: 'Error Reporting', desc: 'Exception tracking', href: 'https://cloud.google.com/error-reporting', free: 'Free' },
-              { name: 'Cloud Armor', desc: 'WAF & DDoS', href: 'https://cloud.google.com/armor', free: 'Standard tier' },
+              { name: 'Vercel', desc: 'Deploy & runtime logs', href: 'https://vercel.com/docs/observability', tag: 'Platform' },
+              { name: 'Prometheus', desc: 'Metrics scrape target', href: process.env.NEXT_PUBLIC_PROMETHEUS_URL || 'https://prometheus.io/docs/introduction/overview/', tag: '/api/metrics' },
+              { name: 'Grafana', desc: 'Dashboards & alerts', href: process.env.NEXT_PUBLIC_GRAFANA_URL || 'https://grafana.com/docs/', tag: 'Panels' },
+              { name: 'Health API', desc: 'Synthetic probe target', href: '/api/health', tag: 'Live' },
+              { name: 'Structured Logs', desc: 'JSON stdout', href: 'https://vercel.com/docs/observability/runtime-logs', tag: 'stdout' },
+              { name: 'Inferencia', desc: 'LLM gateway', href: 'https://llm.menezmethod.com/docs', tag: 'Chat' },
             ].map((p) => (
               <a
                 key={p.name}
                 href={p.href}
-                target="_blank"
-                rel="noopener noreferrer"
+                target={p.href.startsWith('/') ? undefined : '_blank'}
+                rel={p.href.startsWith('/') ? undefined : 'noopener noreferrer'}
                 className="p-3 rounded-lg border border-white/5 bg-[#0d1117] hover:border-blue-500/30 transition-colors group"
               >
                 <div className="text-xs font-mono text-blue-400 group-hover:text-blue-300 mb-1">{p.name}</div>
                 <div className="text-[10px] text-gray-600">{p.desc}</div>
-                <div className="text-[10px] text-emerald-400/60 mt-1">{p.free}</div>
+                <div className="text-[10px] text-emerald-400/60 mt-1">{p.tag}</div>
               </a>
             ))}
           </div>
           <p className="text-center text-[10px] text-gray-700 font-mono mt-4">
-            All running on GCP free tier. Additional cost: ~$0/month for observability.
+            War Room reads fleet-wide counters from Prometheus; events and errors are per-instance.
           </p>
         </section>
       </div>
