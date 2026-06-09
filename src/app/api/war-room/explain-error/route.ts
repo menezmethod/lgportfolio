@@ -1,5 +1,10 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
+import {
+  checkRateLimit,
+  incrementDailyCount,
+  isDailyBudgetExhausted,
+} from "@/lib/rate-limit";
 import { recordRequest } from "@/lib/telemetry";
 
 export const maxDuration = 30;
@@ -23,6 +28,25 @@ export async function POST(req: Request) {
   }
 
   try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+
+    const rateLimitResult = checkRateLimit(ip);
+    if (!rateLimitResult.allowed) {
+      recordRequest("/api/war-room/explain-error", "POST", 429, Date.now() - start);
+      return new Response(
+        JSON.stringify({ error: "Rate limited", message: rateLimitResult.message }),
+        { status: 429, headers: { "Content-Type": "application/json", "X-Content-Type-Options": "nosniff" } }
+      );
+    }
+
+    if (isDailyBudgetExhausted()) {
+      recordRequest("/api/war-room/explain-error", "POST", 429, Date.now() - start);
+      return new Response(
+        JSON.stringify({ error: "Daily limit exhausted", message: "Budget exhausted." }),
+        { status: 429, headers: { "Content-Type": "application/json", "X-Content-Type-Options": "nosniff" } }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const errorText = (body as { error_text?: string }).error_text?.trim() || "";
     if (!errorText) {
@@ -45,6 +69,7 @@ export async function POST(req: Request) {
       maxOutputTokens: 300,
       temperature: 0.3,
     });
+    incrementDailyCount();
 
     recordRequest("/api/war-room/explain-error", "POST", 200, Date.now() - start);
     return new Response(JSON.stringify({ explanation: text }), {

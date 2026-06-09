@@ -78,9 +78,9 @@ async function fetchPrometheusWarRoomSlice(budgetMax: number): Promise<Partial<W
     rpm: "sum(rate(http_requests_total[1m])) * 60",
     errors1h: "sum(increase(errors_total[1h]))",
     reqs1h: "sum(increase(http_requests_total[1h]))",
-    p50: 'avg(http_request_duration_seconds{quantile="0.5"})',
-    p90: 'avg(http_request_duration_seconds{quantile="0.9"})',
-    p99: 'avg(http_request_duration_seconds{quantile="0.99"})',
+    p50: 'max(http_request_duration_seconds{quantile="0.5"})',
+    p90: 'max(http_request_duration_seconds{quantile="0.9"})',
+    p99: 'max(http_request_duration_seconds{quantile="0.99"})',
     chat24h: "sum(increase(chat_conversations_total[24h]))",
     cacheHits24h: "sum(increase(chat_cache_hits_total[24h]))",
     rateLimits24h: "sum(increase(chat_rate_limit_hits_total[24h]))",
@@ -93,8 +93,8 @@ async function fetchPrometheusWarRoomSlice(budgetMax: number): Promise<Partial<W
   const now = Date.now();
   const oneHourAgo = now - 3_600_000;
   const [latencyP50Series, latencyP90Series, requestSeries, errorSeries] = await Promise.all([
-    queryRange('avg(http_request_duration_seconds{quantile="0.5"})', oneHourAgo, now, 60).catch(() => []),
-    queryRange('avg(http_request_duration_seconds{quantile="0.9"})', oneHourAgo, now, 60).catch(() => []),
+    queryRange('max(http_request_duration_seconds{quantile="0.5"})', oneHourAgo, now, 60).catch(() => []),
+    queryRange('max(http_request_duration_seconds{quantile="0.9"})', oneHourAgo, now, 60).catch(() => []),
     queryRange("sum(increase(http_requests_total[1m]))", oneHourAgo, now, 60).catch(() => []),
     queryRange("sum(increase(errors_total[1m]))", oneHourAgo, now, 60).catch(() => []),
   ]);

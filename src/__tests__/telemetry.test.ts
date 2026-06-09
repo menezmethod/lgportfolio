@@ -272,10 +272,12 @@ describe("telemetry", () => {
       expect(getCounter(key)).toBe(before + 1);
     });
 
-    it("does NOT count 401 as error in time series (isError=false)", () => {
-      // 401 still increments errors_total but isError flag is false for time series
+    it("does NOT increment errors_total for 401 auth failures", () => {
+      const before = getCounter("errors_total");
+      const clientBefore = getCounter('errors_total{type="client"}');
       recordRequest("/api/auth", "GET", 401, 5);
-      // No assertion on time series error count directly, but verify it doesn't throw
+      expect(getCounter("errors_total")).toBe(before);
+      expect(getCounter('errors_total{type="client"}')).toBe(clientBefore);
     });
   });
 
