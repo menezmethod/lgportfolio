@@ -464,6 +464,24 @@ describe("telemetry", () => {
       expect(text).toContain(`# TYPE ${name} summary`);
       expect(text).toContain(`${name}_count 2`);
     });
+
+    it("emits quantile labels for unlabeled histogram summaries", () => {
+      const name = `prom_unlabeled_hist_${Date.now()}`;
+      observe(name, 100);
+      observe(name, 200);
+      const text = getPrometheusText();
+      expect(text).toContain(`${name}{quantile="0.5"}`);
+      expect(text).toContain(`${name}{quantile="0.9"}`);
+      expect(text).toContain(`${name}{quantile="0.99"}`);
+      expect(text).not.toMatch(new RegExp(`^${name} \\d`, "m"));
+    });
+
+    it("exports chat inference duration with quantile labels for Prometheus queries", () => {
+      recordRequest("/api/chat", "POST", 200, 50);
+      observe("chat_inference_duration_seconds", 250);
+      const text = getPrometheusText();
+      expect(text).toContain('chat_inference_duration_seconds{quantile="0.5"}');
+    });
   });
 
   // ── getUptimeSeconds ──────────────────────────────────────────────────────

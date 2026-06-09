@@ -380,6 +380,11 @@ export function getPrometheusText(): string {
     if (!histogramGroups.has(name)) histogramGroups.set(name, []);
     histogramGroups.get(name)!.push({ labels, arr });
   }
+  const summaryQuantileLabels = (labels: string, quantile: string): string => {
+    if (!labels) return `{quantile="${quantile}"}`;
+    return labels.replace(/\}$/, `,quantile="${quantile}"}`);
+  };
+
   for (const [name, group] of histogramGroups) {
     lines.push(`# TYPE ${name} summary`);
     for (const { labels, arr } of group) {
@@ -391,9 +396,9 @@ export function getPrometheusText(): string {
       const q90 = values[Math.floor(0.9 * count)] ?? 0;
       const q99 = values[Math.floor(0.99 * count)] ?? 0;
       const labelPart = labels || "";
-      lines.push(`${name}${labelPart.replace("}", ',quantile="0.5"}')} ${toSeconds(q50)}`);
-      lines.push(`${name}${labelPart.replace("}", ',quantile="0.9"}')} ${toSeconds(q90)}`);
-      lines.push(`${name}${labelPart.replace("}", ',quantile="0.99"}')} ${toSeconds(q99)}`);
+      lines.push(`${name}${summaryQuantileLabels(labelPart, "0.5")} ${toSeconds(q50)}`);
+      lines.push(`${name}${summaryQuantileLabels(labelPart, "0.9")} ${toSeconds(q90)}`);
+      lines.push(`${name}${summaryQuantileLabels(labelPart, "0.99")} ${toSeconds(q99)}`);
       lines.push(`${name}_sum${labelPart} ${toSeconds(sum)}`);
       lines.push(`${name}_count${labelPart} ${count}`);
     }
