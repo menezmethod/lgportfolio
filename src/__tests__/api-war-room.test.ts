@@ -16,10 +16,28 @@ import { POST as explainError } from "@/app/api/war-room/explain-error/route";
 import { GET as getWarRoomData } from "@/app/api/war-room/data/route";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
+import { checkRateLimit, isDailyBudgetExhausted } from "@/lib/rate-limit";
 
-beforeEach(() => {
+vi.mock("@/lib/rate-limit", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/rate-limit")>();
+  return {
+    ...actual,
+    checkRateLimit: vi.fn(actual.checkRateLimit),
+    isDailyBudgetExhausted: vi.fn(actual.isDailyBudgetExhausted),
+    incrementDailyCount: vi.fn(actual.incrementDailyCount),
+  };
+});
+
+beforeEach(async () => {
   vi.spyOn(console, "log").mockImplementation(() => {});
   vi.mocked(generateText).mockResolvedValue({ text: "Mock explanation of the error" } as Awaited<ReturnType<typeof generateText>>);
+  const actual = await vi.importActual<typeof import("@/lib/rate-limit")>("@/lib/rate-limit");
+  vi.mocked(checkRateLimit).mockReturnValue({
+    allowed: true,
+    remaining: 5,
+    resetAt: Date.now() + 60_000,
+  });
+  vi.mocked(isDailyBudgetExhausted).mockImplementation(actual.isDailyBudgetExhausted);
 });
 
 afterEach(() => {
@@ -131,6 +149,40 @@ describe("/api/war-room/explain-error", () => {
           system: expect.stringContaining("DevOps/SRE"),
         })
       );
+    });
+  });
+
+  describe("rate limiting", () => {
+    it("returns 429 when IP rate limit is exceeded", async () => {
+      vi.stubEnv("INFERENCIA_API_KEY", "test-key");
+      vi.mocked(checkRateLimit).mockReturnValueOnce({
+        allowed: false,
+        remaining: 0,
+        resetAt: Date.now() + 60_000,
+        message: "Rate limit reached.",
+      });
+
+      const response = await explainError(
+        makeExplainRequest({ error_text: "NullPointerException at line 42" })
+      );
+      expect(response.status).toBe(429);
+      expect(generateText).not.toHaveBeenCalled();
+    });
+
+    it("returns 429 when daily LLM budget is exhausted", async () => {
+      vi.stubEnv("INFERENCIA_API_KEY", "test-key");
+      vi.mocked(checkRateLimit).mockReturnValue({
+        allowed: true,
+        remaining: 5,
+        resetAt: Date.now() + 60_000,
+      });
+      vi.mocked(isDailyBudgetExhausted).mockReturnValueOnce(true);
+
+      const response = await explainError(
+        makeExplainRequest({ error_text: "NullPointerException at line 42" })
+      );
+      expect(response.status).toBe(429);
+      expect(generateText).not.toHaveBeenCalled();
     });
   });
 

@@ -295,13 +295,12 @@ export function recordRequest(endpoint: string, method: string, statusCode: numb
   increment("http_requests_total");
   increment(`http_requests_total{endpoint="${endpoint}",method="${method}",status="${statusCode}"}`);
   observe("http_request_duration_seconds", durationMs);
-  observe(`http_request_duration_seconds{endpoint="${endpoint}"}`, durationMs);
   // Exclude 401 from error rate so auth failures on protected routes don't inflate the dashboard
   const isError = statusCode >= 400 && statusCode !== 401;
   recordRequestTimeSeries(durationMs, isError);
-  if (statusCode >= 400) increment("errors_total");
+  if (isError) increment("errors_total");
   if (statusCode >= 500) increment(`errors_total{type="server"}`);
-  else if (statusCode >= 400) increment(`errors_total{type="client"}`);
+  else if (isError) increment(`errors_total{type="client"}`);
 }
 
 export function recordChatMetrics(fields: {
