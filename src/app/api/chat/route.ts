@@ -34,7 +34,7 @@ import {
 export const maxDuration = 60;
 
 const DEFAULT_BASE_URL = process.env.INFERENCIA_BASE_URL || "";
-const DEFAULT_CHAT_MODEL = "mlx-community/gpt-oss-20b-MXFP4-Q8";
+const DEFAULT_CHAT_MODEL = "gemma4:e4b";
 
 const SECURITY_HEADERS = {
   "Content-Type": "application/json",
