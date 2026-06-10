@@ -1,5 +1,4 @@
-import { createOpenAI } from "@ai-sdk/openai";
-import { streamText } from "ai";
+import { isChatConfigured, streamChatWithFallbacks } from "@/lib/chat-providers";
 import {
   checkRateLimit,
   incrementDailyCount,
@@ -32,11 +31,6 @@ import {
 } from "@/lib/firestore";
 
 export const maxDuration = 60;
-
-const INFERENCE_TIMEOUT_MS = 50_000;
-
-const DEFAULT_BASE_URL = process.env.INFERENCIA_BASE_URL || "";
-const DEFAULT_CHAT_MODEL = "gemma4:e4b";
 
 const SECURITY_HEADERS = {
   "Content-Type": "application/json",
@@ -122,9 +116,7 @@ function wrapStreamForPersistence(
 export async function POST(req: Request) {
   const requestStart = Date.now();
   const traceId = getTraceIdFromRequest(req) ?? generateTraceId();
-  const apiKey = process.env.INFERENCIA_API_KEY;
-
-  if (!apiKey) {
+  if (!isChatConfigured()) {
     const t = Date.now() - requestStart;
     recordRequest("/api/chat", "POST", 503, t);
     recordError({ endpoint: "/api/chat", status_code: 503, message: "LLM is not configured", trace_id: traceId });
@@ -299,22 +291,33 @@ BEHAVIOR:
 CONTEXT FROM KNOWLEDGE BASE:
 ${context}`;
 
-    const baseURL = process.env.INFERENCIA_BASE_URL || DEFAULT_BASE_URL;
-    const model = process.env.INFERENCIA_CHAT_MODEL || DEFAULT_CHAT_MODEL;
-    const openai = createOpenAI({ baseURL, apiKey });
-
-    // Inference span — abort before Vercel's 60s limit so clients get 503 instead of 504
     const inferenceStart = Date.now();
-    const inferenceAbort = AbortSignal.timeout(INFERENCE_TIMEOUT_MS);
-    const result = await streamText({
-      model: openai.chat(model),
-      system: systemPrompt,
-      messages: messagesForModel,
-      maxRetries: 1,
-      maxOutputTokens: 800,
-      temperature: 0.5,
-      abortSignal: inferenceAbort,
-    });
+    const { result, provider, model } = await streamChatWithFallbacks(
+      {
+        system: systemPrompt,
+        messages: messagesForModel,
+        maxOutputTokens: 800,
+        temperature: 0.5,
+      },
+      {
+        onAttempt: (p) => {
+          log("INFO", "Chat inference attempt", {
+            trace_id: traceId,
+            provider: p.id,
+            model: p.model,
+          });
+        },
+        onFallback: (p, error) => {
+          increment(`chat_fallback_total{from="${p.id}"}`);
+          log("WARNING", "Chat provider failed, trying fallback", {
+            trace_id: traceId,
+            provider: p.id,
+            model: p.model,
+            error,
+          });
+        },
+      }
+    );
     incrementDailyCount();
 
     const response = result.toTextStreamResponse();
@@ -338,6 +341,8 @@ ${context}`;
       rag_duration_ms: ragDurationMs,
       inference_duration_ms: inferenceDuration,
       cache_hit: false,
+      provider,
+      model,
     });
 
     const userMsgForMemory = validation.parsed.filter((m) => m.role === "user").pop();
@@ -357,6 +362,7 @@ ${context}`;
         ...Object.fromEntries(response.headers.entries()),
         "X-Content-Type-Options": "nosniff",
         "X-Trace-Id": traceId,
+        "X-Chat-Provider": provider,
       },
     });
   } catch (error) {
