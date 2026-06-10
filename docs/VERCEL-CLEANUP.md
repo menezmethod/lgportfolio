@@ -1,64 +1,50 @@
-# Vercel project cleanup
+# Vercel cleanup — one project, main-only deploys
 
-## Problem
+## Canonical setup
 
-Three Vercel projects are connected to this repo. Every push/PR triggers **three builds**:
+| Item | Value |
+|------|--------|
+| Vercel team | `menezmethods-projects` |
+| Project | **`lgportfolio` only** (domains: `gimenez.dev`, `www.gimenez.dev`) |
+| GitHub repo | `menezmethod/lgportfolio` |
+| Production deploy | **Merge to `main` only** (Vercel Git integration) |
+| PR previews | **Disabled** (`scripts/vercel-should-build.sh` skips `VERCEL_ENV=preview`) |
+| CI | GitHub Actions (`ci.yml`) — lint, build, test, Cypress on PRs and main |
 
-| Project | Status |
-|---------|--------|
-| `lgportfolio` | **Keep** — serves `gimenez.dev` |
-| `lgportfolio-inline` | **Disconnect** — duplicate, burns build minutes |
-| `lgportfolio-fix` | **Disconnect** — duplicate, burns build minutes |
+## Removed duplicates (2026-06-10)
 
-## Target behavior
+Do not recreate these projects — they tripled deployment quota:
 
-| Event | What deploys |
-|-------|----------------|
-| Open/update PR | **Preview** on `lgportfolio` only |
-| Merge to `main` | **Production** on `lgportfolio` only |
-| Any event | `lgportfolio-inline` / `lgportfolio-fix` → **skipped** |
+- `lgportfolio-fix` (deleted)
+- `lgportfolio-inline` (deleted)
 
-Controlled by `scripts/vercel-should-build.sh` in `vercel.json`.
+## Hermes / agent rules
 
-## One-time setup (Vercel Dashboard)
+- **Never** `vercel link` a second project for this repo
+- **Never** `vercel --prod` or `vercel rollback` from crons (report-only watchdogs)
+- Portfolio weekly audit → PR to `main`; humans merge; Vercel deploys once
 
-### Step 1 — Disconnect duplicate projects
+## Watchdogs (no chat POST spam)
 
-For **`lgportfolio-inline`** and **`lgportfolio-fix`**:
+- `scripts/hermes-chat-watchdog.sh` — uses `/api/health` only (no POST `/api/chat`)
+- `~/.hermes/scripts/inferencia-watchdog.py` — same pattern
 
-1. [Vercel Dashboard](https://vercel.com/dashboard) → open project
-2. **Settings** → **Git** → **Disconnect**
-3. (Optional) Delete the project entirely if unused
-
-### Step 2 — Configure canonical project
-
-On **`lgportfolio`** only:
-
-1. **Settings** → **Environment Variables** → add:
-
-| Name | Value | Environments |
-|------|-------|--------------|
-| `VERCEL_CANONICAL_PROJECT` | `1` | Production, Preview, Development |
-
-2. **Settings** → **Git** → enable **Automatically expose System Environment Variables**
-
-3. Confirm **Production Branch** = `main`
-
-### Step 3 — Verify after next PR
-
-GitHub checks should show:
-
-- `Vercel – lgportfolio` — building or success
-- `Vercel – lgportfolio-inline` — **Canceled / Ignored** (or gone after disconnect)
-- `Vercel – lgportfolio-fix` — **Canceled / Ignored** (or gone after disconnect)
-
-After merge to `main`, only one production deploy:
+## Manual commands
 
 ```bash
-gh api 'repos/menezmethod/lgportfolio/deployments?per_page=5' \
-  --jq '.[] | select(.environment | test("lgportfolio")) | {environment, sha: .sha[0:7], created_at}'
+# Inventory + deploy budget
+python3 ~/.hermes/scripts/vercel-governor.py --report
+
+# Production deploy (Tier 3 — human only)
+cd /Users/luisgimenez/Development/03-products/lgportfolio
+git checkout main && git pull
+# merge PR in GitHub → Vercel builds automatically
 ```
 
-## Optional: CI deploy backup
+## Troubleshooting
 
-Add GitHub secrets for `lgportfolio` project ID only. See `docs/VERCEL-DEPLOY.md` §6.
+**Queued builds piling up:** Dashboard → lgportfolio → Cancel queued. Fix branch churn; previews are off.
+
+**Main not deploying:** Confirm `vercel.json` `ignoreCommand` points at `scripts/vercel-should-build.sh` and latest commit is on `main`.
+
+**Stale production SHA:** Site may still be HTTP 200 — run governor report; merge pending work or promote manually (human decision).
