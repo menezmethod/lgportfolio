@@ -1,7 +1,6 @@
 {
   "github": {
-    "silent": true,
-    "autoJobCancelation": true
+    "silent": true
   },
   "ignoreCommand": "bash scripts/vercel-should-build.sh",
   "framework": "nextjs"

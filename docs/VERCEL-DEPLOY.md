@@ -87,17 +87,16 @@ After CI passes on `main`, GitHub Actions can deploy to the **`lgportfolio`** Ve
 
 Until secrets are set, CI prints a warning and you must redeploy manually.
 
-## 7. One Vercel project (required cleanup)
+## 7. One Vercel project (cleanup done)
 
-Three Vercel projects are hooked to this repo — every push fires **three builds**. See **`docs/VERCEL-CLEANUP.md`**.
+Duplicate Vercel projects (`lgportfolio-inline`, `lgportfolio-fix`) were **deleted**. Only **`lgportfolio`** should be connected to this repo. See **`docs/VERCEL-CLEANUP.md`**.
 
 Deploy model:
 
-- **PR** → preview on `lgportfolio` only
-- **Merge to `main`** → production on `lgportfolio` only
-- **`lgportfolio-inline` / `lgportfolio-fix`** → disconnect Git (or builds are skipped via `scripts/vercel-should-build.sh`)
+- **PR** → no Vercel build (`scripts/vercel-should-build.sh` skips preview)
+- **Merge to `main`** → one production deploy on `lgportfolio`
 
-Set `VERCEL_CANONICAL_PROJECT=1` on **lgportfolio** (all envs). Enable **Automatically expose System Environment Variables**.
+Enable **Automatically expose System Environment Variables** on the Vercel project.
 
 ## 8. Troubleshooting: “pushes to main don’t deploy”
 
@@ -106,9 +105,9 @@ Set `VERCEL_CANONICAL_PROJECT=1` on **lgportfolio** (all envs). Enable **Automat
 **Check:**
 
 ```bash
-# Last production deploy for lgportfolio (not inline/fix)
+# Last production deploy (post-cleanup: environment is "Production")
 gh api 'repos/menezmethod/lgportfolio/deployments?per_page=5' \
-  --jq '.[] | select(.environment=="Production – lgportfolio") | {created_at, sha: .sha[0:7]}'
+  --jq '.[] | select(.environment=="Production") | {created_at, sha: .sha[0:7]}'
 ```
 
 **Verify new code is live** (after chat fix merge):
@@ -123,7 +122,7 @@ curl -s https://gimenez.dev/api/health | jq .checks.inference_api
 | Cause | Fix |
 |-------|-----|
 | Wrong Vercel project updated | Redeploy **lgportfolio** (not inline/fix) |
-| `autoJobCancelation` canceled in-flight builds | Removed from `vercel.json`; rapid merges no longer cancel production |
+| `autoJobCancelation` canceled in-flight builds | Disabled in `vercel.json`; rapid merges no longer cancel production |
 | Git integration flaky | Use CI deploy secrets (section 6) |
 | Env vars changed | Redeploy after updating Vercel env vars |
 

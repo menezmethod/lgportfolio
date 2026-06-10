@@ -18,6 +18,20 @@ Do not recreate these projects — they tripled deployment quota:
 - `lgportfolio-fix` (deleted)
 - `lgportfolio-inline` (deleted)
 
+## Git branch cleanup (2026-06-10)
+
+Stale remote branches (agent `cursor/*`, duplicate `master`, deploy trigger branches) were removed so pushes do not leave clutter in GitHub.
+
+```bash
+# Preview, then apply
+./scripts/git-cleanup-stale-branches.sh
+./scripts/git-cleanup-stale-branches.sh --apply
+```
+
+**Recommended (one-time, in GitHub UI):** Repo → **Settings → General** → enable **Automatically delete head branches** after PR merge.
+
+Old **Deployments** rows (`Production – lgportfolio-inline`, etc.) stay in GitHub history — harmless; new merges only report `Production`.
+
 ## Hermes / agent rules
 
 - **Never** `vercel link` a second project for this repo
