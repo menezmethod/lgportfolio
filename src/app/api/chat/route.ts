@@ -33,6 +33,8 @@ import {
 
 export const maxDuration = 60;
 
+const INFERENCE_TIMEOUT_MS = 50_000;
+
 const DEFAULT_BASE_URL = process.env.INFERENCIA_BASE_URL || "";
 const DEFAULT_CHAT_MODEL = "gemma4:e4b";
 
@@ -301,15 +303,17 @@ ${context}`;
     const model = process.env.INFERENCIA_CHAT_MODEL || DEFAULT_CHAT_MODEL;
     const openai = createOpenAI({ baseURL, apiKey });
 
-    // Inference span
+    // Inference span — abort before Vercel's 60s limit so clients get 503 instead of 504
     const inferenceStart = Date.now();
+    const inferenceAbort = AbortSignal.timeout(INFERENCE_TIMEOUT_MS);
     const result = await streamText({
       model: openai.chat(model),
       system: systemPrompt,
       messages: messagesForModel,
       maxRetries: 1,
-      maxOutputTokens: 1500,
+      maxOutputTokens: 800,
       temperature: 0.5,
+      abortSignal: inferenceAbort,
     });
     incrementDailyCount();
 

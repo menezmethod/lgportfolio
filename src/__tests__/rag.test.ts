@@ -112,12 +112,15 @@ describe("rag", () => {
 
     it("returns a smaller greeting context for low-signal queries", async () => {
       const { retrieveFileContext } = await import("@/lib/rag");
+      const { KNOWLEDGE_BASE } = await import("@/lib/knowledge");
       const greeting = retrieveFileContext("hi there", 3);
       const broad = retrieveFileContext("payments observability grafana card broker", 3);
-      expect(greeting.length).toBeGreaterThan(100);
+      expect(greeting.length).toBeGreaterThan(500);
+      expect(greeting.length).toBeLessThan(KNOWLEDGE_BASE.length);
       expect(greeting.length).toBeLessThan(broad.length);
       expect(greeting).toMatch(/SECTION 1/i);
       expect(greeting).toMatch(/SECTION 9/i);
+      expect(greeting).toMatch(/Who Is Luis Gimenez/i);
     });
   });
 });

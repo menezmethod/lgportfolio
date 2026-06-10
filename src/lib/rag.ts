@@ -68,7 +68,8 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 
 import { KNOWLEDGE_BASE } from "./knowledge";
 
-const FILE_SECTION_SPLIT = /(?=# ═{3,})/;
+const FILE_SECTION_SPLIT = /(?=# ═{3,}\n# SECTION \d+:)/;
+const FILE_PREAMBLE_MAX_CHARS = 2500;
 const GREETING_TOKENS = new Set(["hi", "hello", "hey", "there", "thanks", "thank", "yo", "howdy"]);
 
 function tokenize(text: string): Set<string> {
@@ -99,14 +100,19 @@ function isLowSignalQuery(query: string, queryTokens: Set<string>): boolean {
   return false;
 }
 
+function splitKnowledgeSections(): string[] {
+  const parts = KNOWLEDGE_BASE.split(FILE_SECTION_SPLIT).map((section) => section.trim());
+  return parts.filter((section) => section.length > 50);
+}
+
 /** File-based retrieval: return the most relevant KB sections instead of the full document. */
 export function retrieveFileContext(query: string, topK = 3): string {
-  const sections = KNOWLEDGE_BASE.split(FILE_SECTION_SPLIT).filter((section) => section.trim().length > 50);
+  const sections = splitKnowledgeSections();
   if (sections.length === 0) return KNOWLEDGE_BASE;
 
   const queryTokens = tokenize(query);
-  const behaviorIdx = sections.findIndex((section) => /SECTION 9/i.test(section));
-  const identityIdx = sections.findIndex((section) => /SECTION 1/i.test(section));
+  const behaviorIdx = sections.findIndex((section) => /SECTION 9:/i.test(section));
+  const identityIdx = sections.findIndex((section) => /SECTION 1:/i.test(section));
   const selected = new Set<number>();
 
   if (behaviorIdx >= 0) selected.add(behaviorIdx);
@@ -130,10 +136,18 @@ export function retrieveFileContext(query: string, topK = 3): string {
     }
   }
 
-  return [...selected]
+  const body = [...selected]
     .sort((a, b) => a - b)
     .map((idx) => sections[idx].trim())
     .join("\n\n");
+
+  if (!isLowSignalQuery(query, queryTokens)) return body;
+
+  const preamble = KNOWLEDGE_BASE.split(FILE_SECTION_SPLIT)[0]?.trim() ?? "";
+  if (preamble.length <= FILE_PREAMBLE_MAX_CHARS) {
+    return `${preamble}\n\n${body}`.trim();
+  }
+  return body;
 }
 
 function deduplicateContext(context: string): string {
