@@ -1,8 +1,12 @@
 {
   "github": {
-    "silent": true,
-    "autoJobCancelation": true
+    "silent": true
   },
-  "ignoreCommand": "if [ \"$VERCEL_GIT_COMMIT_REF\" = \"main\" ]; then exit 1; else exit 0; fi",
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  },
+  "ignoreCommand": "bash -c 'if [ \"$VERCEL_ENV\" = \"production\" ]; then exit 1; else exit 0; fi'",
   "framework": "nextjs"
 }
