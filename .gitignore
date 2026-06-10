@@ -78,3 +78,4 @@ terraform/.terraform.lock.hcl
 /src/App.css
 /src/index.js
 /src/index.css
+.env*
