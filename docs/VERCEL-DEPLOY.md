@@ -33,6 +33,16 @@ Optional (same behavior as on Cloud Run):
 
 Redeploy after changing env vars (**Deployments → … → Redeploy** or push to `main`).
 
+### Add OpenRouter key via CLI
+
+```bash
+export VERCEL_TOKEN=<from https://vercel.com/account/tokens>
+export OPENROUTER_API_KEY=<from https://openrouter.ai/keys>
+./scripts/vercel-add-openrouter-env.sh
+```
+
+Sets `OPENROUTER_API_KEY` on **production**, **preview**, and **development** for `menezmethods-projects/lgportfolio`.
+
 ## 3. Custom domain + Namecheap DNS
 
 In Vercel: **Project → Settings → Domains** → add `gimenez.dev` and `www.gimenez.dev`. Vercel shows the exact records to use; prefer those over anything generic.
