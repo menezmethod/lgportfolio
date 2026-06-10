@@ -425,18 +425,24 @@ export function getHealthData(inferenciaProbe?: {
   status: "up" | "down" | "degraded";
   latency_ms?: number;
 }): HealthData {
-  const hasInferenceKey = !!process.env.INFERENCIA_API_KEY;
+  const hasInferencia = Boolean(process.env.INFERENCIA_API_KEY?.trim());
+  const hasOpenRouter = Boolean(process.env.OPENROUTER_API_KEY?.trim());
   const budgetUsed = getCounter("chat_conversations_total");
   const budgetMax = parseInt(process.env.CHAT_DAILY_BUDGET || "150");
   const budgetRemaining = Math.max(0, budgetMax - budgetUsed);
 
-  const inferenceStatus = !hasInferenceKey
-    ? "degraded"
-    : inferenciaProbe?.status === "down"
-      ? "down"
-      : inferenciaProbe?.status === "degraded"
-        ? "degraded"
-        : "up";
+  let inferenceStatus: string;
+  if (!hasInferencia && !hasOpenRouter) {
+    inferenceStatus = "degraded";
+  } else if (hasOpenRouter && (!hasInferencia || inferenciaProbe?.status === "down")) {
+    inferenceStatus = "up";
+  } else if (inferenciaProbe?.status === "down") {
+    inferenceStatus = "down";
+  } else if (inferenciaProbe?.status === "degraded") {
+    inferenceStatus = "degraded";
+  } else {
+    inferenceStatus = "up";
+  }
 
   const checks: HealthData["checks"] = {
     inference_api: {

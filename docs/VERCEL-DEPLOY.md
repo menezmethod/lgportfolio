@@ -17,9 +17,10 @@ In **Project → Settings → Environment Variables**, set at least:
 
 | Variable | Notes |
 |----------|--------|
-| `INFERENCIA_API_KEY` | Required for `/api/chat` and War Room “explain error”. |
+| `INFERENCIA_API_KEY` | Primary LLM for `/api/chat` (self-hosted Inferencia). |
 | `INFERENCIA_BASE_URL` | OpenAI-compatible base URL (e.g. `https://llm.menezmethod.com/v1`). |
-| `INFERENCIA_CHAT_MODEL` | Optional; app has a default if unset. |
+| `INFERENCIA_CHAT_MODEL` | Optional; app default `gemma4:e4b`. |
+| `OPENROUTER_API_KEY` | Cloud fallback when Inferencia/laptop is down (free models). |
 | `ADMIN_SECRET` | Required for `/admin/*` and admin APIs. |
 | `NEXT_PUBLIC_SITE_URL` | `https://gimenez.dev` (canonical URL / metadata). |
 
