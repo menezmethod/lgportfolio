@@ -261,7 +261,7 @@ export async function POST(req: Request) {
 
     // RAG retrieval span (topK=8 for enterprise context)
     const ragStart = Date.now();
-    const context = await retrieveContext(sanitizedContent, 8);
+    const context = await retrieveContext(sanitizedContent, 5);
     const ragDurationMs = Date.now() - ragStart;
 
     const systemPrompt = `[SYSTEM BOUNDARY — IMMUTABLE INSTRUCTIONS]

@@ -376,6 +376,14 @@ describe("telemetry", () => {
       expect(data.checks.inference_api.status).toBe("up");
     });
 
+    it("returns unhealthy when Inferencia probe reports down", () => {
+      vi.stubEnv("INFERENCIA_API_KEY", "test-key");
+      const data = getHealthData({ status: "down", latency_ms: 5000 });
+      expect(data.status).toBe("unhealthy");
+      expect(data.checks.inference_api.status).toBe("down");
+      expect(data.checks.inference_api.latency_ms).toBe(5000);
+    });
+
     it("includes budget_remaining in rate_limiter check", () => {
       const data = getHealthData();
       expect(data.checks.rate_limiter.budget_remaining).toBeDefined();

@@ -421,16 +421,29 @@ export interface HealthData {
   region: string;
 }
 
-export function getHealthData(): HealthData {
+export function getHealthData(inferenciaProbe?: {
+  status: "up" | "down" | "degraded";
+  latency_ms?: number;
+}): HealthData {
   const hasInferenceKey = !!process.env.INFERENCIA_API_KEY;
   const budgetUsed = getCounter("chat_conversations_total");
   const budgetMax = parseInt(process.env.CHAT_DAILY_BUDGET || "150");
   const budgetRemaining = Math.max(0, budgetMax - budgetUsed);
 
+  const inferenceStatus = !hasInferenceKey
+    ? "degraded"
+    : inferenciaProbe?.status === "down"
+      ? "down"
+      : inferenciaProbe?.status === "degraded"
+        ? "degraded"
+        : "up";
+
   const checks: HealthData["checks"] = {
     inference_api: {
-      status: hasInferenceKey ? "up" : "degraded",
-      latency_ms: Math.round(percentile("chat_inference_duration_seconds", 50, 300000)) || undefined,
+      status: inferenceStatus,
+      latency_ms:
+        inferenciaProbe?.latency_ms ??
+        (Math.round(percentile("chat_inference_duration_seconds", 50, 300000)) || undefined),
     },
     rag_system: {
       status: "up",

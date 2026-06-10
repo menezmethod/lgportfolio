@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { GET } from "@/app/api/health/route";
 
+vi.mock("@/lib/inferencia-health", () => ({
+  probeInferenciaHealth: vi.fn().mockResolvedValue({ status: "up", latency_ms: 42 }),
+}));
+
 beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
