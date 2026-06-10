@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# Hermes no-agent cron watchdog for gimenez.dev chat + Inferencia chain.
+# Hermes no-agent cron watchdog for gimenez.dev Inferencia chain.
 # Usage (on Pi5): hermes cron create "every 5m" --no-agent --script hermes-chat-watchdog.sh --deliver telegram --name "portfolio-chat-watchdog"
+#
+# Checks GET /api/health only. That endpoint probes Inferencia /health (see
+# src/lib/inferencia-health.ts). Do NOT POST /api/chat here: each inference call
+# consumes the 150/day LLM budget and can take 50s+, which false-alarms at 45s.
 #
 # Exit 0 + empty stdout  = healthy (silent tick)
 # Exit 0 + stdout         = alert delivered verbatim
@@ -9,7 +13,6 @@
 set -euo pipefail
 
 SITE_URL="${SITE_URL:-https://gimenez.dev}"
-CHAT_TIMEOUT="${CHAT_TIMEOUT:-45}"
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-10}"
 
 fail() {
@@ -19,25 +22,14 @@ fail() {
 
 health_json="$(curl -fsS --max-time "$HEALTH_TIMEOUT" "${SITE_URL}/api/health")" || fail "GET /api/health failed"
 
+health_status="$(printf '%s' "$health_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['status'])" 2>/dev/null || echo unknown)"
+if [ "$health_status" = "unhealthy" ]; then
+  fail "/api/health status=${health_status}"
+fi
+
 infer_status="$(printf '%s' "$health_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['checks']['inference_api']['status'])" 2>/dev/null || echo unknown)"
 if [ "$infer_status" != "up" ]; then
   fail "/api/health inference_api=${infer_status} (expected up)"
-fi
-
-chat_tmp="$(mktemp)"
-trap 'rm -f "$chat_tmp"' EXIT
-
-http_code="$(curl -sS --max-time "$CHAT_TIMEOUT" -o "$chat_tmp" -w '%{http_code}' -X POST "${SITE_URL}/api/chat" \
-  -H 'Content-Type: application/json' \
-  -d '{"messages":[{"role":"user","content":"ping"}]}')" || fail "POST /api/chat connection failed"
-
-if [ "$http_code" != "200" ]; then
-  body="$(head -c 200 "$chat_tmp" | tr '\n' ' ')"
-  fail "POST /api/chat returned HTTP ${http_code}: ${body}"
-fi
-
-if [ ! -s "$chat_tmp" ]; then
-  fail "POST /api/chat returned HTTP 200 but empty body"
 fi
 
 # Healthy — silent tick (watchdog pattern)
