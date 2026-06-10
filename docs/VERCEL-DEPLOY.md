@@ -61,3 +61,57 @@ After `gimenez.dev` serves Vercel and looks correct:
 2. Optionally scale **Cloud Run** `lgportfolio` **max instances** to `0` or delete the trigger only—Terraform and `cloudbuild.yaml` remain for a future return to GCP.
 
 You do **not** need to delete `terraform/` or remove docs; this repo stays dual-capable.
+
+## 6. CI deploy (recommended — fixes silent production stalls)
+
+After CI passes on `main`, GitHub Actions can deploy to the **`lgportfolio`** Vercel project (the one with `gimenez.dev`). Add these **GitHub repo secrets** (Settings → Secrets and variables → Actions):
+
+| Secret | Where to get it |
+|--------|-----------------|
+| `VERCEL_TOKEN` | [Vercel → Account Settings → Tokens](https://vercel.com/account/tokens) |
+| `VERCEL_ORG_ID` | `vercel link` then read `.vercel/project.json`, or Project Settings → General |
+| `VERCEL_PROJECT_ID` | Same `.vercel/project.json` — use the **`lgportfolio`** project (not `lgportfolio-inline` or `lgportfolio-fix`) |
+
+Until secrets are set, CI prints a warning and you must redeploy manually.
+
+## 7. One Vercel project (required cleanup)
+
+Three Vercel projects are hooked to this repo — every push fires **three builds**. See **`docs/VERCEL-CLEANUP.md`**.
+
+Deploy model:
+
+- **PR** → preview on `lgportfolio` only
+- **Merge to `main`** → production on `lgportfolio` only
+- **`lgportfolio-inline` / `lgportfolio-fix`** → disconnect Git (or builds are skipped via `scripts/vercel-should-build.sh`)
+
+Set `VERCEL_CANONICAL_PROJECT=1` on **lgportfolio** (all envs). Enable **Automatically expose System Environment Variables**.
+
+## 8. Troubleshooting: “pushes to main don’t deploy”
+
+**Symptoms:** GitHub shows merges to `main`, but `gimenez.dev` stays on an old commit; chat fixes never land.
+
+**Check:**
+
+```bash
+# Last production deploy for lgportfolio (not inline/fix)
+gh api 'repos/menezmethod/lgportfolio/deployments?per_page=5' \
+  --jq '.[] | select(.environment=="Production – lgportfolio") | {created_at, sha: .sha[0:7]}'
+```
+
+**Verify new code is live** (after chat fix merge):
+
+```bash
+curl -s https://gimenez.dev/api/health | jq .checks.inference_api
+# New code includes latency_ms from Inferencia probe, e.g. {"status":"up","latency_ms":120}
+```
+
+**Common causes:**
+
+| Cause | Fix |
+|-------|-----|
+| Wrong Vercel project updated | Redeploy **lgportfolio** (not inline/fix) |
+| `autoJobCancelation` canceled in-flight builds | Removed from `vercel.json`; rapid merges no longer cancel production |
+| Git integration flaky | Use CI deploy secrets (section 6) |
+| Env vars changed | Redeploy after updating Vercel env vars |
+
+**Immediate unblock:** Vercel Dashboard → **lgportfolio** → Deployments → **Redeploy** latest `main` (⋯ menu → Redeploy).
