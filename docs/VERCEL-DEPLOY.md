@@ -74,12 +74,17 @@ After CI passes on `main`, GitHub Actions can deploy to the **`lgportfolio`** Ve
 
 Until secrets are set, CI prints a warning and you must redeploy manually.
 
-## 7. One production project only
+## 7. One Vercel project (required cleanup)
 
-This repo is connected to multiple Vercel projects (`lgportfolio`, `lgportfolio-inline`, `lgportfolio-fix`). Only **`lgportfolio`** should own `gimenez.dev`. In Vercel:
+Three Vercel projects are hooked to this repo — every push fires **three builds**. See **`docs/VERCEL-CLEANUP.md`**.
 
-1. **lgportfolio** — Production branch `main`, domains `gimenez.dev` + `www`
-2. **lgportfolio-inline** / **lgportfolio-fix** — Disconnect Git auto-deploy or delete if unused (they create noise and confusion)
+Deploy model:
+
+- **PR** → preview on `lgportfolio` only
+- **Merge to `main`** → production on `lgportfolio` only
+- **`lgportfolio-inline` / `lgportfolio-fix`** → disconnect Git (or builds are skipped via `scripts/vercel-should-build.sh`)
+
+Set `VERCEL_CANONICAL_PROJECT=1` on **lgportfolio** (all envs). Enable **Automatically expose System Environment Variables**.
 
 ## 8. Troubleshooting: “pushes to main don’t deploy”
 
