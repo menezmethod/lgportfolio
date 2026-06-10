@@ -57,8 +57,10 @@ import {
 
 beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => {});
-  // Re-establish mocks after any clears
-  mockStreamText.mockResolvedValue({
+  mockStreamText.mockReturnValue({
+    textStream: (async function* () {
+      yield "Hello from AI";
+    })(),
     toTextStreamResponse: mockToTextStreamResponse,
   });
   mockToTextStreamResponse.mockReturnValue({
@@ -135,10 +137,14 @@ describe("/api/chat — Inferencia configuration", () => {
     );
   });
 
-  it("calls streamText with maxOutputTokens 800 and inference abort signal", async () => {
+  it("calls streamText with maxOutputTokens 800, timeout, and inference abort signal", async () => {
     await POST(makeChatRequest(validBody));
     expect(mockStreamText).toHaveBeenCalledWith(
-      expect.objectContaining({ maxOutputTokens: 800, abortSignal: expect.any(AbortSignal) })
+      expect.objectContaining({
+        maxOutputTokens: 800,
+        abortSignal: expect.any(AbortSignal),
+        timeout: { totalMs: 50_000 },
+      })
     );
   });
 
@@ -380,7 +386,51 @@ describe("/api/chat — streaming response", () => {
 
 describe("/api/chat — error handling", () => {
   it("returns 503 when streamText throws", async () => {
-    mockStreamText.mockRejectedValueOnce(new Error("Inference timeout"));
+    mockStreamText.mockReturnValueOnce({
+      textStream: (async function* () {
+        throw new Error("Inference timeout");
+      })(),
+      toTextStreamResponse: mockToTextStreamResponse,
+    } as never);
+    const response = await POST(makeChatRequest(validBody));
+    expect(response.status).toBe(503);
+    const body = await response.json();
+    expect(body.error).toContain("unavailable");
+  });
+
+  it("returns 503 when inference does not emit a token before first-token timeout", async () => {
+    vi.useFakeTimers();
+    vi.stubEnv("CHAT_INFERENCE_FIRST_TOKEN_MS", "100");
+
+    mockStreamText.mockReturnValueOnce({
+      textStream: (async function* () {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        yield "too late";
+      })(),
+      toTextStreamResponse: mockToTextStreamResponse,
+    } as never);
+
+    const responsePromise = POST(makeChatRequest(validBody));
+    await vi.advanceTimersByTimeAsync(150);
+    const response = await responsePromise;
+
+    expect(response.status).toBe(503);
+    const body = await response.json();
+    expect(body.message).toContain("unavailable");
+
+    vi.useRealTimers();
+    delete process.env.CHAT_INFERENCE_FIRST_TOKEN_MS;
+  });
+
+  it("returns 503 when toTextStreamResponse throws", async () => {
+    mockStreamText.mockReturnValueOnce({
+      textStream: (async function* () {
+        yield "Hello from AI";
+      })(),
+      toTextStreamResponse: () => {
+        throw new Error("Inference timeout");
+      },
+    } as never);
     const response = await POST(makeChatRequest(validBody));
     expect(response.status).toBe(503);
     const body = await response.json();
@@ -388,9 +438,12 @@ describe("/api/chat — error handling", () => {
   });
 
   it("returns generic error message (does not leak raw error)", async () => {
-    mockStreamText.mockRejectedValueOnce(
-      new Error("INTERNAL: secret_database_connection_string_leaked")
-    );
+    mockStreamText.mockReturnValueOnce({
+      textStream: (async function* () {
+        throw new Error("INTERNAL: secret_database_connection_string_leaked");
+      })(),
+      toTextStreamResponse: mockToTextStreamResponse,
+    } as never);
     const response = await POST(makeChatRequest(validBody));
     const body = await response.json();
     expect(body.message).not.toContain("secret_database");

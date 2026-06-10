@@ -33,7 +33,32 @@ import {
 
 export const maxDuration = 60;
 
+/** Abort total inference; must stay below Vercel maxDuration (60s). */
 const INFERENCE_TIMEOUT_MS = 50_000;
+
+/** Wait for the first non-empty text delta before returning a streaming Response. */
+async function awaitFirstTextDelta(
+  result: { textStream: AsyncIterable<string> },
+  timeoutMs: number
+): Promise<void> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error("Inference timeout")), timeoutMs);
+  });
+
+  const firstDelta = (async () => {
+    for await (const delta of result.textStream) {
+      if (delta.length > 0) return;
+    }
+    throw new Error("Empty inference stream");
+  })();
+
+  try {
+    await Promise.race([firstDelta, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
 
 const DEFAULT_BASE_URL = process.env.INFERENCIA_BASE_URL || "";
 const DEFAULT_CHAT_MODEL = "gemma4:e4b";
@@ -303,10 +328,11 @@ ${context}`;
     const model = process.env.INFERENCIA_CHAT_MODEL || DEFAULT_CHAT_MODEL;
     const openai = createOpenAI({ baseURL, apiKey });
 
-    // Inference span — abort before Vercel's 60s limit so clients get 503 instead of 504
+    // Inference span — abort before Vercel's 60s limit so clients get 503 instead of 504.
+    // streamText() returns immediately; gate on first token so timeout errors reach catch.
     const inferenceStart = Date.now();
     const inferenceAbort = AbortSignal.timeout(INFERENCE_TIMEOUT_MS);
-    const result = await streamText({
+    const result = streamText({
       model: openai.chat(model),
       system: systemPrompt,
       messages: messagesForModel,
@@ -314,7 +340,13 @@ ${context}`;
       maxOutputTokens: 800,
       temperature: 0.5,
       abortSignal: inferenceAbort,
+      timeout: { totalMs: INFERENCE_TIMEOUT_MS },
     });
+
+    await awaitFirstTextDelta(
+      result,
+      parseInt(process.env.CHAT_INFERENCE_FIRST_TOKEN_MS || "45000", 10)
+    );
     incrementDailyCount();
 
     const response = result.toTextStreamResponse();
