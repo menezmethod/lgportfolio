@@ -1,0 +1,199 @@
+{
+  "tasks": [
+    {
+      "id": "LGP-001",
+      "title": "Clerk Auth Integration",
+      "description": "Replace admin-secret with proper Clerk authentication for /admin/* routes. Includes login page, middleware protection, role-based access, and session management.",
+      "priority": 1,
+      "passes": false,
+      "cujIds": [
+        "CUJ-4"
+      ]
+    },
+    {
+      "id": "LGP-002",
+      "title": "Automation Pipeline",
+      "description": "Build the cursor.com/automations suite for lgportfolio, including Builder, CI Fixer, Spec Reviewer, E2E Verifier, and Gatekeeper automations. The PRD serves as the spec.",
+      "priority": 1,
+      "passes": false,
+      "cujIds": [
+        "CUJ-6"
+      ]
+    },
+    {
+      "id": "LGP-003",
+      "title": "PR Template",
+      "description": "Create .github/PULL_REQUEST_TEMPLATE.md with changelog section, test verification checklist, and CUJ mapping checklist for every PR.",
+      "priority": 1,
+      "passes": false,
+      "cujIds": [
+        "CUJ-6"
+      ]
+    },
+    {
+      "id": "LGP-004",
+      "title": "Dark Mode Toggle",
+      "description": "Add a persisted dark/light mode toggle with system-default detection, localStorage preference, and smooth CSS transitions across all pages.",
+      "priority": 2,
+      "passes": false,
+      "cujIds": [
+        "CUJ-1"
+      ]
+    },
+    {
+      "id": "LGP-005",
+      "title": "Blog RSS Feed",
+      "description": "Auto-generate an RSS/Atom feed from src/content/posts/ markdown files. Expose at /writing/feed.xml or similar discoverable URL.",
+      "priority": 2,
+      "passes": false,
+      "cujIds": [
+        "CUJ-1"
+      ]
+    },
+    {
+      "id": "LGP-006",
+      "title": "SEO Audit",
+      "description": "Audit and fix meta tags, Open Graph tags, Twitter cards, structured data (JSON-LD), and canonical URLs across all public pages for better search visibility.",
+      "priority": 2,
+      "passes": false,
+      "cujIds": [
+        "CUJ-1"
+      ]
+    },
+    {
+      "id": "LGP-007",
+      "title": "Chat History UI",
+      "description": "Add an in-chat history panel that displays past recruiter chat sessions stored in Firestore, allowing users to revisit or continue previous conversations.",
+      "priority": 2,
+      "passes": false,
+      "cujIds": [
+        "CUJ-2"
+      ]
+    },
+    {
+      "id": "LGP-008",
+      "title": "Contact form",
+      "description": "Build a serverless contact form that sends emails via Resend API. Include validation, rate limiting, and spam protection (Turnstile or similar). Source: PRD.md P3 Backlog.",
+      "priority": 3,
+      "passes": false,
+      "cujIds": [
+        "CUJ-3"
+      ]
+    },
+    {
+      "id": "LGP-009",
+      "title": "Project case studies",
+      "description": "Create detailed per-project pages with problem/solution/impact framing, architecture diagrams, tech stack badges, and links to live demos or repos. Source: PRD.md P3 Backlog.",
+      "priority": 3,
+      "passes": false,
+      "cujIds": [
+        "CUJ-1"
+      ]
+    },
+    {
+      "id": "LGP-010",
+      "title": "War Room alerting",
+      "description": "Add Slack/Discord webhook notifications when error spikes are detected. Include error rate thresholds, cooldown period, and mute controls. Source: PRD.md P3 Backlog.",
+      "priority": 3,
+      "passes": false,
+      "cujIds": [
+        "CUJ-6"
+      ]
+    },
+    {
+      "id": "LGP-011",
+      "title": "Performance budget with Lighthouse CI",
+      "description": "Set up Lighthouse CI in GitHub Actions. Define performance budgets (LCP < 2.5s, TBT < 200ms, CLS < 0.1) and fail CI on regressions. Source: PRD.md P3 Backlog.",
+      "priority": 3,
+      "passes": false,
+      "cujIds": [
+        "CUJ-1"
+      ]
+    },
+    {
+      "id": "MONITOR-001",
+      "title": "Fix lgportfolio deployment pipeline \u2014 last deploy failed",
+      "description": "The latest production deployment for lgportfolio on Vercel failed. Check the Vercel dashboard for details.",
+      "priority": 2,
+      "passes": false,
+      "cujIds": []
+    },
+    {
+      "id": "README-UPDATE",
+      "title": "Update README with autonomous pipeline docs",
+      "description": "Document the CI/CD pipeline, automation workflows, and autonomous operation flows in the README so contributors and AI agents understand how the repo's pipeline works.",
+      "priority": 3,
+      "passes": false,
+      "cujIds": [],
+      "status": "todo"
+    },
+    {
+      "id": "RELEASE-CONTROL",
+      "title": "Set up release control (CHANGELOG, versioning, GitHub Releases)",
+      "description": "Establish semantic versioning, maintain a CHANGELOG.md following Keep a Changelog, and configure GitHub Releases workflow for tagged releases.",
+      "priority": 3,
+      "passes": false,
+      "cujIds": [],
+      "status": "todo"
+    },
+    {
+      "id": "MONITOR-002",
+      "title": "Fix lgportfolio metrics endpoint \u2014 /api/metrics not responding",
+      "description": "The Prometheus metrics endpoint at https://gimenez.dev/api/metrics is not responding. Repair instrumentation.",
+      "priority": 2,
+      "passes": false,
+      "cujIds": []
+    },
+    {
+      "id": "MONITOR-003",
+      "title": "Add Grafana alert rules for lgportfolio",
+      "description": "Grafana dashboard 'Portfolio War Room' exists but has no alert rules. Add: high error rate, latency spike, service down.",
+      "priority": 2,
+      "passes": false,
+      "cujIds": []
+    },
+    {
+      "id": "MONITOR-004",
+      "title": "Send custom GA4 events for key actions",
+      "description": "GA4 loaded but no custom events sent. Add: project_view, resume_download, contact_form_submit, external_link_click. Success: GA4 dashboard shows project engagement.",
+      "priority": 2,
+      "passes": false,
+      "status": "todo",
+      "cujIds": []
+    },
+    {
+      "id": "MONITOR-005",
+      "title": "Set up A/B testing infrastructure (Vercel Flags / LaunchDarkly)",
+      "description": "Without A/B testing, design changes are subjective. Set up feature flags to test button placement, color schemes, and layout changes against real user behavior.",
+      "priority": 3,
+      "passes": false,
+      "status": "todo",
+      "cujIds": []
+    },
+    {
+      "id": "MONITOR-006",
+      "title": "Site-wide health monitoring with auto-redeploy",
+      "priority": 1,
+      "status": "todo",
+      "passes": false,
+      "description": "gimenez.dev has no health checks. Every page needs monitoring: GET each public page every 15min, verify 200 + title loads. On failure: auto-redeploy via `vercel --prod`. On repeated failure: alert to Telegram. Pages to monitor: /, /projects, /resume, /war-room, /admin/*, and any new routes added. Also check that embedded resources load (Prometheus/Grafana panels on war-room, images, fonts). This is the SAME pattern as parrish-local and churnistic health checkers, just missing for lgportfolio.",
+      "cujIds": []
+    },
+    {
+      "id": "MONITOR-007",
+      "title": "Fix lgportfolio Vercel deploy",
+      "description": "Latest production deploy failed.",
+      "priority": 2,
+      "passes": false,
+      "cujIds": []
+    },
+    {
+      "id": "MONITOR-008",
+      "title": "Remove stuck Vercel preview deployment check",
+      "description": "Vercel GitHub integration creates a preview deployment check named 'rmgpgab-lgportfolio-us-east1-menezmethod-lgportfolio--maxmo' that gets stuck in 'Queued - Waiting to run' state on PRs. This check is NOT required by branch protection (only lint-build-test and cypress are required), but it clutters PR status. Fix: disable Vercel status checks in GitHub repo settings → Integrations → Vercel, or in Vercel dashboard → Project → Git → uncheck 'Create deployment status'.",
+      "priority": 1,
+      "passes": false,
+      "cujIds": []
+    }
+  ]
+}
