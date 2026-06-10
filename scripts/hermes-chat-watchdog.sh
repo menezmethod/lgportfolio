@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
-# Hermes no-agent cron watchdog for gimenez.dev chat + Inferencia chain.
-# Usage (on Pi5): hermes cron create "every 5m" --no-agent --script hermes-chat-watchdog.sh --deliver telegram --name "portfolio-chat-watchdog"
+# Hermes no-agent cron watchdog for gimenez.dev + Inferencia chain.
+# Uses /api/health only — never POST /api/chat (avoids LLM spend + rate limits).
 #
-# Exit 0 + empty stdout  = healthy (silent tick)
-# Exit 0 + stdout         = alert delivered verbatim
-# Non-zero exit           = Hermes delivers error alert
+# Exit 0 + empty stdout = healthy (silent)
+# Exit 0 + stdout         = alert delivered
 
 set -euo pipefail
 
 SITE_URL="${SITE_URL:-https://gimenez.dev}"
-CHAT_TIMEOUT="${CHAT_TIMEOUT:-45}"
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-10}"
 
 fail() {
@@ -24,21 +22,10 @@ if [ "$infer_status" != "up" ]; then
   fail "/api/health inference_api=${infer_status} (expected up)"
 fi
 
-chat_tmp="$(mktemp)"
-trap 'rm -f "$chat_tmp"' EXIT
-
-http_code="$(curl -sS --max-time "$CHAT_TIMEOUT" -o "$chat_tmp" -w '%{http_code}' -X POST "${SITE_URL}/api/chat" \
-  -H 'Content-Type: application/json' \
-  -d '{"messages":[{"role":"user","content":"ping"}]}')" || fail "POST /api/chat connection failed"
-
-if [ "$http_code" != "200" ]; then
-  body="$(head -c 200 "$chat_tmp" | tr '\n' ' ')"
-  fail "POST /api/chat returned HTTP ${http_code}: ${body}"
+# Chat route alive (HEAD — no inference call)
+chat_code="$(curl -sS --max-time "$HEALTH_TIMEOUT" -o /dev/null -w '%{http_code}' -X HEAD "${SITE_URL}/api/chat" || echo 000)"
+if [ "$chat_code" != "405" ] && [ "$chat_code" != "200" ]; then
+  fail "HEAD /api/chat returned HTTP ${chat_code} (expected 405 or 200)"
 fi
 
-if [ ! -s "$chat_tmp" ]; then
-  fail "POST /api/chat returned HTTP 200 but empty body"
-fi
-
-# Healthy — silent tick (watchdog pattern)
 exit 0

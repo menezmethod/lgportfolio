@@ -2,6 +2,8 @@
 
 GCP assets (`terraform/`, `cloudbuild.yaml`, `Dockerfile`) stay in the repo for rollback; production traffic is intended to run on **Vercel** after you point DNS here.
 
+**Deploy policy (2026-06):** One Vercel project (`lgportfolio`). Production builds **only on merge to `main`**. PR previews are disabled to protect deployment quota — see [VERCEL-CLEANUP.md](./VERCEL-CLEANUP.md).
+
 ## 1. Create the project
 
 1. [Vercel Dashboard](https://vercel.com/dashboard) → **Add New…** → **Project** → import `menezmethod/lgportfolio`.
