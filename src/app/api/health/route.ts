@@ -1,3 +1,4 @@
+import { probeInferenciaHealth } from "@/lib/inferencia-health";
 import { getTraceIdFromRequest } from "@/lib/trace-context";
 import { getHealthData, log, recordRequest } from "@/lib/telemetry";
 
@@ -6,7 +7,8 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const start = Date.now();
   const traceId = getTraceIdFromRequest(req);
-  const health = getHealthData();
+  const inferenciaProbe = await probeInferenciaHealth();
+  const health = getHealthData(inferenciaProbe);
 
   log("INFO", "Health check", {
     endpoint: "/api/health",

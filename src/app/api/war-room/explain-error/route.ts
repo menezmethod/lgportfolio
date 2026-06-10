@@ -10,7 +10,7 @@ import { recordRequest } from "@/lib/telemetry";
 export const maxDuration = 30;
 
 const DEFAULT_BASE_URL = process.env.INFERENCIA_BASE_URL || "";
-const DEFAULT_CHAT_MODEL = process.env.INFERENCIA_CHAT_MODEL || "mlx-community/gpt-oss-20b-MXFP4-Q8";
+const DEFAULT_CHAT_MODEL = "gemma4:e4b";
 
 const SYSTEM_PROMPT = `You are a DevOps/SRE assistant. The user will paste an error message or log line from their application.
 Your job: explain what the error means in plain language and suggest 1–3 concrete fixes. Be concise (under 150 words).

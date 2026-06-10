@@ -101,14 +101,26 @@ describe("rag", () => {
   // Test retrieveContext in a separate describe that uses dynamic import
   // so we can control the Cloud SQL env vars before module loads
   describe("retrieveContext", () => {
-    it("returns KNOWLEDGE_BASE when Cloud SQL env vars are missing", async () => {
-      // Default: no CLOUD_SQL_CONNECTION_NAME set → fallback path
-      const { retrieveContext } = await import("@/lib/rag");
-      const result = await retrieveContext("test query");
-      // KNOWLEDGE_BASE is a large string, just check it's substantial
+    it("returns a focused file context when Cloud SQL env vars are missing", async () => {
+      const { retrieveContext, retrieveFileContext } = await import("@/lib/rag");
+      const full = retrieveFileContext("payments observability grafana", 5);
+      const result = await retrieveContext("payments observability grafana");
       expect(result.length).toBeGreaterThan(100);
-      // Should NOT have called fetch (no embedding needed for fallback)
-      // Actually fetch might not be called since pool is null
+      expect(result.length).toBeLessThan(35000);
+      expect(result).toBe(full);
+    });
+
+    it("returns a smaller greeting context for low-signal queries", async () => {
+      const { retrieveFileContext } = await import("@/lib/rag");
+      const { KNOWLEDGE_BASE } = await import("@/lib/knowledge");
+      const greeting = retrieveFileContext("hi there", 3);
+      const broad = retrieveFileContext("payments observability grafana card broker", 3);
+      expect(greeting.length).toBeGreaterThan(500);
+      expect(greeting.length).toBeLessThan(KNOWLEDGE_BASE.length);
+      expect(greeting.length).toBeLessThan(broad.length);
+      expect(greeting).toMatch(/SECTION 1/i);
+      expect(greeting).toMatch(/SECTION 9/i);
+      expect(greeting).toMatch(/Who Is Luis Gimenez/i);
     });
   });
 });
