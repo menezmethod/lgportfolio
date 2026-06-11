@@ -10,12 +10,13 @@ export type MetricsSource = "prometheus" | "memory" | "hybrid";
 
 export interface WarRoomDataWithSource extends WarRoomData {
   metrics_source: MetricsSource;
-  platform: "vercel" | "cloud-run" | "local";
+  platform: "vercel" | "cloud-run" | "coolify" | "local";
 }
 
 function detectPlatform(): WarRoomDataWithSource["platform"] {
   if (process.env.VERCEL) return "vercel";
   if (process.env.GOOGLE_CLOUD_PROJECT) return "cloud-run";
+  if (process.env.COOLIFY === "1") return "coolify";
   return "local";
 }
 

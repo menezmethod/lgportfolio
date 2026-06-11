@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+.env*
+!.env.coolify.example
+terraform
+docs/tasks
+cypress/videos
+cypress/screenshots
+*.md
+!README.md
