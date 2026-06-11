@@ -127,6 +127,22 @@ describe("chat-providers", () => {
     vi.useRealTimers();
   });
 
+  it("uses full budget timeout for streamText, not short abort on first-token window", async () => {
+    await streamChatWithFallbacks({
+      system: "sys",
+      messages: [{ role: "user", content: "hi" }],
+    });
+
+    expect(mockStreamText).toHaveBeenCalledWith(
+      expect.objectContaining({
+        timeout: expect.any(Number),
+      })
+    );
+    const call = mockStreamText.mock.calls[0][0];
+    expect(call.timeout).toBeGreaterThanOrEqual(50_000);
+    expect(call.abortSignal).toBeUndefined();
+  });
+
   it("throws when all providers fail", async () => {
     mockStreamText.mockReturnValue({
       textStream: (async function* () {})(),
