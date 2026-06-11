@@ -17,3 +17,10 @@ inferencia_base_url = "https://your-inferencia-endpoint.com/v1"
 
 # Optional: Cloud SQL (PostgreSQL + pgvector) for RAG vector search. Default true. Set to false to use file-based RAG only.
 # enable_rag_cloud_sql = true
+
+# Optional: Cloud Build CI/CD (off by default — Vercel hosts production). Enable for GCP rollback.
+# Connect GitHub in Cloud Build first (see docs/DEPLOY-CLOUDRUN.md).
+# enable_cloud_build_triggers           = true
+# enable_cloud_build_production_trigger = true   # push to main → lgportfolio
+# enable_cloud_build_preview_trigger    = false  # PR → lgportfolio-preview (cost/quota aware)
+# ga_measurement_id                     = "G-XXXXXXXXXX"
