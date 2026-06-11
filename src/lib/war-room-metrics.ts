@@ -4,6 +4,7 @@ import {
   queryInstantBatch,
   queryRange,
 } from "./prometheus-client";
+import { getDailyBudgetStats } from "./rate-limit";
 import { type SLODefinition, type WarRoomData, getWarRoomData } from "./telemetry";
 
 export type MetricsSource = "prometheus" | "memory" | "hybrid";
@@ -83,6 +84,7 @@ async function fetchPrometheusWarRoomSlice(budgetMax: number): Promise<Partial<W
     p90: 'max(http_request_duration_seconds{quantile="0.9"})',
     p99: 'max(http_request_duration_seconds{quantile="0.99"})',
     chat24h: "sum(increase(chat_conversations_total[24h]))",
+    chatDailyUsed: "max(chat_daily_budget_used)",
     cacheHits24h: "sum(increase(chat_cache_hits_total[24h]))",
     rateLimits24h: "sum(increase(chat_rate_limit_hits_total[24h]))",
     chatInferenceP50: 'avg(chat_inference_duration_seconds{quantile="0.5"})',
@@ -104,7 +106,9 @@ async function fetchPrometheusWarRoomSlice(budgetMax: number): Promise<Partial<W
   const errors1h = instant.errors1h ?? 0;
   const chat24h = Math.round(instant.chat24h ?? 0);
   const cacheHits24h = instant.cacheHits24h ?? 0;
-  const budgetUsed = chat24h;
+  const promBudgetUsed = Math.round(instant.chatDailyUsed ?? 0);
+  const memoryBudget = getDailyBudgetStats();
+  const budgetUsed = Math.max(promBudgetUsed, memoryBudget.used);
   const budgetRemaining = Math.max(0, budgetMax - budgetUsed);
   const budgetHeadroom = budgetMax > 0 ? ((budgetMax - budgetUsed) / budgetMax) * 100 : 100;
 
