@@ -166,6 +166,9 @@ export async function streamChatWithFallbacks(
 
     try {
       const client = provider.createClient();
+      // First-token gate uses provider.timeoutMs; full stream uses remaining budget.
+      // Do not pass AbortSignal.timeout(timeoutMs) — it caps the entire response at the
+      // fast-fail window and truncates answers after the first token arrives.
       const result = streamText({
         model: client.chat(provider.model),
         system: params.system,
@@ -173,7 +176,7 @@ export async function streamChatWithFallbacks(
         maxRetries: 0,
         maxOutputTokens: params.maxOutputTokens ?? 800,
         temperature: params.temperature ?? 0.5,
-        abortSignal: AbortSignal.timeout(timeoutMs),
+        timeout: budget,
       });
       await awaitFirstTextDelta(result, timeoutMs);
       return { result, provider: provider.id, model: provider.model };
