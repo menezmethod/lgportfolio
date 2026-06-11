@@ -21,9 +21,18 @@ import {
   streamChatWithFallbacks,
 } from "@/lib/chat-providers";
 
+function mockStreamResult(text = "hello") {
+  return {
+    textStream: (async function* () {
+      yield text;
+    })(),
+    toTextStreamResponse: vi.fn(),
+  };
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
-  mockStreamText.mockResolvedValue({ toTextStreamResponse: vi.fn() });
+  mockStreamText.mockReturnValue(mockStreamResult());
   vi.stubEnv("INFERENCIA_API_KEY", "inf-key");
   vi.stubEnv("INFERENCIA_BASE_URL", "https://inferencia.test/v1");
   vi.stubEnv("INFERENCIA_CHAT_MODEL", "gemma4:e4b");
@@ -57,10 +66,15 @@ describe("chat-providers", () => {
     expect(isChatConfigured()).toBe(true);
   });
 
-  it("falls back to openrouter when inferencia fails", async () => {
+  it("falls back to openrouter when inferencia stream throws (e.g. 502)", async () => {
     mockStreamText
-      .mockRejectedValueOnce(new Error("connection refused"))
-      .mockResolvedValueOnce({ toTextStreamResponse: vi.fn() });
+      .mockReturnValueOnce({
+        textStream: (async function* () {
+          throw new Error("Bad Gateway");
+        })(),
+        toTextStreamResponse: vi.fn(),
+      })
+      .mockReturnValueOnce(mockStreamResult("from openrouter"));
 
     const fallbacks: string[] = [];
     const result = await streamChatWithFallbacks(
@@ -73,8 +87,51 @@ describe("chat-providers", () => {
     expect(result.provider).toBe("openrouter");
   });
 
+  it("falls back to openrouter when inferencia returns an empty stream", async () => {
+    mockStreamText
+      .mockReturnValueOnce({
+        textStream: (async function* () {})(),
+        toTextStreamResponse: vi.fn(),
+      })
+      .mockReturnValueOnce(mockStreamResult("from openrouter"));
+
+    const result = await streamChatWithFallbacks({
+      system: "sys",
+      messages: [{ role: "user", content: "hi" }],
+    });
+
+    expect(mockStreamText).toHaveBeenCalledTimes(2);
+    expect(result.provider).toBe("openrouter");
+  });
+
+  it("falls back when inferencia times out before first token", async () => {
+    vi.useFakeTimers();
+    mockStreamText
+      .mockReturnValueOnce({
+        textStream: (async function* () {
+          await new Promise(() => {});
+        })(),
+        toTextStreamResponse: vi.fn(),
+      })
+      .mockReturnValueOnce(mockStreamResult("from openrouter"));
+
+    const promise = streamChatWithFallbacks({
+      system: "sys",
+      messages: [{ role: "user", content: "hi" }],
+    });
+    await vi.advanceTimersByTimeAsync(18_000);
+    const result = await promise;
+
+    expect(mockStreamText).toHaveBeenCalledTimes(2);
+    expect(result.provider).toBe("openrouter");
+    vi.useRealTimers();
+  });
+
   it("throws when all providers fail", async () => {
-    mockStreamText.mockRejectedValue(new Error("down"));
+    mockStreamText.mockReturnValue({
+      textStream: (async function* () {})(),
+      toTextStreamResponse: vi.fn(),
+    });
     await expect(
       streamChatWithFallbacks({ system: "sys", messages: [{ role: "user", content: "hi" }] })
     ).rejects.toThrow(/All chat providers failed/);
