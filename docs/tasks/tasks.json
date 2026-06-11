@@ -72,6 +72,14 @@
       "priority": 3,
       "passes": false,
       "status": "backlog"
+    },
+    {
+      "id": "MONITOR-001",
+      "title": "Fix lgportfolio metrics endpoint",
+      "description": "Metrics at https://gimenez.dev/api/metrics not responding.",
+      "priority": 2,
+      "passes": false,
+      "cujIds": []
     }
   ]
 }
