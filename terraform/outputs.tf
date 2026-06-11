@@ -46,6 +46,11 @@ output "cloud_run_url" {
   value       = google_cloud_run_v2_service.portfolio.uri
 }
 
+output "cloud_run_preview_url" {
+  description = "Direct Cloud Run URL for PR preview deployments (lgportfolio-preview)"
+  value       = google_cloud_run_v2_service.preview.uri
+}
+
 output "public_base_url" {
   description = "Primary public URL for the portfolio in the current mode"
   value       = var.enable_load_balancer ? "https://${var.domain}" : google_cloud_run_v2_service.portfolio.uri

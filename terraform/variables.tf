@@ -54,3 +54,42 @@ variable "portfolio_alert_email" {
   type        = string
   default     = ""
 }
+
+# ── Cloud Build CI/CD (opt-in; Vercel is default production host) ─────────────
+
+variable "github_owner" {
+  description = "GitHub org or user for Cloud Build triggers"
+  type        = string
+  default     = "menezmethod"
+}
+
+variable "github_repo" {
+  description = "GitHub repository name for Cloud Build triggers"
+  type        = string
+  default     = "lgportfolio"
+}
+
+variable "enable_cloud_build_triggers" {
+  description = "Grant Cloud Build SA deploy IAM and manage triggers. Keep false while Vercel hosts production."
+  type        = bool
+  default     = false
+}
+
+variable "enable_cloud_build_production_trigger" {
+  description = "Deploy lgportfolio on push to main via cloudbuild.yaml"
+  type        = bool
+  default     = false
+}
+
+variable "enable_cloud_build_preview_trigger" {
+  description = "Deploy lgportfolio-preview on pull_request via cloudbuild-preview.yaml"
+  type        = bool
+  default     = false
+}
+
+variable "ga_measurement_id" {
+  description = "Optional GA4 measurement ID passed to production Cloud Build (_GA_MEASUREMENT_ID)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
