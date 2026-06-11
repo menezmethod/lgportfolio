@@ -93,13 +93,25 @@ describe("prometheus-client", () => {
       expect(await checkPrometheusReachable()).toBe(false);
     });
 
-    it("returns true when Prometheus responds to scalar probe", async () => {
+    it("returns true when Prometheus responds to scalar probe (vector form)", async () => {
       vi.stubEnv("PROMETHEUS_URL", "http://localhost:9090");
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           status: "success",
-          data: { result: [{ value: [1, "1"] }] },
+          data: { resultType: "vector", result: [{ value: [1, "1"] }] },
+        }),
+      });
+      expect(await checkPrometheusReachable()).toBe(true);
+    });
+
+    it("returns true when Prometheus responds to scalar probe (scalar form)", async () => {
+      vi.stubEnv("PROMETHEUS_URL", "http://localhost:9090");
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          status: "success",
+          data: { resultType: "scalar", result: [1, "1"] },
         }),
       });
       expect(await checkPrometheusReachable()).toBe(true);

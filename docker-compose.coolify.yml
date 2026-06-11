@@ -1,0 +1,45 @@
+# Coolify / homelab deploy for gimenez.dev (Pi 5 @ 192.168.0.207)
+# Same Docker network as inferencia + prometheus — no Vercel egress limits.
+#
+# Usage:
+#   cp .env.coolify.example .env.coolify   # fill secrets
+#   docker compose -f docker-compose.coolify.yml up -d --build
+#
+# Traefik route: /data/coolify/proxy/dynamic/gimenez.yaml (see scripts/deploy-coolify.sh)
+
+name: lgportfolio
+
+networks:
+  coolify:
+    external: true
+
+services:
+  lgportfolio:
+    container_name: lgportfolio
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lgportfolio:latest
+    restart: unless-stopped
+    networks:
+      - coolify
+    env_file:
+      - .env.coolify
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      COOLIFY: "1"
+      # Same-host services on the coolify network (override in .env.coolify if needed)
+      INFERENCIA_BASE_URL: ${INFERENCIA_BASE_URL:-http://inferencia:8080/v1}
+      PROMETHEUS_URL: ${PROMETHEUS_URL:-http://prometheus-prometheus-1:9090}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://gimenez.dev}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 45s
+      retries: 3
+    labels:
+      - coolify.managed=true
+      - traefik.enable=false

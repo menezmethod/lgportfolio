@@ -5,7 +5,7 @@ import {
   incrementDailyCount,
   isDailyBudgetExhausted,
 } from "@/lib/rate-limit";
-import { recordRequest } from "@/lib/telemetry";
+import { publishDailyBudgetGauge, recordRequest } from "@/lib/telemetry";
 
 export const maxDuration = 30;
 
@@ -70,6 +70,7 @@ export async function POST(req: Request) {
       temperature: 0.3,
     });
     incrementDailyCount();
+    publishDailyBudgetGauge();
 
     recordRequest("/api/war-room/explain-error", "POST", 200, Date.now() - start);
     return new Response(JSON.stringify({ explanation: text }), {

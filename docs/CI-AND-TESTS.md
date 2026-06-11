@@ -7,7 +7,19 @@
 - **Unit tests:** `npm run test` (Vitest) — e.g. `src/__tests__/rate-limit.test.ts`
 - **E2E tests:** `npm run test:e2e` (Cypress) — `cypress/e2e/smoke.cy.ts`
 
-The **GitHub Actions workflow** (`.github/workflows/ci.yml`) runs on every **pull request to `main`** and on **push to `main`**. It runs lint, build, unit tests, and Cypress. Cloud Run deploy is **not** changed — Cloud Build still deploys on push to `main`; this workflow only adds checks.
+The **GitHub Actions workflow** (`.github/workflows/ci.yml`) runs on every **pull request to `main`** and on **push to `main`**. It runs lint, build, unit tests, and Cypress. On **push to `main` only**, after all checks pass, it triggers a **Coolify deploy** (homelab Pi) via the Coolify API.
+
+### Coolify deploy secrets (GitHub → Settings → Secrets)
+
+| Secret | Example / where to get it |
+|--------|---------------------------|
+| `COOLIFY_URL` | `https://cp.menezmethod.com` |
+| `COOLIFY_API_TOKEN` | Coolify → **Keys & Tokens** → create API token with deploy permission |
+| `COOLIFY_APP_UUID` | Coolify app → **Configuration** → UUID in URL or API |
+
+In the Coolify app, **disable** “Deploy on commit” / auto-deploy from GitHub — CI is the gate so broken code does not reach production.
+
+Until secrets are set, the deploy job prints a warning and skips (CI still passes).
 
 ## Require CI to pass before merging (branch protection)
 

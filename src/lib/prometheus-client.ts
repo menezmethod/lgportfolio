@@ -14,11 +14,13 @@ export interface PrometheusRangePoint {
   value: number;
 }
 
+type PromSeries = { value?: [number, string]; values?: Array<[number, string]> };
+
 interface PromVectorResponse {
   status: string;
   data?: {
     resultType: string;
-    result: Array<{ value?: [number, string]; values?: Array<[number, string]> }>;
+    result: PromSeries[] | [number, string];
   };
 }
 
@@ -62,16 +64,29 @@ async function promFetch(path: string, params: URLSearchParams): Promise<PromVec
 }
 
 function parseInstant(data: PromVectorResponse): PrometheusInstantResult | null {
-  if (data.status !== "success" || !data.data?.result?.length) return null;
-  const first = data.data.result[0];
-  if (!first.value) return null;
+  if (data.status !== "success" || data.data?.result == null) return null;
+  const { resultType, result } = data.data;
+  // Scalar: result is [timestamp, "value"]
+  if (resultType === "scalar" && Array.isArray(result) && result.length === 2) {
+    const [ts, val] = result as [number, string];
+    const num = parseFloat(val);
+    return Number.isFinite(num) ? { timestamp: ts * 1000, value: num } : null;
+  }
+  if (!Array.isArray(result) || result.length === 0) return null;
+  const first = result[0] as { value?: [number, string] } | undefined;
+  if (!first?.value) return null;
   const [ts, val] = first.value;
   const num = parseFloat(val);
   return Number.isFinite(num) ? { timestamp: ts * 1000, value: num } : null;
 }
 
+function isPromSeriesList(result: unknown): result is PromSeries[] {
+  return Array.isArray(result) && result.length > 0 && typeof result[0] === "object";
+}
+
 function parseRangeSum(data: PromVectorResponse): PrometheusRangePoint[] {
-  if (data.status !== "success" || !data.data?.result?.length) return [];
+  if (data.status !== "success" || !data.data?.result) return [];
+  if (!isPromSeriesList(data.data.result)) return [];
   const bucket = new Map<number, number>();
   for (const series of data.data.result) {
     for (const [ts, val] of series.values ?? []) {
