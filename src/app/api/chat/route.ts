@@ -378,6 +378,14 @@ ${context}`;
       trace_id: traceId,
     });
     log("ERROR", "Chat API error", { trace_id: traceId, error: msg, latency_ms: duration });
-    return jsonError(503, "Service unavailable", "The AI is temporarily unavailable. Try again later or email luisgimenezdev@gmail.com.");
+    const hint =
+      !process.env.OPENROUTER_API_KEY?.trim() && process.env.INFERENCIA_API_KEY?.trim()
+        ? " Inferencia is down and no cloud fallback (OPENROUTER_API_KEY) is configured."
+        : "";
+    return jsonError(
+      503,
+      "Service unavailable",
+      `The AI is temporarily unavailable.${hint} Try again later or email luisgimenezdev@gmail.com.`
+    );
   }
 }

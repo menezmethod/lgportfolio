@@ -110,6 +110,41 @@ function remainingBudgetMs(startedAt: number): number {
   return Math.max(0, TOTAL_INFERENCE_BUDGET_MS - (Date.now() - startedAt));
 }
 
+function formatProviderError(error: unknown): string {
+  if (error instanceof Error) {
+    const retry = error as Error & { reason?: string; lastError?: Error };
+    if (retry.reason === "maxRetriesExceeded" && retry.lastError) {
+      return retry.lastError.message;
+    }
+    return error.message;
+  }
+  return String(error);
+}
+
+/** streamText() returns immediately; gate on first token so 502s reach the fallback loop. */
+async function awaitFirstTextDelta(
+  result: { textStream: AsyncIterable<string> },
+  timeoutMs: number
+): Promise<void> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error("Inference timeout")), timeoutMs);
+  });
+
+  const firstDelta = (async () => {
+    for await (const delta of result.textStream) {
+      if (delta.length > 0) return;
+    }
+    throw new Error("Empty inference stream");
+  })();
+
+  try {
+    await Promise.race([firstDelta, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
 export async function streamChatWithFallbacks(
   params: StreamChatParams,
   options?: { onAttempt?: (provider: ChatProviderSpec) => void; onFallback?: (from: ChatProviderSpec, error: string) => void }
@@ -131,7 +166,7 @@ export async function streamChatWithFallbacks(
 
     try {
       const client = provider.createClient();
-      const result = await streamText({
+      const result = streamText({
         model: client.chat(provider.model),
         system: params.system,
         messages: params.messages,
@@ -140,9 +175,10 @@ export async function streamChatWithFallbacks(
         temperature: params.temperature ?? 0.5,
         abortSignal: AbortSignal.timeout(timeoutMs),
       });
+      await awaitFirstTextDelta(result, timeoutMs);
       return { result, provider: provider.id, model: provider.model };
     } catch (error) {
-      lastError = error instanceof Error ? error.message : String(error);
+      lastError = formatProviderError(error);
       options?.onFallback?.(provider, lastError);
     }
   }
