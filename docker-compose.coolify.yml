@@ -35,7 +35,7 @@ services:
       PROMETHEUS_URL: ${PROMETHEUS_URL:-http://prometheus-prometheus-1:9090}
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://gimenez.dev}
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health/live"]
       interval: 30s
       timeout: 5s
       start_period: 45s
