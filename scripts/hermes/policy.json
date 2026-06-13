@@ -1,0 +1,38 @@
+{
+  "policy_version": 2,
+  "description": "Hermes cron policy for gimenez.dev + Inferencia — report-only, no recovery",
+  "rules": {
+    "allowed_http": ["GET /health", "GET /api/health?shallow=1", "HEAD /api/chat"],
+    "forbidden_http": ["POST /api/chat", "POST /v1/chat/completions"],
+    "forbidden_actions": [
+      "docker restart inferencia",
+      "docker restart ollama",
+      "coolify redeploy inferencia",
+      "vercel --prod",
+      "WATCHDOG_ENABLE_RECOVERY"
+    ],
+    "min_interval_minutes": 10,
+    "no_agent": true
+  },
+  "recommended_crons": [
+    {
+      "name": "inferencia-watchdog",
+      "schedule": "*/15 * * * *",
+      "command": "python3 ~/.hermes/scripts/inferencia-watchdog.py",
+      "no_agent": true,
+      "notes": "GET /health + shallow portfolio health only"
+    },
+    {
+      "name": "portfolio-chat-watchdog",
+      "schedule": "*/15 * * * *",
+      "command": "bash ~/.hermes/scripts/portfolio-chat-watchdog.sh",
+      "no_agent": true,
+      "notes": "No POST /api/chat"
+    }
+  ],
+  "github_actions": {
+    "deploy_target": "lgportfolio Coolify app only",
+    "never_deploy": ["inferencia", "ollama", "cloudflared"],
+    "secrets": ["COOLIFY_APP_UUID must be lgportfolio application UUID"]
+  }
+}

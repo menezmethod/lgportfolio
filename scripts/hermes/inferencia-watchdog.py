@@ -32,6 +32,14 @@ TIMEOUT = float(os.getenv("WATCHDOG_TIMEOUT", "8"))
 RECOVERY_ENABLED = os.getenv("WATCHDOG_ENABLE_RECOVERY", "").lower() in ("1", "true", "yes")
 USER_AGENT = "hermes-inferencia-watchdog/2"
 
+# Hard block — recovery caused 502 storms; report-only forever.
+if RECOVERY_ENABLED:
+    print(
+        "inferencia-watchdog: WATCHDOG_ENABLE_RECOVERY is set but permanently disabled — "
+        "fix manually; do not auto-restart inferencia/ollama",
+        file=sys.stderr,
+    )
+
 
 def fetch_json(url: str, headers: dict[str, str] | None = None) -> tuple[int, dict | None]:
     merged = {"User-Agent": USER_AGENT, **(headers or {})}
@@ -67,11 +75,7 @@ def main() -> int:
 
     if errors:
         print("inferencia-watchdog: " + "; ".join(errors))
-        if RECOVERY_ENABLED:
-            print(
-                "inferencia-watchdog: auto-recovery is disabled — "
-                "unset WATCHDOG_ENABLE_RECOVERY and fix manually"
-            )
+        print("inferencia-watchdog: report-only — no auto-restart (fix manually on Pi)")
 
     return 0
 

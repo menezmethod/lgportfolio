@@ -109,7 +109,8 @@ jobs:
             -d "{\"git_commit_sha\":\"${GIT_SHA}\"}" \
             "${COOLIFY_URL%/}/api/v1/applications/${COOLIFY_APP_UUID}"
 
-          echo "Triggering Coolify deploy"
+          echo "Triggering Coolify deploy (lgportfolio app only — never inferencia/ollama)"
+          # COOLIFY_APP_UUID must be the lgportfolio application in Coolify UI, not inferencia.
           curl -fsSL -X GET \
             -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
             -H "Accept: application/json" \

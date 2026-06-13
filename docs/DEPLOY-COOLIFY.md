@@ -101,6 +101,32 @@ curl -s https://gimenez.dev/api/war-room/data | python3 -c "import sys,json; d=j
 
 War Room should show `metrics_source: prometheus` and Prometheus **UP**.
 
+## Hermes & automations (do not break Inferencia)
+
+After each `git pull` on the Pi:
+
+```bash
+./scripts/hermes/install-watchdogs.sh   # sync safe watchdogs to ~/.hermes
+./scripts/hermes/audit-automations.sh   # fail if unsafe crons/scripts exist
+```
+
+**Safe (report-only):**
+
+| Automation | What it does |
+|------------|----------------|
+| `inferencia-watchdog.py` | GET Inferencia `/health` + shallow `/api/health` |
+| `portfolio-chat-watchdog.sh` | Same; never POST `/api/chat` |
+| GitHub Actions `deploy` job | Redeploys **lgportfolio** Coolify app only (after CI) |
+
+**Never automate (caused outages):**
+
+- POST `https://gimenez.dev/api/chat` on a cron
+- `docker restart` / Coolify redeploy on **inferencia** or **ollama**
+- Hermes auto-recovery (`WATCHDOG_ENABLE_RECOVERY`) — permanently disabled in v2 scripts
+- Vercel `vercel --prod` from crons
+
+Policy reference: `scripts/hermes/policy.json`. Example crons: every **15 min**, `no_agent: true`.
+
 ## Rollback to Vercel
 
 Point Namecheap `@` / `www` back to Vercel (`76.76.21.21` / `cname.vercel-dns.com`). See [VERCEL-DEPLOY.md](./VERCEL-DEPLOY.md).
