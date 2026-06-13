@@ -11,6 +11,7 @@
  * starts. Prometheus scrapes /api/metrics so War Room can show fleet-wide data.
  */
 
+import { getDailyBudgetStats } from "./rate-limit";
 import { APP_VERSION } from "./version";
 
 type Severity = "INFO" | "WARNING" | "ERROR" | "CRITICAL";
@@ -303,6 +304,11 @@ export function recordRequest(endpoint: string, method: string, statusCode: numb
   else if (isError) increment(`errors_total{type="client"}`);
 }
 
+/** Expose calendar-day chat budget to Prometheus (scraped by War Room). */
+export function publishDailyBudgetGauge(): void {
+  setGauge("chat_daily_budget_used", getDailyBudgetStats().used);
+}
+
 export function recordChatMetrics(fields: {
   durationMs: number;
   ragDurationMs: number;
@@ -319,6 +325,7 @@ export function recordChatMetrics(fields: {
   }
   if (fields.tokensUsed) increment("chat_tokens_used_total", fields.tokensUsed);
   increment("chat_conversations_total");
+  publishDailyBudgetGauge();
 }
 
 /** Admin board usage metrics (for Prometheus and board Metrics section). */
@@ -431,9 +438,7 @@ export function getHealthData(
   const shallow = options?.shallow === true;
   const hasInferencia = Boolean(process.env.INFERENCIA_API_KEY?.trim());
   const hasOpenRouter = Boolean(process.env.OPENROUTER_API_KEY?.trim());
-  const budgetUsed = getCounter("chat_conversations_total");
-  const budgetMax = parseInt(process.env.CHAT_DAILY_BUDGET || "150");
-  const budgetRemaining = Math.max(0, budgetMax - budgetUsed);
+  const { remaining: budgetRemaining } = getDailyBudgetStats();
 
   let inferenceStatus: string;
   if (shallow) {
@@ -495,8 +500,7 @@ function computeSLOs(): SLODefinition[] {
   const totalErrors = getCounter("errors_total");
   const errorRate = totalReqs > 0 ? (totalErrors / totalReqs) * 100 : 0;
   const p95 = Math.round(percentile("http_request_duration_seconds", 95, 3600000));
-  const budgetMax = parseInt(process.env.CHAT_DAILY_BUDGET || "150");
-  const budgetUsed = getCounter("chat_conversations_total");
+  const { used: budgetUsed, max: budgetMax } = getDailyBudgetStats();
   const budgetPct = budgetMax > 0 ? ((budgetMax - budgetUsed) / budgetMax) * 100 : 100;
 
   return [
@@ -546,7 +550,7 @@ export function getWarRoomData(): WarRoomData {
   const chatTotal = getCounter("chat_conversations_total");
   const cacheHits = getCounter("chat_cache_hits_total");
   const rateLimitHits = getCounter("chat_rate_limit_hits_total");
-  const budgetMax = parseInt(process.env.CHAT_DAILY_BUDGET || "150");
+  const { used: budgetUsed, remaining: budgetRemaining } = getDailyBudgetStats();
 
   const recentBuckets = timeSeriesBuckets.filter((b) => b.t > Date.now() - 60000);
   const rpm = recentBuckets.reduce((sum, b) => sum + b.requests, 0);
@@ -571,8 +575,8 @@ export function getWarRoomData(): WarRoomData {
       avg_inference_ms: Math.round(percentile("chat_inference_duration_seconds", 50)),
       cache_hit_rate: chatTotal > 0 ? Math.round((cacheHits / chatTotal) * 100) : 0,
       rate_limit_hits_24h: rateLimitHits,
-      budget_used: chatTotal,
-      budget_remaining: Math.max(0, budgetMax - chatTotal),
+      budget_used: budgetUsed,
+      budget_remaining: budgetRemaining,
     },
     infrastructure: {
       uptime_seconds: getUptimeSeconds(),

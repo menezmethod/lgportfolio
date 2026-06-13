@@ -1,5 +1,5 @@
 # CI: lint, build, unit tests, e2e (Cypress), Terraform validate.
-# Required to pass before merging to main. Production is Vercel on push to main; Cloud Build/terraform remain optional for GCP rollback.
+# Required to pass before merging to main. On push to main, deploys to Coolify (Pi) after all checks pass.
 
 name: CI
 
@@ -83,3 +83,34 @@ jobs:
           start: npm run start
           wait-on: "http://localhost:3000"
           wait-on-timeout: 120
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: cypress
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to Coolify
+        env:
+          COOLIFY_URL: ${{ secrets.COOLIFY_URL }}
+          COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+          COOLIFY_APP_UUID: ${{ secrets.COOLIFY_APP_UUID }}
+          GIT_SHA: ${{ github.sha }}
+        run: |
+          if [ -z "$COOLIFY_API_TOKEN" ] || [ -z "$COOLIFY_APP_UUID" ] || [ -z "$COOLIFY_URL" ]; then
+            echo "::warning::Coolify deploy skipped — set COOLIFY_URL, COOLIFY_API_TOKEN, and COOLIFY_APP_UUID in repo secrets."
+            exit 0
+          fi
+
+          echo "Pinning Coolify app to commit ${GIT_SHA}"
+          curl -fsSL -X PATCH \
+            -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            -d "{\"git_commit_sha\":\"${GIT_SHA}\"}" \
+            "${COOLIFY_URL%/}/api/v1/applications/${COOLIFY_APP_UUID}"
+
+          echo "Triggering Coolify deploy"
+          curl -fsSL -X GET \
+            -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            -H "Accept: application/json" \
+            "${COOLIFY_URL%/}/api/v1/deploy?uuid=${COOLIFY_APP_UUID}&force=false"

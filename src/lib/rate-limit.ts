@@ -135,6 +135,17 @@ export function incrementDailyCount(): void {
   existing.count++;
 }
 
+/** Calendar-day LLM usage (same counter that enforces CHAT_DAILY_BUDGET). */
+export function getDailyBudgetStats(): { used: number; remaining: number; max: number } {
+  const max = parseInt(process.env.CHAT_DAILY_BUDGET || "150", 10);
+  if (RATE_LIMITS_DISABLED) {
+    return { used: 0, remaining: max, max };
+  }
+  const today = new Date().toDateString();
+  const used = dailyCounters.get(today)?.count ?? 0;
+  return { used, remaining: Math.max(0, max - used), max };
+}
+
 /** Resets every calendar day (midnight); 150 LLM requests per day by default. */
 export function isDailyBudgetExhausted(): boolean {
   if (RATE_LIMITS_DISABLED) return false;

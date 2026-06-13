@@ -1,11 +1,12 @@
-# Stage 1: Install dependencies (linux/amd64 for Cloud Run; Next.js 16 requires Node 20.9+)
-FROM --platform=linux/amd64 node:20-alpine AS deps
+# Stage 1: Install dependencies (Next.js 16 requires Node 20.9+)
+# Builds native arch by default (aarch64 on Pi/Coolify). For Cloud Run: docker build --platform=linux/amd64
+FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci --ignore-scripts && npm cache clean --force
 
 # Stage 2: Build the application
-FROM --platform=linux/amd64 node:20-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -16,7 +17,7 @@ ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID}
 RUN npm run build
 
 # Stage 3: Production runner (minimal attack surface)
-FROM --platform=linux/amd64 node:20-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -32,13 +33,13 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-# Production (Cloud Run): PORT=8080 is set by Terraform/Cloud Build.
-# Local docker run: PORT is unset so Next.js defaults to 3000; use -p 3000:3000.
+# Coolify / local: PORT=3000. Cloud Run sets PORT=8080 via Terraform/Cloud Build.
 ENV HOSTNAME="0.0.0.0"
-EXPOSE 8080
+ENV PORT=3000
+EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider "http://localhost:${PORT:-8080}/" || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider "http://localhost:${PORT}/api/health/live" || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "server.js"]

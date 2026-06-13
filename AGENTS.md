@@ -8,9 +8,9 @@
 
 ### Overview
 
-This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature and live War Room observability dashboard.
+This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature and live War Room observability dashboard. **Production deploy:** merge to `main` → CI passes → Coolify API deploy on Pi (see `docs/DEPLOY-COOLIFY.md`). Manual fallback: `./scripts/deploy-coolify.sh`.
 
-**Primary production hosting:** **Vercel** (GitHub integration; push to `main` deploys). See **`docs/VERCEL-DEPLOY.md`** for env vars and Namecheap DNS.
+**Primary production hosting:** **Coolify** on homelab Pi 5 (`192.168.0.207`) — see **`docs/DEPLOY-COOLIFY.md`**. Same Docker network as Inferencia + Prometheus. **Vercel** path preserved for rollback — see **`docs/VERCEL-DEPLOY.md`**.
 
 **GCP path (preserved, optional rollback):** `terraform/`, `cloudbuild.yaml`, and `Dockerfile` are kept. You can still deploy to **Cloud Run** behind a Global External ALB with Cloud CDN and Cloud Armor, or use low-cost direct Cloud Run ingress. Nothing in this migration deletes that stack.
 

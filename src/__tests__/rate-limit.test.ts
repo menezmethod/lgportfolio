@@ -3,6 +3,7 @@ import {
   checkRateLimit,
   getCachedResponse,
   isDailyBudgetExhausted,
+  getDailyBudgetStats,
   incrementDailyCount,
   isSessionLimitReached,
 } from "@/lib/rate-limit";
@@ -58,6 +59,12 @@ describe("rate-limit", () => {
       // Increment 150 times (same calendar day in test)
       for (let i = 0; i < 150; i++) incrementDailyCount();
       expect(isDailyBudgetExhausted()).toBe(true);
+    });
+
+    it("getDailyBudgetStats reflects used + remaining = max", () => {
+      const stats = getDailyBudgetStats();
+      expect(stats.max).toBe(150);
+      expect(stats.used + stats.remaining).toBe(stats.max);
     });
   });
 
