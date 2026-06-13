@@ -39,7 +39,7 @@ Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`
 - `npm run build` — production build (`standalone` output for Docker/Coolify — see `next.config.ts`)
 - `npm run lint` — ESLint (currently 0 errors, 0 warnings)
 
-**Verify before commit / after changes:** Run `npm run build`, `npm run lint`, and `cd terraform && terraform init -input=false && terraform validate`. All must pass.
+**Verify before commit / after changes:** Run `npm run build`, `npm run lint`, and `npm run test`. Terraform (`terraform/`) is optional — only if you are working on the GCP rollback path.
 
 ### Key routes
 
