@@ -9,6 +9,8 @@
 
 The **GitHub Actions workflow** (`.github/workflows/ci.yml`) runs on every **pull request to `main`** and on **push to `main`**. It runs lint, build, unit tests, and Cypress. On **push to `main` only**, after all checks pass, it triggers a **Coolify deploy** (homelab Pi) via the Coolify API.
 
+**Terraform is not in CI.** The `terraform/` directory remains for optional GCP rollback (`docs/DEPLOY-CLOUDRUN.md`); validate manually if you change it.
+
 ### Coolify deploy secrets (GitHub → Settings → Secrets)
 
 | Secret | Example / where to get it |
