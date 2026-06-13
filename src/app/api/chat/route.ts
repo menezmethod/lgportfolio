@@ -380,7 +380,7 @@ ${context}`;
     log("ERROR", "Chat API error", { trace_id: traceId, error: msg, latency_ms: duration });
     const hint =
       !process.env.OPENROUTER_API_KEY?.trim() && process.env.INFERENCIA_API_KEY?.trim()
-        ? " Inferencia is down and no cloud fallback (OPENROUTER_API_KEY) is configured."
+        ? " Check Inferencia API key matches inferencia container API_KEYS (run scripts/verify-coolify-chat.sh on Pi)."
         : "";
     return jsonError(
       503,

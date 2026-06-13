@@ -83,7 +83,7 @@ Enable **API** in Coolify if disabled: **Settings** → enable API access for to
 | `INFERENCIA_BASE_URL` | `http://inferencia:8080/v1` |
 | `PROMETHEUS_URL` | `http://prometheus-prometheus-1:9090` |
 | `INFERENCIA_API_KEY` | Same key as inferencia service |
-| `INFERENCIA_CHAT_MODEL` | `gemma4:e4b` |
+| `INFERENCIA_CHAT_MODEL` | `gemma4:12b` (pinned in `docker-compose.coolify.yml`; do not use `gemma4:e4b`) |
 | `ADMIN_SECRET` | Your admin secret |
 | `NEXT_PUBLIC_SITE_URL` | `https://gimenez.dev` |
 | `COOLIFY` | `1` |
@@ -91,6 +91,10 @@ Enable **API** in Coolify if disabled: **Settings** → enable API access for to
 ## Verify
 
 ```bash
+# On Pi — full RCA (auth, model, network, chat POST)
+chmod +x scripts/verify-coolify-chat.sh
+./scripts/verify-coolify-chat.sh
+
 curl -s https://gimenez.dev/api/health | python3 -m json.tool
 curl -s https://gimenez.dev/api/war-room/data | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['metrics_source'], d.get('service_status',{}).get('checks',{}).get('prometheus'))"
 ```

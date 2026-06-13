@@ -1,5 +1,11 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { streamText } from "ai";
+import {
+  getInferenciaApiKey,
+  getInferenciaBaseUrl,
+  getInferenciaChatModel,
+  isInferenciaEnvConfigured,
+} from "@/lib/inferencia-config";
 
 /** OpenRouter free chat models (scanned 2026-06-10). Non-chat (audio/VL/safety) excluded. */
 export const OPENROUTER_FREE_FALLBACK_MODELS = [
@@ -51,7 +57,7 @@ function parseOpenRouterModels(): string[] {
 }
 
 export function isInferenciaConfigured(): boolean {
-  return Boolean(process.env.INFERENCIA_API_KEY?.trim() && process.env.INFERENCIA_BASE_URL?.trim());
+  return isInferenciaEnvConfigured();
 }
 
 export function isOpenRouterConfigured(): boolean {
@@ -66,15 +72,18 @@ export function buildChatProviderChain(): ChatProviderSpec[] {
   const chain: ChatProviderSpec[] = [];
 
   if (isInferenciaConfigured()) {
+    const baseURL = getInferenciaBaseUrl()!;
+    const apiKey = getInferenciaApiKey()!;
+    const model = getInferenciaChatModel();
     chain.push({
       id: "inferencia",
       label: "Inferencia",
-      model: process.env.INFERENCIA_CHAT_MODEL || "gemma4:e4b",
+      model,
       timeoutMs: INFERENCIA_FAST_FAIL_MS,
       createClient: () =>
         createOpenAI({
-          baseURL: process.env.INFERENCIA_BASE_URL!,
-          apiKey: process.env.INFERENCIA_API_KEY!,
+          baseURL,
+          apiKey,
         }),
     });
   }

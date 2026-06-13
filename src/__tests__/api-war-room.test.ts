@@ -151,13 +151,13 @@ describe("/api/war-room/explain-error", () => {
       );
     });
 
-    it("uses gemma4:e4b when INFERENCIA_CHAT_MODEL is unset", async () => {
+    it("uses gemma4:12b when INFERENCIA_CHAT_MODEL is unset", async () => {
       vi.stubEnv("INFERENCIA_API_KEY", "test-key");
       delete process.env.INFERENCIA_CHAT_MODEL;
 
       await explainError(makeExplainRequest({ error_text: "test error" }));
 
-      expect(mockChat).toHaveBeenCalledWith("gemma4:e4b");
+      expect(mockChat).toHaveBeenCalledWith("gemma4:12b");
     });
   });
 

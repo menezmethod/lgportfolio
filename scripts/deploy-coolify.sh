@@ -124,6 +124,11 @@ for i in $(seq 1 30); do
   fi
 done
 
+echo "==> Verifying chat chain (auth + model)"
+ssh "$HOST" "chmod +x ${REMOTE_DIR}/scripts/verify-coolify-chat.sh && ENV_FILE=${REMOTE_DIR}/.env.coolify ${REMOTE_DIR}/scripts/verify-coolify-chat.sh" || {
+  echo "WARN: verify-coolify-chat failed — fix INFERENCIA_API_KEY in .env.coolify (must match inferencia API_KEYS)"
+}
+
 echo ""
 echo "Deploy complete. DNS step (Namecheap):"
 echo "  A  @   → 47.203.87.233  (home public IP — traefik issues Let's Encrypt cert)"
