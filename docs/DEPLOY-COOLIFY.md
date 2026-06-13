@@ -106,9 +106,12 @@ War Room should show `metrics_source: prometheus` and Prometheus **UP**.
 After each `git pull` on the Pi:
 
 ```bash
-./scripts/hermes/install-watchdogs.sh   # sync safe watchdogs to ~/.hermes
-./scripts/hermes/audit-automations.sh   # fail if unsafe crons/scripts exist
+./scripts/hermes/cleanup-hermes.sh --apply   # archive legacy scripts that override env
+./scripts/hermes/install-watchdogs.sh        # sync safe watchdogs to ~/.hermes
+./scripts/hermes/audit-automations.sh        # fail if unsafe crons/scripts remain
 ```
+
+**Source of truth for chat env:** Coolify UI + `docker-compose.coolify.yml` + `.env.coolify`. Hermes must **never** write `INFERENCIA_API_KEY`, `INFERENCIA_BASE_URL`, or `INFERENCIA_CHAT_MODEL`.
 
 **Safe (report-only):**
 
@@ -116,12 +119,14 @@ After each `git pull` on the Pi:
 |------------|----------------|
 | `inferencia-watchdog.py` | GET Inferencia `/health` + shallow `/api/health` |
 | `portfolio-chat-watchdog.sh` | Same; never POST `/api/chat` |
+| `cleanup-hermes.sh` | Archives legacy recovery/override scripts from `~/.hermes` |
 | GitHub Actions `deploy` job | Redeploys **lgportfolio** Coolify app only (after CI) |
 
 **Never automate (caused outages):**
 
 - POST `https://gimenez.dev/api/chat` on a cron
 - `docker restart` / Coolify redeploy on **inferencia** or **ollama**
+- `sed` / `echo` to `.env.coolify` or `INFERENCIA_*` (overrides Coolify)
 - Hermes auto-recovery (`WATCHDOG_ENABLE_RECOVERY`) — permanently disabled in v2 scripts
 - Vercel `vercel --prod` from crons
 

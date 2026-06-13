@@ -38,6 +38,15 @@ scan_file() {
   if rg -qi 'vercel\s+(--prod|rollback)' "$f" 2>/dev/null; then
     warn "$rel — Vercel prod deploy/rollback from cron"
   fi
+  if rg -qi '(sed|echo|printf|tee).*(INFERENCIA_|\.env\.coolify)' "$f" 2>/dev/null; then
+    warn "$rel — mutates INFERENCIA_* or .env.coolify (overrides Coolify)"
+  fi
+  if rg -qi 'coolify.*(env|environment|variables)' "$f" 2>/dev/null; then
+    warn "$rel — Coolify env variable override"
+  fi
+  if rg -qi 'docker\s+exec.*(INFERENCIA_|export\s)' "$f" 2>/dev/null; then
+    warn "$rel — docker exec env override"
+  fi
 }
 
 echo "=== Hermes / automation safety audit ==="
@@ -69,7 +78,7 @@ if crontab -l 2>/dev/null | rg -i 'hermes|inferencia-watchdog|portfolio-chat' >/
   cat /tmp/hermes-cron.txt
   while IFS= read -r line; do
     case "$line" in \#*|"") continue ;; esac
-    if echo "$line" | rg -qi 'api/chat|docker restart|enable_recovery'; then
+    if echo "$line" | rg -qi 'api/chat|docker restart|enable_recovery|INFERENCIA_|\.env\.coolify|coolify.*deploy'; then
       warn "crontab: $line"
     else
       ok "crontab: $line"

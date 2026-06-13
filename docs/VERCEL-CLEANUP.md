@@ -38,23 +38,27 @@ Old **Deployments** rows (`Production – lgportfolio-inline`, etc.) stay in Git
 - **Never** `vercel --prod` or `vercel rollback` from crons (report-only watchdogs)
 - Portfolio weekly audit → PR to `main`; humans merge; Vercel deploys once
 
-## Watchdogs (no chat POST spam, no auto-restart)
+## Watchdogs (no chat POST spam, no auto-restart, no env override)
 
-Install on Pi5 after each pull:
+On Pi5 after each pull:
 
 ```bash
+./scripts/hermes/cleanup-hermes.sh --apply
 ./scripts/hermes/install-watchdogs.sh
+./scripts/hermes/audit-automations.sh
 ```
 
 | Script | Safe behavior |
 |--------|----------------|
-| `scripts/hermes/inferencia-watchdog.py` | GET Inferencia `/health` + shallow portfolio health — **no POST /api/chat**, **no docker restart** |
-| `scripts/hermes-chat-watchdog.sh` | Same pattern (installed as `portfolio-chat-watchdog.sh`) |
+| `scripts/hermes/inferencia-watchdog.py` | GET Inferencia `/health` + shallow portfolio health |
+| `scripts/hermes/portfolio-chat-watchdog.sh` | Same — **no POST /api/chat**, **no docker restart** |
+| `scripts/hermes/cleanup-hermes.sh` | Archives legacy recovery scripts that mutate `INFERENCIA_*` / `.env.coolify` |
 
-**Remove from Hermes crons** (these break Inferencia):
+**Remove from Hermes crons** (these break Inferencia or override Coolify):
 
 - POST `https://gimenez.dev/api/chat` (loads Ollama, rate limits)
 - `docker restart` / Coolify auto-recovery on inferencia or ollama (502 storm)
+- `sed` / `echo` to `.env.coolify` or `INFERENCIA_*` env vars
 - Intervals under 10 minutes on inference checks
 
 Portfolio `/api/health?shallow=1` + header `X-Hermes-Watchdog: 1` skips the Inferencia probe cascade.

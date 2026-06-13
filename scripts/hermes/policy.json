@@ -1,6 +1,6 @@
 {
-  "policy_version": 2,
-  "description": "Hermes cron policy for gimenez.dev + Inferencia — report-only, no recovery",
+  "policy_version": 3,
+  "description": "Hermes cron policy for gimenez.dev + Inferencia — report-only, no recovery, no env overrides",
   "rules": {
     "allowed_http": ["GET /health", "GET /api/health?shallow=1", "HEAD /api/chat"],
     "forbidden_http": ["POST /api/chat", "POST /v1/chat/completions"],
@@ -8,11 +8,33 @@
       "docker restart inferencia",
       "docker restart ollama",
       "coolify redeploy inferencia",
+      "coolify env variable changes",
+      "mutate .env.coolify",
+      "mutate INFERENCIA_API_KEY",
+      "mutate INFERENCIA_BASE_URL",
+      "mutate INFERENCIA_CHAT_MODEL",
       "vercel --prod",
       "WATCHDOG_ENABLE_RECOVERY"
     ],
     "min_interval_minutes": 10,
     "no_agent": true
+  },
+  "allowlisted_scripts": [
+    "inferencia-watchdog.py",
+    "portfolio-chat-watchdog.sh",
+    "audit-automations.sh",
+    "cleanup-hermes.sh",
+    "policy.json",
+    "vercel-governor.py"
+  ],
+  "do_not_override": {
+    "source_of_truth": "Coolify UI + docker-compose.coolify.yml + .env.coolify on Pi",
+    "env_vars": [
+      "INFERENCIA_API_KEY",
+      "INFERENCIA_BASE_URL",
+      "INFERENCIA_CHAT_MODEL"
+    ],
+    "notes": "Hermes must never write these — mismatched keys caused 503 chat outages"
   },
   "recommended_crons": [
     {
