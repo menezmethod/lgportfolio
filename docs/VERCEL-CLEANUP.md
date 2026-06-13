@@ -38,10 +38,26 @@ Old **Deployments** rows (`Production – lgportfolio-inline`, etc.) stay in Git
 - **Never** `vercel --prod` or `vercel rollback` from crons (report-only watchdogs)
 - Portfolio weekly audit → PR to `main`; humans merge; Vercel deploys once
 
-## Watchdogs (no chat POST spam)
+## Watchdogs (no chat POST spam, no auto-restart)
 
-- `scripts/hermes-chat-watchdog.sh` — uses `/api/health` only (no POST `/api/chat`)
-- `~/.hermes/scripts/inferencia-watchdog.py` — same pattern
+Install on Pi5 after each pull:
+
+```bash
+./scripts/hermes/install-watchdogs.sh
+```
+
+| Script | Safe behavior |
+|--------|----------------|
+| `scripts/hermes/inferencia-watchdog.py` | GET Inferencia `/health` + shallow portfolio health — **no POST /api/chat**, **no docker restart** |
+| `scripts/hermes-chat-watchdog.sh` | Same pattern (installed as `portfolio-chat-watchdog.sh`) |
+
+**Remove from Hermes crons** (these break Inferencia):
+
+- POST `https://gimenez.dev/api/chat` (loads Ollama, rate limits)
+- `docker restart` / Coolify auto-recovery on inferencia or ollama (502 storm)
+- Intervals under 10 minutes on inference checks
+
+Portfolio `/api/health?shallow=1` + header `X-Hermes-Watchdog: 1` skips the Inferencia probe cascade.
 
 ## Manual commands
 

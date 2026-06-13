@@ -428,16 +428,22 @@ export interface HealthData {
   region: string;
 }
 
-export function getHealthData(inferenciaProbe?: {
-  status: "up" | "down" | "degraded";
-  latency_ms?: number;
-}): HealthData {
+export function getHealthData(
+  inferenciaProbe?: {
+    status: "up" | "down" | "degraded";
+    latency_ms?: number;
+  },
+  options?: { shallow?: boolean }
+): HealthData {
+  const shallow = options?.shallow === true;
   const hasInferencia = Boolean(process.env.INFERENCIA_API_KEY?.trim());
   const hasOpenRouter = Boolean(process.env.OPENROUTER_API_KEY?.trim());
   const { remaining: budgetRemaining } = getDailyBudgetStats();
 
   let inferenceStatus: string;
-  if (!hasInferencia && !hasOpenRouter) {
+  if (shallow) {
+    inferenceStatus = hasInferencia || hasOpenRouter ? "up" : "degraded";
+  } else if (!hasInferencia && !hasOpenRouter) {
     inferenceStatus = "degraded";
   } else if (hasOpenRouter && (!hasInferencia || inferenciaProbe?.status === "down")) {
     inferenceStatus = "up";
@@ -452,9 +458,10 @@ export function getHealthData(inferenciaProbe?: {
   const checks: HealthData["checks"] = {
     inference_api: {
       status: inferenceStatus,
-      latency_ms:
-        inferenciaProbe?.latency_ms ??
-        (Math.round(percentile("chat_inference_duration_seconds", 50, 300000)) || undefined),
+      latency_ms: shallow
+        ? inferenciaProbe?.latency_ms
+        : inferenciaProbe?.latency_ms ??
+          (Math.round(percentile("chat_inference_duration_seconds", 50, 300000)) || undefined),
     },
     rag_system: {
       status: "up",

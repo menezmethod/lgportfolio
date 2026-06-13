@@ -5,6 +5,8 @@ vi.mock("@/lib/inferencia-health", () => ({
   probeInferenciaHealth: vi.fn().mockResolvedValue({ status: "up", latency_ms: 42 }),
 }));
 
+import { probeInferenciaHealth } from "@/lib/inferencia-health";
+
 beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
@@ -61,5 +63,18 @@ describe("/api/health", () => {
     const req = new Request("https://localhost:3000/api/health");
     const response = await GET(req);
     expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
+  });
+
+  it("skips Inferencia probe for shallow Hermes watchdog requests", async () => {
+    vi.stubEnv("INFERENCIA_API_KEY", "test-key");
+    vi.mocked(probeInferenciaHealth).mockClear();
+    const req = new Request("https://localhost:3000/api/health?shallow=1", {
+      headers: { "X-Hermes-Watchdog": "1" },
+    });
+    const response = await GET(req);
+    expect(response.status).toBe(200);
+    expect(probeInferenciaHealth).not.toHaveBeenCalled();
+    const body = await response.json();
+    expect(body.checks.inference_api.status).toBe("up");
   });
 });
