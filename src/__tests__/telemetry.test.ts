@@ -384,6 +384,14 @@ describe("telemetry", () => {
       expect(data.checks.inference_api.latency_ms).toBe(5000);
     });
 
+    it("shallow mode skips live probe and reports configured inference as up", () => {
+      vi.stubEnv("INFERENCIA_API_KEY", "test-key");
+      const data = getHealthData(undefined, { shallow: true });
+      expect(data.status).toBe("healthy");
+      expect(data.checks.inference_api.status).toBe("up");
+      expect(data.checks.inference_api.latency_ms).toBeUndefined();
+    });
+
     it("includes budget_remaining in rate_limiter check", () => {
       const data = getHealthData();
       expect(data.checks.rate_limiter.budget_remaining).toBeDefined();

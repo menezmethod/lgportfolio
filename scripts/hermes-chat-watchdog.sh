@@ -15,11 +15,21 @@ fail() {
   exit 0
 }
 
-health_json="$(curl -fsS --max-time "$HEALTH_TIMEOUT" "${SITE_URL}/api/health")" || fail "GET /api/health failed"
+# Shallow health — does not cascade into Inferencia /health (see /api/health?shallow=1)
+health_json="$(curl -fsS --max-time "$HEALTH_TIMEOUT" \
+  -H "X-Hermes-Watchdog: 1" \
+  "${SITE_URL}/api/health?shallow=1")" || fail "GET /api/health?shallow=1 failed"
 
-infer_status="$(printf '%s' "$health_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['checks']['inference_api']['status'])" 2>/dev/null || echo unknown)"
-if [ "$infer_status" != "up" ]; then
-  fail "/api/health inference_api=${infer_status} (expected up)"
+site_status="$(printf '%s' "$health_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['status'])" 2>/dev/null || echo unknown)"
+if [ "$site_status" != "healthy" ] && [ "$site_status" != "degraded" ]; then
+  fail "/api/health status=${site_status} (expected healthy or degraded)"
+fi
+
+# Inferencia direct — /health only, never POST /v1/chat/completions
+inferencia_health="${INFERENCIA_HEALTH_URL:-https://llm.menezmethod.com/health}"
+infer_code="$(curl -sS --max-time "$HEALTH_TIMEOUT" -o /dev/null -w '%{http_code}' "$inferencia_health" || echo 000)"
+if [ "$infer_code" != "200" ]; then
+  fail "Inferencia GET ${inferencia_health} returned HTTP ${infer_code}"
 fi
 
 # Chat route alive (HEAD — no inference call)
