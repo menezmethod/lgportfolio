@@ -1,6 +1,6 @@
 # Deploy on Coolify (primary — gimenez.dev)
 
-Production hosting for **gimenez.dev** runs on the homelab Pi 5 (`192.168.0.207`) under **Coolify**, on the same Docker network as **Inferencia** (`inferencia:8080`) and **Prometheus** (`prometheus-prometheus-1:9090`). No Vercel serverless limits; metrics and LLM calls stay on the LAN.
+Production hosting for **gimenez.dev** runs on the homelab Pi 5 (`192.168.0.207`) under **Coolify**, on the same Docker network as **Inferencia** (`inferencia:8080`) and **Prometheus** (`prometheus-prometheus-1:9090`). Metrics and LLM calls stay on the LAN.
 
 **Coolify UI:** [https://cp.menezmethod.com](https://cp.menezmethod.com)
 
@@ -27,7 +27,7 @@ Nameservers should be Cloudflare (`henrik.ns.cloudflare.com`, `jule.ns.cloudflar
 | **CNAME** | `@` | `19bf9243-3d61-4db1-bd9a-60665e2b675d.cfargotunnel.com` | Proxied |
 | **CNAME** | `www` | `19bf9243-3d61-4db1-bd9a-60665e2b675d.cfargotunnel.com` | Proxied |
 
-**Delete** any A/CNAME records still pointing at Vercel (`76.76.21.21`, `cname.vercel-dns.com`).
+**Delete** any stale A/CNAME records from prior hosting providers so only Cloudflare tunnel records remain.
 
 Tunnel ingress for `gimenez.dev` is in `/data/cloudflared/config.yml` on the Pi (routes to `http://lgportfolio:3000`). Redeploy with `./scripts/deploy-coolify.sh` to refresh it.
 
@@ -101,6 +101,10 @@ curl -s https://gimenez.dev/api/war-room/data | python3 -c "import sys,json; d=j
 
 War Room should show `metrics_source: prometheus` and Prometheus **UP**.
 
+## Healthcheck (Alpine IPv6 gotcha)
+
+Coolify and the Dockerfile healthcheck must probe **`127.0.0.1:3000`**, not `localhost`. On Alpine, `localhost` resolves to IPv6 `::1` while Next.js listens on IPv4 — the container stays **unhealthy** even when the site works. Use `/api/health/live` (no Inferencia probe). CI deploy pins `health_check_host: 127.0.0.1` and `health_check_path: /api/health/live` on each release.
+
 ## Hermes & automations (do not break Inferencia)
 
 After each `git pull` on the Pi:
@@ -132,6 +136,6 @@ After each `git pull` on the Pi:
 
 Policy reference: `scripts/hermes/policy.json`. Example crons: every **15 min**, `no_agent: true`.
 
-## Rollback to Vercel
+## Rollback to Cloud Run
 
-Point Namecheap `@` / `www` back to Vercel (`76.76.21.21` / `cname.vercel-dns.com`). See [VERCEL-DEPLOY.md](./VERCEL-DEPLOY.md).
+Re-enable the Cloud Build trigger and point DNS at the GCP load balancer. See [DEPLOY-CLOUDRUN.md](./DEPLOY-CLOUDRUN.md).

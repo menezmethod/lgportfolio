@@ -80,6 +80,22 @@
       "priority": 2,
       "passes": false,
       "cujIds": []
+    },
+    {
+      "id": "MONITOR-002",
+      "title": "Fix lgportfolio health \u2014 HTTP 403 for 3 checks",
+      "description": "Health endpoint returning 403 for 3 cycles.",
+      "priority": 2,
+      "passes": false,
+      "cujIds": []
+    },
+    {
+      "id": "MONITOR-003",
+      "title": "Build report-only watchdog for lgportfolio health",
+      "description": "lgportfolio has no health watchdog. Create a no_agent script that checks every 30-60m and reports on failure — NEVER auto-deploy, rollback, or promote from crons. Humans promote production via merge to main + CI Coolify deploy.",
+      "priority": 1,
+      "passes": false,
+      "cujIds": []
     }
   ]
 }

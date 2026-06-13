@@ -10,18 +10,17 @@
 
 This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature and live War Room observability dashboard. **Production deploy:** merge to `main` → CI passes → Coolify API deploy on Pi (see `docs/DEPLOY-COOLIFY.md`). Manual fallback: `./scripts/deploy-coolify.sh`.
 
-**Primary production hosting:** **Coolify** on homelab Pi 5 (`192.168.0.207`) — see **`docs/DEPLOY-COOLIFY.md`**. Same Docker network as Inferencia + Prometheus. **Vercel** path preserved for rollback — see **`docs/VERCEL-DEPLOY.md`**.
+**Primary production hosting:** **Coolify** on homelab Pi 5 (`192.168.0.207`) — see **`docs/DEPLOY-COOLIFY.md`**. Same Docker network as Inferencia + Prometheus.
 
 **GCP path (preserved, optional rollback):** `terraform/`, `cloudbuild.yaml`, and `Dockerfile` are kept. You can still deploy to **Cloud Run** behind a Global External ALB with Cloud CDN and Cloud Armor, or use low-cost direct Cloud Run ingress. Nothing in this migration deletes that stack.
 
 ### Deployment
 
-**Vercel (default)**
+**Coolify (production)**
 
-1. Import the GitHub repo in Vercel; set Production branch to `main`.
-2. Configure environment variables (Inferencia, admin, optional Firebase, etc.) — see **`docs/VERCEL-DEPLOY.md`**.
-3. Add `gimenez.dev` / `www` under **Domains** and apply the DNS records Vercel shows (Namecheap: usually **A `@` → `76.76.21.21`**, **CNAME `www` → `cname.vercel-dns.com`**).
-4. After traffic is on Vercel, **disable the Cloud Build trigger** in GCP (optional but recommended) so pushes to `main` do not keep building container images you are not serving.
+1. Merge to `main` → CI passes → Coolify deploy on Pi (see **`docs/DEPLOY-COOLIFY.md`**).
+2. Manual fallback: `./scripts/deploy-coolify.sh`.
+3. Configure environment variables in Coolify (Inferencia, admin, `PROMETHEUS_URL`, etc.) — see **`docs/DEPLOY-COOLIFY.md`** and `.env.example`.
 
 **GCP / Cloud Run (optional rollback)**
 
@@ -37,7 +36,7 @@ Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`
 
 - **Node:** 20.9+ required (see `engines` in `package.json`).
 - `npm run dev` — starts dev server on port 3000
-- `npm run build` — production build (**Vercel:** default Next output; **Docker/Cloud Run:** `standalone` when `VERCEL` is unset — see `next.config.ts`)
+- `npm run build` — production build (`standalone` output for Docker/Coolify — see `next.config.ts`)
 - `npm run lint` — ESLint (currently 0 errors, 0 warnings)
 
 **Verify before commit / after changes:** Run `npm run build`, `npm run lint`, and `cd terraform && terraform init -input=false && terraform validate`. All must pass.
@@ -74,7 +73,7 @@ Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`
 - Copy `.env.example` to `.env.local`. All portfolio pages work without API keys.
 - `INFERENCIA_API_KEY` + `INFERENCIA_BASE_URL` are needed for the AI chat. Without them, chat returns 503 but all pages work.
 - **RAG:** By default the chat uses the file-based knowledge base. For vector search, use GCP Cloud SQL (PostgreSQL + pgvector): set `enable_rag_cloud_sql = true` in Terraform; apply schema (`scripts/init-rag-db.sql`) and seed (`npx tsx scripts/seed-rag-db.ts`). Cloud Run gets `CLOUD_SQL_CONNECTION_NAME`, `RAG_DB_*` from Terraform when enabled.
-- In production on **Vercel**, set secrets in the Vercel project (or use `vercel env`). On **GCP Cloud Run**, Inferencia values come from **Secret Manager** via `cloudbuild.yaml` `--set-secrets`.
+- In production on **Coolify**, set secrets in the Coolify app env (or `.env` on the Pi). On **GCP Cloud Run**, Inferencia values come from **Secret Manager** via `cloudbuild.yaml` `--set-secrets`.
 - Optional: `NEXT_PUBLIC_GA_MEASUREMENT_ID` for Google Analytics 4.
 - **`GOOGLE_CLOUD_PROJECT`** — Set in Terraform for Cloud Run so logs include `logging.googleapis.com/trace` and appear in **Trace** and Logs Explorer. Required for Observability → Trace to show requests.
 

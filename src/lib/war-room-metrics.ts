@@ -11,14 +11,16 @@ export type MetricsSource = "prometheus" | "memory" | "hybrid";
 
 export interface WarRoomDataWithSource extends WarRoomData {
   metrics_source: MetricsSource;
-  platform: "vercel" | "cloud-run" | "coolify" | "local";
+  platform: "coolify" | "local";
 }
 
 function detectPlatform(): WarRoomDataWithSource["platform"] {
-  if (process.env.VERCEL) return "vercel";
-  if (process.env.GOOGLE_CLOUD_PROJECT) return "cloud-run";
   if (process.env.COOLIFY === "1") return "coolify";
   return "local";
+}
+
+function resolveRegion(fallback: string): string {
+  return process.env.DEPLOY_REGION || fallback;
 }
 
 function roundMs(seconds: number | null): number {
@@ -161,8 +163,8 @@ async function fetchPrometheusWarRoomSlice(budgetMax: number): Promise<Partial<W
 
 /**
  * Build War Room payload. When PROMETHEUS_URL is set, request/chat/SLO/chart
- * metrics come from Prometheus (aggregated across Vercel instances). Events and
- * recent errors stay in-memory on the serving instance.
+ * metrics come from Prometheus (scraped from /api/metrics). Events and recent
+ * errors stay in-memory on the serving container.
  */
 export async function getWarRoomDataAsync(): Promise<WarRoomDataWithSource> {
   const base = getWarRoomData();
@@ -176,7 +178,7 @@ export async function getWarRoomDataAsync(): Promise<WarRoomDataWithSource> {
       platform,
       service_status: {
         ...base.service_status,
-        region: process.env.VERCEL_REGION || base.service_status.region,
+        region: resolveRegion(base.service_status.region),
       },
     };
   }
@@ -193,7 +195,7 @@ export async function getWarRoomDataAsync(): Promise<WarRoomDataWithSource> {
           ...base.service_status.checks,
           prometheus: { status: "down" },
         },
-        region: process.env.VERCEL_REGION || base.service_status.region,
+        region: resolveRegion(base.service_status.region),
       },
     };
   }
@@ -213,7 +215,7 @@ export async function getWarRoomDataAsync(): Promise<WarRoomDataWithSource> {
           ...base.service_status.checks,
           prometheus: { status: "up" },
         },
-        region: process.env.VERCEL_REGION || base.service_status.region,
+        region: resolveRegion(base.service_status.region),
       },
       infrastructure: {
         ...base.infrastructure,
@@ -238,7 +240,7 @@ export async function getWarRoomDataAsync(): Promise<WarRoomDataWithSource> {
           ...base.service_status.checks,
           prometheus: { status: "degraded" },
         },
-        region: process.env.VERCEL_REGION || base.service_status.region,
+        region: resolveRegion(base.service_status.region),
       },
     };
   }

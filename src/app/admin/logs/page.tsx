@@ -167,7 +167,7 @@ export default function AdminLogsPage() {
         <div className="rounded-lg border border-white/10 bg-[#161b22] overflow-hidden">
           {entries.length === 0 && !loading ? (
             <div className="p-8 text-center text-gray-500 font-mono text-sm">
-              No log entries. Ensure GOOGLE_CLOUD_PROJECT is set and the Cloud Run service account has roles/logging.viewer.
+              No log entries. On Coolify, view container logs with <code className="text-gray-400">docker logs lgportfolio</code> on the Pi. Cloud Logging is only available when <code className="text-gray-400">GOOGLE_CLOUD_PROJECT</code> is set (GCP rollback path).
             </div>
           ) : (
             <div className="overflow-x-auto max-h-[70vh] overflow-y-auto">
@@ -209,7 +209,7 @@ export default function AdminLogsPage() {
         </div>
 
         <p className="mt-4 text-xs text-gray-500 font-mono">
-          Logs from Cloud Logging (resource.type=cloud_run_revision, service_name=lgportfolio). Use the trace link to open in Logs Explorer.
+          Production logs: Coolify/Docker stdout on the Pi (<code>docker logs lgportfolio</code>). This page shows Cloud Logging when GOOGLE_CLOUD_PROJECT is configured (optional GCP rollback).
         </p>
       </div>
     </div>

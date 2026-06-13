@@ -19,7 +19,7 @@ The **GitHub Actions workflow** (`.github/workflows/ci.yml`) runs on every **pul
 
 In the Coolify app, **disable** “Deploy on commit” / auto-deploy from GitHub — CI is the gate so broken code does not reach production.
 
-Until secrets are set, the deploy job prints a warning and skips (CI still passes).
+All three Coolify secrets are **required** on `main` pushes; the deploy job fails if any are missing.
 
 ## Require CI to pass before merging (branch protection)
 

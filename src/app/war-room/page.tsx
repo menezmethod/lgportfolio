@@ -73,7 +73,7 @@ export default function WarRoom() {
             <span className="text-xs bg-emerald-400/10 text-emerald-400 px-2 py-0.5 rounded font-mono border border-emerald-400/20">LIVE</span>
           </div>
           <p className="text-sm text-gray-500 max-w-2xl">
-            Live metrics from this portfolio on Vercel — aggregated via Prometheus when configured,
+            Live metrics from this portfolio on Coolify — aggregated via Prometheus on the homelab,
             with the same observability patterns used for enterprise payment systems.
           </p>
         </header>
@@ -84,11 +84,11 @@ export default function WarRoom() {
           <h3 className="text-xs font-mono text-gray-500 uppercase mb-4">Observability Stack</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {[
-              { name: 'Vercel', desc: 'Deploy & runtime logs', href: 'https://vercel.com/docs/observability', tag: 'Platform' },
+              { name: 'Coolify', desc: 'Deploy & container runtime', href: 'https://coolify.io/docs', tag: 'Platform' },
               { name: 'Prometheus', desc: 'Metrics scrape target', href: process.env.NEXT_PUBLIC_PROMETHEUS_URL || 'https://prometheus.io/docs/introduction/overview/', tag: '/api/metrics' },
               { name: 'Grafana', desc: 'Dashboards & alerts', href: process.env.NEXT_PUBLIC_GRAFANA_URL || 'https://grafana.com/docs/', tag: 'Panels' },
               { name: 'Health API', desc: 'Synthetic probe target', href: '/api/health', tag: 'Live' },
-              { name: 'Structured Logs', desc: 'JSON stdout', href: 'https://vercel.com/docs/observability/runtime-logs', tag: 'stdout' },
+              { name: 'Structured Logs', desc: 'JSON stdout', href: 'https://coolify.io/docs/knowledge-base/docker/logs', tag: 'stdout' },
               { name: 'Inferencia', desc: 'LLM gateway', href: 'https://llm.menezmethod.com/docs', tag: 'Chat' },
             ].map((p) => (
               <a
@@ -105,7 +105,7 @@ export default function WarRoom() {
             ))}
           </div>
           <p className="text-center text-[10px] text-gray-700 font-mono mt-4">
-            War Room reads fleet-wide counters from Prometheus; events and errors are per-instance.
+            War Room reads counters from Prometheus; events and errors are in-memory on the serving container.
           </p>
         </section>
       </div>
