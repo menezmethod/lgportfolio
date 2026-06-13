@@ -100,6 +100,10 @@ describe("/api/war-room/data", () => {
 // ── Explain Error (Inferencia) ──────────────────────────────────────────────
 
 describe("/api/war-room/explain-error", () => {
+  beforeEach(() => {
+    vi.stubEnv("INFERENCIA_BASE_URL", "https://inference.example.com/v1");
+  });
+
   describe("Inferencia configuration", () => {
     it("returns 503 when INFERENCIA_API_KEY is missing", async () => {
       delete process.env.INFERENCIA_API_KEY;
