@@ -1,7 +1,7 @@
 /**
  * Thin Prometheus HTTP API client for War Room aggregated metrics.
  * Prometheus scrapes GET /api/metrics (with X-Admin-Secret) so counters
- * reflect traffic across all Vercel serverless instances.
+ * reflect traffic scraped from the running container.
  */
 
 export interface PrometheusInstantResult {

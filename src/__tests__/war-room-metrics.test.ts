@@ -28,10 +28,10 @@ describe("getWarRoomDataAsync", () => {
     expect(data).toHaveProperty("recent_events");
   });
 
-  it("includes platform when VERCEL is set", async () => {
+  it("includes platform when COOLIFY is set", async () => {
     vi.mocked(isPrometheusConfigured).mockReturnValue(false);
-    vi.stubEnv("VERCEL", "1");
+    vi.stubEnv("COOLIFY", "1");
     const data = await getWarRoomDataAsync();
-    expect(data.platform).toBe("vercel");
+    expect(data.platform).toBe("coolify");
   });
 });

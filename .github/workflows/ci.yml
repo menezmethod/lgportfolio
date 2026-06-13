@@ -96,9 +96,10 @@ jobs:
           COOLIFY_APP_UUID: ${{ secrets.COOLIFY_APP_UUID }}
           GIT_SHA: ${{ github.sha }}
         run: |
+          set -euo pipefail
           if [ -z "$COOLIFY_API_TOKEN" ] || [ -z "$COOLIFY_APP_UUID" ] || [ -z "$COOLIFY_URL" ]; then
-            echo "::warning::Coolify deploy skipped — set COOLIFY_URL, COOLIFY_API_TOKEN, and COOLIFY_APP_UUID in repo secrets."
-            exit 0
+            echo "::error::Coolify deploy blocked — set COOLIFY_URL, COOLIFY_API_TOKEN, and COOLIFY_APP_UUID in repo secrets."
+            exit 1
           fi
 
           echo "Pinning Coolify app to commit ${GIT_SHA}"
@@ -106,12 +107,13 @@ jobs:
             -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
             -H "Content-Type: application/json" \
             -H "Accept: application/json" \
-            -d "{\"git_commit_sha\":\"${GIT_SHA}\"}" \
+            -d "{\"git_commit_sha\":\"${GIT_SHA}\",\"health_check_host\":\"127.0.0.1\",\"health_check_path\":\"/api/health/live\",\"health_check_start_period\":45,\"health_check_interval\":30}" \
             "${COOLIFY_URL%/}/api/v1/applications/${COOLIFY_APP_UUID}"
 
           echo "Triggering Coolify deploy (lgportfolio app only — never inferencia/ollama)"
           # COOLIFY_APP_UUID must be the lgportfolio application in Coolify UI, not inferencia.
-          curl -fsSL -X GET \
+          deploy_response="$(curl -fsSL -X GET \
             -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
             -H "Accept: application/json" \
-            "${COOLIFY_URL%/}/api/v1/deploy?uuid=${COOLIFY_APP_UUID}&force=false"
+            "${COOLIFY_URL%/}/api/v1/deploy?uuid=${COOLIFY_APP_UUID}&force=false")"
+          echo "${deploy_response}"

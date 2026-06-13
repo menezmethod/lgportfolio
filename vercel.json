@@ -1,7 +1,0 @@
-{
-  "github": {
-    "silent": true
-  },
-  "ignoreCommand": "bash scripts/vercel-should-build.sh",
-  "framework": "nextjs"
-}

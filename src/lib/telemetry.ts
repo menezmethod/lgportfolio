@@ -1,14 +1,14 @@
 /**
- * Lightweight observability engine for Vercel (and local dev).
+ * Lightweight observability engine for Coolify/Docker (and local dev).
  *
  * Architecture:
- *   - Structured JSON logs → stdout → Vercel log drain
+ *   - Structured JSON logs → stdout → container log drain
  *   - In-memory metrics → /api/metrics (Prometheus scrape) + /api/health
  *   - War Room aggregates from Prometheus when PROMETHEUS_URL is set
  *   - Rolling time-series windows (1h) for dashboard charts (in-memory fallback)
  *
- * On Vercel serverless, in-memory counters are per-instance and reset on cold
- * starts. Prometheus scrapes /api/metrics so War Room can show fleet-wide data.
+ * In-memory counters reset on container restart. Prometheus scrapes /api/metrics
+ * so War Room can show durable counters across restarts.
  */
 
 import { getDailyBudgetStats } from "./rate-limit";
@@ -481,7 +481,7 @@ export function getHealthData(
     uptime_seconds: getUptimeSeconds(),
     checks,
     version: APP_VERSION,
-    region: process.env.VERCEL_REGION || process.env.GOOGLE_CLOUD_REGION || "local",
+    region: process.env.DEPLOY_REGION || "homelab",
   };
 }
 

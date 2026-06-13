@@ -47,7 +47,7 @@ export interface WarRoomData {
     requests_1h: Array<{ t: number; count: number; errors: number }>;
   };
   metrics_source?: 'prometheus' | 'memory' | 'hybrid';
-  platform?: 'vercel' | 'cloud-run' | 'coolify' | 'local';
+  platform?: 'coolify' | 'local';
 }
 
 const STATUS_COLORS: Record<string, string> = {
