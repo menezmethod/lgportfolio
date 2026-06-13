@@ -1,5 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
+import { getInferenciaApiKey, getInferenciaBaseUrl, getInferenciaChatModel } from "@/lib/inferencia-config";
 import {
   checkRateLimit,
   incrementDailyCount,
@@ -9,16 +10,13 @@ import { publishDailyBudgetGauge, recordRequest } from "@/lib/telemetry";
 
 export const maxDuration = 30;
 
-const DEFAULT_BASE_URL = process.env.INFERENCIA_BASE_URL || "";
-const DEFAULT_CHAT_MODEL = "gemma4:e4b";
-
 const SYSTEM_PROMPT = `You are a DevOps/SRE assistant. The user will paste an error message or log line from their application.
 Your job: explain what the error means in plain language and suggest 1–3 concrete fixes. Be concise (under 150 words).
 Do not make up stack traces or code. If the error is unclear, say so and suggest how to get more context (e.g. check logs, trace_id).`;
 
 export async function POST(req: Request) {
   const start = Date.now();
-  const apiKey = process.env.INFERENCIA_API_KEY;
+  const apiKey = getInferenciaApiKey();
   if (!apiKey) {
     recordRequest("/api/war-room/explain-error", "POST", 503, Date.now() - start);
     return new Response(
@@ -57,8 +55,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const baseURL = process.env.INFERENCIA_BASE_URL || DEFAULT_BASE_URL;
-    const model = process.env.INFERENCIA_CHAT_MODEL || DEFAULT_CHAT_MODEL;
+    const baseURL = getInferenciaBaseUrl();
+    const model = getInferenciaChatModel();
+    if (!baseURL || !apiKey) {
+      recordRequest("/api/war-room/explain-error", "POST", 503, Date.now() - start);
+      return new Response(
+        JSON.stringify({ error: "Inference API not configured" }),
+        { status: 503, headers: { "Content-Type": "application/json", "X-Content-Type-Options": "nosniff" } }
+      );
+    }
     const openai = createOpenAI({ baseURL, apiKey });
 
     const { text } = await generateText({

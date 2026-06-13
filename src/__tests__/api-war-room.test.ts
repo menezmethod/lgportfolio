@@ -100,6 +100,10 @@ describe("/api/war-room/data", () => {
 // ── Explain Error (Inferencia) ──────────────────────────────────────────────
 
 describe("/api/war-room/explain-error", () => {
+  beforeEach(() => {
+    vi.stubEnv("INFERENCIA_BASE_URL", "https://inference.example.com/v1");
+  });
+
   describe("Inferencia configuration", () => {
     it("returns 503 when INFERENCIA_API_KEY is missing", async () => {
       delete process.env.INFERENCIA_API_KEY;
@@ -151,13 +155,13 @@ describe("/api/war-room/explain-error", () => {
       );
     });
 
-    it("uses gemma4:e4b when INFERENCIA_CHAT_MODEL is unset", async () => {
+    it("uses gemma4:12b when INFERENCIA_CHAT_MODEL is unset", async () => {
       vi.stubEnv("INFERENCIA_API_KEY", "test-key");
       delete process.env.INFERENCIA_CHAT_MODEL;
 
       await explainError(makeExplainRequest({ error_text: "test error" }));
 
-      expect(mockChat).toHaveBeenCalledWith("gemma4:e4b");
+      expect(mockChat).toHaveBeenCalledWith("gemma4:12b");
     });
   });
 

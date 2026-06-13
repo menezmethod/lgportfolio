@@ -83,7 +83,7 @@ Enable **API** in Coolify if disabled: **Settings** → enable API access for to
 | `INFERENCIA_BASE_URL` | `http://inferencia:8080/v1` |
 | `PROMETHEUS_URL` | `http://prometheus-prometheus-1:9090` |
 | `INFERENCIA_API_KEY` | Same key as inferencia service |
-| `INFERENCIA_CHAT_MODEL` | `gemma4:e4b` |
+| `INFERENCIA_CHAT_MODEL` | `gemma4:12b` (pinned in `docker-compose.coolify.yml`; do not use `gemma4:e4b`) |
 | `ADMIN_SECRET` | Your admin secret |
 | `NEXT_PUBLIC_SITE_URL` | `https://gimenez.dev` |
 | `COOLIFY` | `1` |
@@ -91,11 +91,41 @@ Enable **API** in Coolify if disabled: **Settings** → enable API access for to
 ## Verify
 
 ```bash
+# On Pi — full RCA (auth, model, network, chat POST)
+chmod +x scripts/verify-coolify-chat.sh
+./scripts/verify-coolify-chat.sh
+
 curl -s https://gimenez.dev/api/health | python3 -m json.tool
 curl -s https://gimenez.dev/api/war-room/data | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['metrics_source'], d.get('service_status',{}).get('checks',{}).get('prometheus'))"
 ```
 
 War Room should show `metrics_source: prometheus` and Prometheus **UP**.
+
+## Hermes & automations (do not break Inferencia)
+
+After each `git pull` on the Pi:
+
+```bash
+./scripts/hermes/install-watchdogs.sh   # sync safe watchdogs to ~/.hermes
+./scripts/hermes/audit-automations.sh   # fail if unsafe crons/scripts exist
+```
+
+**Safe (report-only):**
+
+| Automation | What it does |
+|------------|----------------|
+| `inferencia-watchdog.py` | GET Inferencia `/health` + shallow `/api/health` |
+| `portfolio-chat-watchdog.sh` | Same; never POST `/api/chat` |
+| GitHub Actions `deploy` job | Redeploys **lgportfolio** Coolify app only (after CI) |
+
+**Never automate (caused outages):**
+
+- POST `https://gimenez.dev/api/chat` on a cron
+- `docker restart` / Coolify redeploy on **inferencia** or **ollama**
+- Hermes auto-recovery (`WATCHDOG_ENABLE_RECOVERY`) — permanently disabled in v2 scripts
+- Vercel `vercel --prod` from crons
+
+Policy reference: `scripts/hermes/policy.json`. Example crons: every **15 min**, `no_agent: true`.
 
 ## Rollback to Vercel
 

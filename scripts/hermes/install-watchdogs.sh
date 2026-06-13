@@ -20,6 +20,15 @@ mkdir -p "$DEST"
 
 install -m 755 "$REPO_ROOT/scripts/hermes/inferencia-watchdog.py" "$DEST/inferencia-watchdog.py"
 install -m 755 "$REPO_ROOT/scripts/hermes-chat-watchdog.sh" "$DEST/portfolio-chat-watchdog.sh"
+install -m 644 "$REPO_ROOT/scripts/hermes/policy.json" "$DEST/policy.json"
+install -m 755 "$REPO_ROOT/scripts/hermes/audit-automations.sh" "$DEST/audit-automations.sh"
+
+echo "Running safety audit..."
+if "$DEST/audit-automations.sh"; then
+  echo "Audit passed."
+else
+  echo "WARN: audit found unsafe patterns — review ~/.hermes and crontab (see policy.json)"
+fi
 
 cat <<EOF
 Installed safe watchdogs to ${DEST}:

@@ -35,7 +35,7 @@ beforeEach(() => {
   mockStreamText.mockReturnValue(mockStreamResult());
   vi.stubEnv("INFERENCIA_API_KEY", "inf-key");
   vi.stubEnv("INFERENCIA_BASE_URL", "https://inferencia.test/v1");
-  vi.stubEnv("INFERENCIA_CHAT_MODEL", "gemma4:e4b");
+  vi.stubEnv("INFERENCIA_CHAT_MODEL", "gemma4:12b");
   vi.stubEnv("OPENROUTER_API_KEY", "or-key");
 });
 
@@ -53,7 +53,7 @@ describe("chat-providers", () => {
   it("builds inferencia first then openrouter fallbacks", () => {
     const chain = buildChatProviderChain();
     expect(chain[0].id).toBe("inferencia");
-    expect(chain[0].model).toBe("gemma4:e4b");
+    expect(chain[0].model).toBe("gemma4:12b");
     expect(chain[1].id).toBe("openrouter");
     expect(chain[1].model).toBe(OPENROUTER_FREE_FALLBACK_MODELS[0]);
     expect(chain.length).toBe(1 + OPENROUTER_FREE_FALLBACK_MODELS.length);
@@ -83,7 +83,7 @@ describe("chat-providers", () => {
     );
 
     expect(mockStreamText).toHaveBeenCalledTimes(2);
-    expect(fallbacks).toContain("gemma4:e4b");
+    expect(fallbacks).toContain("gemma4:12b");
     expect(result.provider).toBe("openrouter");
   });
 
