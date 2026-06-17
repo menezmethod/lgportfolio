@@ -22,6 +22,7 @@
   "allowlisted_scripts": [
     "inferencia-watchdog.py",
     "portfolio-chat-watchdog.sh",
+    "lgportfolio-health-watchdog.sh",
     "audit-automations.sh",
     "cleanup-hermes.sh",
     "policy.json",
@@ -50,6 +51,13 @@
       "command": "bash ~/.hermes/scripts/portfolio-chat-watchdog.sh",
       "no_agent": true,
       "notes": "No POST /api/chat"
+    },
+    {
+      "name": "lgportfolio-health-watchdog",
+      "schedule": "*/45 * * * *",
+      "command": "bash ~/.hermes/scripts/lgportfolio-health-watchdog.sh",
+      "no_agent": true,
+      "notes": "Site liveness + homepage + shallow /api/health — report-only, no deploy"
     }
   ],
   "github_actions": {

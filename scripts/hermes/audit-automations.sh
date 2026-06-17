@@ -59,7 +59,7 @@ if [ ! -d "$HERMES_HOME" ]; then
 fi
 
 # Required safe scripts (from install-watchdogs.sh)
-for required in scripts/inferencia-watchdog.py scripts/portfolio-chat-watchdog.sh; do
+for required in scripts/inferencia-watchdog.py scripts/portfolio-chat-watchdog.sh scripts/lgportfolio-health-watchdog.sh; do
   if [ -f "$HERMES_HOME/$required" ]; then
     ok "installed $required"
   else
@@ -73,7 +73,7 @@ while IFS= read -r -d '' f; do
 done < <(find "$HERMES_HOME" -type f \( -name '*.sh' -o -name '*.py' -o -name '*.json' -o -name '*.yaml' -o -name '*.yml' \) -print0 2>/dev/null)
 
 # Crontab entries referencing hermes (user crontab only)
-if crontab -l 2>/dev/null | rg -i 'hermes|inferencia-watchdog|portfolio-chat' >/tmp/hermes-cron.txt 2>/dev/null; then
+if crontab -l 2>/dev/null | rg -i 'hermes|inferencia-watchdog|portfolio-chat|lgportfolio-health' >/tmp/hermes-cron.txt 2>/dev/null; then
   echo "--- crontab (hermes-related) ---"
   cat /tmp/hermes-cron.txt
   while IFS= read -r line; do

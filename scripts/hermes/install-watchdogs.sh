@@ -21,6 +21,7 @@ mkdir -p "$DEST"
 
 install -m 755 "$REPO_ROOT/scripts/hermes/inferencia-watchdog.py" "$DEST/inferencia-watchdog.py"
 install -m 755 "$REPO_ROOT/scripts/hermes/portfolio-chat-watchdog.sh" "$DEST/portfolio-chat-watchdog.sh"
+install -m 755 "$REPO_ROOT/scripts/hermes/lgportfolio-health-watchdog.sh" "$DEST/lgportfolio-health-watchdog.sh"
 install -m 644 "$REPO_ROOT/scripts/hermes/policy.json" "$DEST/policy.json"
 install -m 755 "$REPO_ROOT/scripts/hermes/audit-automations.sh" "$DEST/audit-automations.sh"
 install -m 755 "$REPO_ROOT/scripts/hermes/cleanup-hermes.sh" "$DEST/cleanup-hermes.sh"
@@ -36,14 +37,16 @@ fi
 
 cat <<EOF
 Installed safe watchdogs to ${DEST}:
-  - inferencia-watchdog.py      (GET /health only, no recovery)
-  - portfolio-chat-watchdog.sh  (shallow /api/health, no POST /api/chat)
-  - cleanup-hermes.sh           (archive legacy override scripts)
-  - policy.json                 (allowlist + do-not-override env vars)
+  - inferencia-watchdog.py         (GET /health only, no recovery)
+  - portfolio-chat-watchdog.sh     (shallow /api/health, no POST /api/chat)
+  - lgportfolio-health-watchdog.sh (liveness + homepage + shallow health)
+  - cleanup-hermes.sh              (archive legacy override scripts)
+  - policy.json                    (allowlist + do-not-override env vars)
 
-Hermes cron (no_agent: true, every 15 min):
-  inferencia: python3 ${DEST}/inferencia-watchdog.py
-  portfolio:  bash ${DEST}/portfolio-chat-watchdog.sh
+Hermes cron (no_agent: true):
+  inferencia:  */15  python3 ${DEST}/inferencia-watchdog.py
+  portfolio:   */15  bash ${DEST}/portfolio-chat-watchdog.sh
+  lgportfolio: */45  bash ${DEST}/lgportfolio-health-watchdog.sh
 
 NEVER automate (overrides Coolify / caused outages):
   - POST https://gimenez.dev/api/chat

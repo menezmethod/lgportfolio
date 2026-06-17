@@ -123,6 +123,7 @@ After each `git pull` on the Pi:
 |------------|----------------|
 | `inferencia-watchdog.py` | GET Inferencia `/health` + shallow `/api/health` |
 | `portfolio-chat-watchdog.sh` | Same; never POST `/api/chat` |
+| `lgportfolio-health-watchdog.sh` | GET `/api/health/live`, `/`, shallow `/api/health` — report-only, every 45 min |
 | `cleanup-hermes.sh` | Archives legacy recovery/override scripts from `~/.hermes` |
 | GitHub Actions `deploy` job | Redeploys **lgportfolio** Coolify app only (after CI) |
 
