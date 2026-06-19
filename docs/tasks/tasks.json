@@ -106,6 +106,15 @@
       "status": "todo",
       "cujIds": [],
       "issue": "https://github.com/menezmethod/lgportfolio/issues/95"
+    },
+    {
+      "id": "LGP-011",
+      "title": "Vercel cleanup \u2014 site deploys on Coolify now",
+      "description": "Remove all Vercel-specific config, env vars, and deploy logic. Site has migrated to Coolify on Pi 5. Items to clean: 1) .vercel/ directory and project.json, 2) vercel.json if present, 3) Vercel-specific env vars in .env.example (VERCEL_*, NEXT_PUBLIC_VERCEL_*), 4) Vercel deploy steps in CI/CD if any, 5) GitHub Actions Vercel comments/status checks, 6) .vercelignore, 7) Any Vercel rewrites/redirects in next.config.ts. Keep: Coolify deploy pipeline in ci.yml (already working), Dockerfile (needed by Coolify). Verify: npm run build + npm run lint + npm run test still pass after cleanup.",
+      "priority": 2,
+      "passes": false,
+      "status": "todo",
+      "cujIds": []
     }
   ]
 }
