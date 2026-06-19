@@ -92,9 +92,28 @@
     {
       "id": "MONITOR-003",
       "title": "Build report-only watchdog for lgportfolio health",
-      "description": "lgportfolio has no health watchdog. Create a no_agent script that checks every 30-60m and reports on failure — NEVER auto-deploy, rollback, or promote from crons. Humans promote production via merge to main + CI Coolify deploy.",
+      "description": "lgportfolio has no health watchdog. Create a no_agent script that checks every 30-60m and reports on failure \u2014 NEVER auto-deploy, rollback, or promote from crons. Humans promote production via merge to main + CI Coolify deploy.",
       "priority": 1,
       "passes": false,
+      "cujIds": []
+    },
+    {
+      "id": "LGP-010",
+      "title": "SRE Pivot: Update site content for Senior SRE targeting",
+      "description": "Promoted from Software Engineer II (Enterprise Payments) to SRE (Home Services Division) Mar 2026. Update all site content to reflect SRE role while preserving payments as proof of depth. Target: senior SRE jobs. Files: about.md, experience.md, skills.md, projects.json, page.tsx. Content-only changes, no component/layout/styling. See GitHub Issue #95 for full spec.",
+      "priority": 1,
+      "passes": false,
+      "status": "todo",
+      "cujIds": [],
+      "issue": "https://github.com/menezmethod/lgportfolio/issues/95"
+    },
+    {
+      "id": "LGP-011",
+      "title": "Vercel cleanup \u2014 site deploys on Coolify now",
+      "description": "Remove all Vercel-specific config, env vars, and deploy logic. Site has migrated to Coolify on Pi 5. Items to clean: 1) .vercel/ directory and project.json, 2) vercel.json if present, 3) Vercel-specific env vars in .env.example (VERCEL_*, NEXT_PUBLIC_VERCEL_*), 4) Vercel deploy steps in CI/CD if any, 5) GitHub Actions Vercel comments/status checks, 6) .vercelignore, 7) Any Vercel rewrites/redirects in next.config.ts. Keep: Coolify deploy pipeline in ci.yml (already working), Dockerfile (needed by Coolify). Verify: npm run build + npm run lint + npm run test still pass after cleanup.",
+      "priority": 2,
+      "passes": false,
+      "status": "todo",
       "cujIds": []
     }
   ]
