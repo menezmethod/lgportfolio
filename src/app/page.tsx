@@ -7,11 +7,11 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
 const titles = [
-  'GCP Professional Cloud Architect',
+  'Site Reliability Engineering',
+  'Distributed Tracing & Observability',
   'Go · Platform & Infrastructure',
-  'Distributed Systems & Reliability',
-  'Payment Infrastructure Engineering',
-  'Platform Engineering at Scale',
+  'SLO/SLI Engineering & Incident Response',
+  'OpenTelemetry at Fortune 50 Scale',
 ];
 
 const heroSignals = [
@@ -144,7 +144,7 @@ function PortfolioContent() {
                 <span className="text-code">◈</span>
                 <span className="font-semibold text-foreground">Luis Gimenez</span>
                 <span className="text-muted-foreground">|</span>
-                <span className="text-code">Senior Platform Engineer</span>
+                <span className="text-code">Site Reliability Engineer</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <span className="text-code">❯</span>
@@ -161,15 +161,15 @@ function PortfolioContent() {
           <div>
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight">
               <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
-                Platforms that move
+                Reliability that
               </span>
               <br />
               <span className="bg-gradient-to-r from-primary via-primary to-code bg-clip-text text-transparent">
-                money reliably at
+                scales with the
               </span>
               <br />
               <span className="bg-gradient-to-r from-code via-primary to-secondary bg-clip-text text-transparent">
-                Fortune 50 scale.
+                business at Fortune 50.
               </span>
             </h1>
           </div>
@@ -188,19 +188,19 @@ function PortfolioContent() {
           {/* Description */}
           {isRecruiter ? (
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl leading-relaxed border-l-2 border-primary/30 pl-6">
-              <strong className="text-foreground">Currently: Software Engineer II building Fortune 50 payment infrastructure.</strong>{' '}
-              Targeting Senior Platform Engineer roles.{' '}
+              <strong className="text-foreground">Currently: SRE on Home Services Division at The Home Depot.</strong>{' '}
+              Targeting Senior SRE roles.{' '}
               Tampa Bay based, open to remote and hybrid (≤2 days/week).{' '}
-              I build Go services, payment rails, observability pipelines, and platform infrastructure.
-              Current proof point: a Fortune 50 payments domain with{' '}
-              <strong className="text-foreground">2400+ stores, platinum-tier uptime expectations, and sub-50ms critical paths</strong>.
+              I own reliability, observability, and operational excellence for scheduling, dispatch, and fulfillment services.
+              Previous proof: two years building Go payment services across 2400+ stores with platinum-tier uptime and sub-50ms critical paths.
             </p>
           ) : (
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl leading-relaxed">
-              I design and operate distributed systems that move money reliably at Fortune 50 scale.{' '}
-              Today that means Go microservices, protobuf contracts, and OpenTelemetry pipelines at{' '}
-              <strong className="text-foreground">The Home Depot</strong> —{' '}
-              2,400+ stores, platinum-tier uptime, and sub-50ms critical paths.
+              I build reliability into distributed systems at Fortune 50 scale.{' '}
+              As an SRE at{' '}
+              <strong className="text-foreground">The Home Depot</strong>, I design distributed tracing across multi-service stacks,{' '}
+              build SLO-driven reliability practices, and keep critical workflows running.{' '}
+              Previously: two years on Enterprise Payments — Go services, 2400+ stores, platinum-tier uptime.
             </p>
           )}
 
@@ -396,7 +396,7 @@ contracts:
             <span className="badge-live">available</span>
             <Radio className="size-4 text-code" />
             <p className="text-sm font-mono text-muted-foreground">
-              accepting interviews &mdash; Senior Platform Engineer roles
+              accepting interviews &mdash; Senior SRE roles
             </p>
             <span className="h-4 w-px bg-border/50" />
             <span className="text-[11px] font-mono text-muted-foreground tracking-wide">
@@ -414,7 +414,7 @@ contracts:
             '@context': 'https://schema.org',
             '@type': 'Person',
             name: 'Luis Gimenez',
-            jobTitle: 'Senior Platform Engineer',
+            jobTitle: 'Site Reliability Engineer',
             url: 'https://gimenez.dev',
             sameAs: [
               'https://github.com/menezmethod',
@@ -425,7 +425,7 @@ contracts:
               '@type': 'Organization',
               name: 'The Home Depot',
             },
-            knowsAbout: ['Go', 'Java', 'GCP', 'Terraform', 'Kubernetes', 'OpenTelemetry', 'Distributed Systems', 'Payment Architecture'],
+            knowsAbout: ['OpenTelemetry', 'Distributed Tracing', 'SLO/SLI', 'Go', 'Java', 'GCP', 'Kubernetes', 'Grafana', 'Prometheus', 'Distributed Systems', 'Incident Response'],
           }),
         }}
       />

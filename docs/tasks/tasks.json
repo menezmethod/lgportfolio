@@ -103,8 +103,8 @@
       "title": "SRE Pivot: Update site content for Senior SRE targeting",
       "description": "Promoted from Software Engineer II (Enterprise Payments) to SRE (Home Services Division) Mar 2026. Update all site content to reflect SRE role while preserving payments as proof of depth. Target: senior SRE jobs. Files: about.md, experience.md, skills.md, projects.json, page.tsx. Content-only changes, no component/layout/styling. See GitHub Issue #95 for full spec.",
       "priority": 1,
-      "passes": false,
-      "status": "todo",
+      "passes": true,
+      "status": "done",
       "cujIds": [],
       "issue": "https://github.com/menezmethod/lgportfolio/issues/95"
     },

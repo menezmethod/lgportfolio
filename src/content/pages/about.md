@@ -1,7 +1,7 @@
 ---
 title: About
-headline: Senior Platform Engineer.
-headlineAccent: Payment Infrastructure.
+headline: Site Reliability Engineer.
+headlineAccent: Home Services Infrastructure.
 buildItems:
   - title: Instrument Critical Paths
     icon: eye
@@ -35,10 +35,10 @@ principles:
       response time. If it does neither, it is infrastructure theater.
 ---
 
-I work inside one of the hardest engineering environments to fake: enterprise payments. At **The Home Depot**, I design and build Go-based payment services that support **2400+ stores**, high-throughput transaction flows, and platinum-tier uptime expectations.
+I work inside one of the hardest engineering environments to fake: enterprise-scale home services. At **The Home Depot**, I own reliability, observability, and operational excellence for the Home Services platform — scheduling, dispatch, and fulfillment workflows that serve millions of customers.
 
-My focus is not generic full-stack work. I instrument critical paths, reduce operational ambiguity, and move risky systems without customer impact. At a Fortune 50 retailer, that means designing Go payment services that process real transactions at scale, building OpenTelemetry pipelines that expose gaps in legacy architectures, and leading zero-downtime migrations that decompose monoliths without dropping a single payment.
+My focus is not generic full-stack work. I instrument critical paths, reduce operational ambiguity, and move risky systems without customer impact. As an SRE at a Fortune 50 retailer, that means designing distributed tracing across multi-service stacks, building SLO-driven reliability practices, and leading incident response that keeps critical workflows running. Before this role, I spent two years on the Enterprise Payments team — building Go payment services that process real transactions at scale, building OpenTelemetry pipelines that expose gaps in legacy architectures, and leading zero-downtime migrations that decompose monoliths without dropping a single payment.
 
-Based in the **Tampa Bay area**, I am open to remote and hybrid (≤2 days/week) roles in platform engineering, infrastructure, and systems architecture.
+Based in the **Tampa Bay area**, I am open to remote and hybrid (≤2 days/week) roles in site reliability engineering, platform infrastructure, and systems architecture.
 
 The next frontier is platform-as-product: internal developer platforms that abstract infrastructure complexity, self-service deployment pipelines, and observability-driven operations that let teams ship fast without sacrificing reliability.

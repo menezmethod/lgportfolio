@@ -1,12 +1,24 @@
 ---
 title: Experience
 description: >-
-  Enterprise payments at Fortune 50 scale, from contractor to full-time engineer —
+  Site reliability engineer at Fortune 50 scale, promoted from enterprise payments —
   plus a decade of independent consultancy before that.
 entries:
   - company: The Home Depot
+    role: Site Reliability Engineer — Home Services Division
+    period: Mar 2026 – Present
+    location: Remote / Tampa Bay, FL
+    summary: >-
+      SRE on the Home Services platform, owning reliability, observability, and
+      operational excellence across scheduling, dispatch, and fulfillment services.
+    highlights:
+      - OpenTelemetry distributed tracing across Home Services multi-service stack
+      - SLO-driven reliability practices and incident response for critical workflows
+      - Platform observability tooling that reduced mean-time-to-incident
+      - Cross-team operational standards and production on-call practices
+  - company: The Home Depot
     role: Software Engineer II — Enterprise Payments Platform
-    period: Jan 2024 – Present
+    period: Jan 2024 – Mar 2026
     location: Remote / Tampa Bay, FL
     summary: >-
       Full-time IC on a 100+ engineer team operating platinum-tier payment authorization,
