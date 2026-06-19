@@ -30,6 +30,7 @@ done
 ALLOWLIST=(
   inferencia-watchdog.py
   portfolio-chat-watchdog.sh
+  lgportfolio-health-watchdog.sh
   audit-automations.sh
   cleanup-hermes.sh
   policy.json

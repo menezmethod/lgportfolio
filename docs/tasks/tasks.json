@@ -94,7 +94,8 @@
       "title": "Build report-only watchdog for lgportfolio health",
       "description": "lgportfolio has no health watchdog. Create a no_agent script that checks every 30-60m and reports on failure \u2014 NEVER auto-deploy, rollback, or promote from crons. Humans promote production via merge to main + CI Coolify deploy.",
       "priority": 1,
-      "passes": false,
+      "passes": true,
+      "status": "done",
       "cujIds": []
     },
     {
