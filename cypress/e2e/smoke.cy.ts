@@ -1,12 +1,12 @@
 describe("Smoke", () => {
   it("loads the homepage", () => {
     cy.visit("/");
-    cy.contains("Senior Platform Engineer").should("be.visible");
+    cy.contains("Site Reliability Engineer").should("be.visible");
   });
 
   it("loads the about page", () => {
     cy.visit("/about");
-    cy.contains("Senior Platform Engineer.").should("be.visible");
+    cy.contains("Site Reliability Engineer.").should("be.visible");
   });
 
   it("loads the chat page", () => {

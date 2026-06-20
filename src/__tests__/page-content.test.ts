@@ -9,7 +9,7 @@ describe('page-content', () => {
   it('loads about content from markdown', () => {
     const about = getAboutContent();
     expect(about.title).toBe('About');
-    expect(about.headline).toContain('Senior Platform Engineer');
+    expect(about.headline).toContain('Site Reliability Engineer');
     expect(about.body).toContain('The Home Depot');
     expect(about.buildItems.length).toBeGreaterThanOrEqual(3);
     expect(about.principles.length).toBeGreaterThanOrEqual(3);
