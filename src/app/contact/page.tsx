@@ -1,4 +1,4 @@
-import { Mail, Github, Linkedin, Twitter, Terminal, FileText, Download } from 'lucide-react';
+import { Mail, Github, Linkedin, Twitter, Terminal, FileText } from 'lucide-react';
 
 const socialLinks = [
   { href: 'mailto:luisgimenezdev@gmail.com', icon: Mail, label: 'Email', text: 'luisgimenezdev@gmail.com' },
@@ -21,8 +21,8 @@ export default function Contact() {
 
         <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
           Selectively accepting interviews for{' '}
-          <span className="text-foreground font-semibold">Senior Platform Engineer</span> roles.
-          If you need someone who can own observability, migrations, and edge-to-cloud systems design,
+          <span className="text-foreground font-semibold">Senior SRE</span> roles.
+          If you need someone who can own reliability, observability, and incident response at scale,
           let&apos;s talk.
         </p>
 
@@ -35,17 +35,15 @@ export default function Contact() {
                 Resume / CV
               </h2>
               <p className="text-muted-foreground">
-                Full experience details, architectural case studies, and certifications.
+                Full experience details, architectural case studies, and certifications. Available on request.
               </p>
             </div>
             <a
-              href="https://docs.google.com/document/d/1YkK8dF8N7M9xX5qZ2vT1uO8r6pS4cE9gH0iL3mN2Q4/export?format=pdf"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="mailto:luisgimenezdev@gmail.com?subject=Resume%20Request%20-%20SRE"
               className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hover:scale-105 whitespace-nowrap"
             >
-              <Download className="w-5 h-5" />
-              Download PDF
+              <Mail className="w-5 h-5" />
+              Request Resume
             </a>
           </div>
         </div>

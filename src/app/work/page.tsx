@@ -121,17 +121,17 @@ export default function Work() {
             Systems with <span className="text-primary">architectural weight</span>.
           </h1>
           <p className="max-w-3xl text-lg leading-relaxed text-muted-foreground md:text-xl">
-            This page no longer reads like a startup app gallery. It leads with production-scale
-            payment systems, introduces three hardware-backed hero builds, and archives work that
-            does not strengthen the principal systems and AI architecture narrative.
+            This page leads with production-scale SRE and payment systems,
+            includes three edge-computing experiments, and archives work that
+            does not strengthen the reliability engineering narrative.
           </p>
         </div>
 
         <div className="mt-10 grid gap-4 md:grid-cols-3">
           {[
-            { label: 'production proof', value: String(productionCount) },
-            { label: 'hero builds queued', value: String(buildingCount) },
-            { label: 'commodity demos archived', value: String(archivedProjects.length) },
+            { label: 'production systems', value: String(productionCount) },
+            { label: 'experiments in progress', value: String(buildingCount) },
+            { label: 'archived projects', value: String(archivedProjects.length) },
           ].map((stat) => (
             <div
               key={stat.label}
