@@ -1,8 +1,8 @@
 ---
 title: Skills
 description: >-
-  Production skills across languages, cloud infrastructure, observability, and
-  platform engineering — rated by hands-on depth, not resume theater.
+  Production skills across reliability engineering, cloud infrastructure, observability, and
+  site reliability — rated by hands-on depth, not resume theater.
 categories:
   - name: programming languages
     skills:

@@ -1,5 +1,31 @@
 [
   {
+    "slug": "otel-home-services-tracing",
+    "title": "OTel Distributed Tracing for Home Services",
+    "eyebrow": "SRE | distributed observability",
+    "company": "The Home Depot",
+    "summary": "Designed and rolled out an OpenTelemetry distributed tracing platform across the Home Services domain, giving cross-service request visibility into scheduling, dispatch, and fulfillment workflows.",
+    "narrative": {
+      "problem": "Home Services spans multiple services and handoffs — scheduling, dispatch, vendor coordination, and payment — with limited cross-service trace visibility, making latency attribution and error isolation difficult during incidents.",
+      "tradeoff": "Invest in a standards-based OTel tracing layer that requires coordinated instrumentation across teams, rather than per-service ad-hoc logging that is faster to ship but does not scale operationally.",
+      "decision": "Introduced OpenTelemetry SDK and Collector infrastructure with trace propagation across Go and Java services, custom span attributes for service-specific context, and a unified Jaeger/Tempo backend for trace query.",
+      "outcome": "Reduced mean-time-to-incident by giving on-call engineers end-to-end request traces across the Home Services stack, enabling faster root-cause identification in multi-service failure scenarios."
+    },
+    "stack": ["Go", "Java", "OpenTelemetry", "OTel Collector", "Jaeger", "Grafana Tempo", "Kubernetes", "GKE"],
+    "architecture": "OTel SDK instrumentation -> Collector pipeline -> Tempo/Jaeger backend -> Grafana trace exploration",
+    "cloud": "GKE, Cloud Logging, Cloud Monitoring, GCS",
+    "hardware": "Cloud-native Kubernetes services",
+    "status": "production",
+    "featured": true,
+    "origin": "professional",
+    "metrics": [
+      { "label": "domain", "value": "Home Services stack" },
+      { "label": "latency", "value": "Sub-second trace query" },
+      { "label": "coverage", "value": "Cross-service traces" },
+      { "label": "impact", "value": "Faster MTTR" }
+    ]
+  },
+  {
     "slug": "payment-card-tender-system",
     "title": "Payment Card Tender System",
     "eyebrow": "Enterprise production system",
