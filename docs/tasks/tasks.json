@@ -30,8 +30,8 @@
             "title": "GCP Cloud Run deployment pipeline",
             "description": "Production + preview deployments via Cloud Build + Terraform.",
             "priority": 1,
-            "passes": false,
-            "status": "backlog"
+            "passes": true,
+            "status": "done"
         },
         {
             "id": "LGP-005",
