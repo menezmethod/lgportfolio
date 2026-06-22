@@ -1,121 +1,121 @@
 {
-  "version": 1,
-  "tasks": [
-    {
-      "id": "LGP-001",
-      "title": "Initial project setup",
-      "description": "Next.js 16 app scaffolded, deployed on GCP Cloud Run.",
-      "priority": 1,
-      "passes": true,
-      "status": "done"
-    },
-    {
-      "id": "LGP-002",
-      "title": "Portfolio content pages",
-      "description": "About, projects, experience, skills pages with Markdown data source.",
-      "priority": 1,
-      "passes": true,
-      "status": "done"
-    },
-    {
-      "id": "LGP-003",
-      "title": "AI chat integration",
-      "description": "Chat interface powered by inferencia LLM proxy backend.",
-      "priority": 1,
-      "passes": true,
-      "status": "done"
-    },
-    {
-      "id": "LGP-004",
-      "title": "GCP Cloud Run deployment pipeline",
-      "description": "Production + preview deployments via Cloud Build + Terraform.",
-      "priority": 1,
-      "passes": false,
-      "status": "backlog"
-    },
-    {
-      "id": "LGP-005",
-      "title": "Responsive design polish",
-      "description": "Mobile-first responsive design across all pages.",
-      "priority": 2,
-      "passes": false,
-      "status": "backlog"
-    },
-    {
-      "id": "LGP-006",
-      "title": "SEO optimization",
-      "description": "Meta tags, sitemap, structured data for search engines.",
-      "priority": 2,
-      "passes": false,
-      "status": "backlog"
-    },
-    {
-      "id": "LGP-007",
-      "title": "Analytics integration",
-      "description": "Page views, interactions, and chat usage tracking.",
-      "priority": 2,
-      "passes": false,
-      "status": "backlog"
-    },
-    {
-      "id": "LGP-008",
-      "title": "Performance optimization",
-      "description": "Lighthouse scores >90, image optimization, lazy loading.",
-      "priority": 3,
-      "passes": false,
-      "status": "backlog"
-    },
-    {
-      "id": "LGP-009",
-      "title": "i18n support",
-      "description": "Internationalization for content pages.",
-      "priority": 3,
-      "passes": false,
-      "status": "backlog"
-    },
-    {
-      "id": "MONITOR-001",
-      "title": "Fix lgportfolio metrics endpoint",
-      "description": "Metrics at https://gimenez.dev/api/metrics not responding.",
-      "priority": 2,
-      "passes": false,
-      "cujIds": []
-    },
-    {
-      "id": "MONITOR-002",
-      "title": "Fix lgportfolio health \u2014 HTTP 403 for 3 checks",
-      "description": "Health endpoint returning 403 for 3 cycles.",
-      "priority": 2,
-      "passes": false,
-      "cujIds": []
-    },
-    {
-      "id": "MONITOR-003",
-      "title": "Build report-only watchdog for lgportfolio health",
-      "description": "lgportfolio has no health watchdog. Create a no_agent script that checks every 30-60m and reports on failure \u2014 NEVER auto-deploy, rollback, or promote from crons. Humans promote production via merge to main + CI Coolify deploy.",
-      "priority": 1,
-      "passes": true,
-      "status": "done",
-      "cujIds": []
-    },
-    {
-      "id": "LGP-010",
-      "title": "SRE Pivot: Update site content for Senior SRE targeting",
-      "description": "Promoted from Software Engineer II (Enterprise Payments) to SRE (Home Services Division) Mar 2026. Update all site content to reflect SRE role while preserving payments as proof of depth. Target: senior SRE jobs. Files: about.md, experience.md, skills.md, projects.json, page.tsx. Content-only changes, no component/layout/styling. See GitHub Issue #95 for full spec.",
-      "priority": 1,
-      "passes": true,
-      "status": "done",
-      "cujIds": [],
-      "issue": "https://github.com/menezmethod/lgportfolio/issues/95"
-    },
-    {
-      "id": "LGP-011",
-      "title": "Vercel cleanup \u2014 site deploys on Coolify now",
-      "description": "Remove all Vercel-specific config, env vars, and deploy logic. Site has migrated to Coolify on Pi 5. Items to clean: 1) .vercel/ directory and project.json, 2) vercel.json if present, 3) Vercel-specific env vars in .env.example (VERCEL_*, NEXT_PUBLIC_VERCEL_*), 4) Vercel deploy steps in CI/CD if any, 5) GitHub Actions Vercel comments/status checks, 6) .vercelignore, 7) Any Vercel rewrites/redirects in next.config.ts. Keep: Coolify deploy pipeline in ci.yml (already working), Dockerfile (needed by Coolify). Verify: npm run build + npm run lint + npm run test still pass after cleanup.",
-      "priority": 2,
-      "passes": false,
-      "status": "todo",
-      "cujIds": []
-    }
-  ]
+    "version": 1,
+    "tasks": [
+        {
+            "id": "LGP-001",
+            "title": "Initial project setup",
+            "description": "Next.js 16 app scaffolded, deployed on GCP Cloud Run.",
+            "priority": 1,
+            "passes": true,
+            "status": "done"
+        },
+        {
+            "id": "LGP-002",
+            "title": "Portfolio content pages",
+            "description": "About, projects, experience, skills pages with Markdown data source.",
+            "priority": 1,
+            "passes": true,
+            "status": "done"
+        },
+        {
+            "id": "LGP-003",
+            "title": "AI chat integration",
+            "description": "Chat interface powered by inferencia LLM proxy backend.",
+            "priority": 1,
+            "passes": true,
+            "status": "done"
+        },
+        {
+            "id": "LGP-004",
+            "title": "GCP Cloud Run deployment pipeline",
+            "description": "Production + preview deployments via Cloud Build + Terraform.",
+            "priority": 1,
+            "passes": false,
+            "status": "backlog"
+        },
+        {
+            "id": "LGP-005",
+            "title": "Responsive design polish",
+            "description": "Mobile-first responsive design across all pages.",
+            "priority": 2,
+            "passes": false,
+            "status": "backlog"
+        },
+        {
+            "id": "LGP-006",
+            "title": "SEO optimization",
+            "description": "Meta tags, sitemap, structured data for search engines.",
+            "priority": 2,
+            "passes": false,
+            "status": "backlog"
+        },
+        {
+            "id": "LGP-007",
+            "title": "Analytics integration",
+            "description": "Page views, interactions, and chat usage tracking.",
+            "priority": 2,
+            "passes": false,
+            "status": "backlog"
+        },
+        {
+            "id": "LGP-008",
+            "title": "Performance optimization",
+            "description": "Lighthouse scores >90, image optimization, lazy loading.",
+            "priority": 3,
+            "passes": false,
+            "status": "backlog"
+        },
+        {
+            "id": "LGP-009",
+            "title": "i18n support",
+            "description": "Internationalization for content pages.",
+            "priority": 3,
+            "passes": false,
+            "status": "backlog"
+        },
+        {
+            "id": "MONITOR-001",
+            "title": "Fix lgportfolio metrics endpoint",
+            "description": "Metrics at https://gimenez.dev/api/metrics not responding.",
+            "priority": 2,
+            "passes": false,
+            "cujIds": []
+        },
+        {
+            "id": "MONITOR-002",
+            "title": "Fix lgportfolio health — HTTP 403 for 3 checks",
+            "description": "Health endpoint returning 403 for 3 cycles.",
+            "priority": 2,
+            "passes": false,
+            "cujIds": []
+        },
+        {
+            "id": "MONITOR-003",
+            "title": "Build report-only watchdog for lgportfolio health",
+            "description": "lgportfolio has no health watchdog. Create a no_agent script that checks every 30-60m and reports on failure — NEVER auto-deploy, rollback, or promote from crons. Humans promote production via merge to main + CI Coolify deploy.",
+            "priority": 1,
+            "passes": true,
+            "status": "done",
+            "cujIds": []
+        },
+        {
+            "id": "LGP-010",
+            "title": "SRE Pivot: Update site content for Senior SRE targeting",
+            "description": "Promoted from Software Engineer II (Enterprise Payments) to SRE (Home Services Division) Mar 2026. Update all site content to reflect SRE role while preserving payments as proof of depth. Target: senior SRE jobs. Files: about.md, experience.md, skills.md, projects.json, page.tsx. Content-only changes, no component/layout/styling. See GitHub Issue #95 for full spec.",
+            "priority": 1,
+            "passes": true,
+            "status": "done",
+            "cujIds": [],
+            "issue": "https://github.com/menezmethod/lgportfolio/issues/95"
+        },
+        {
+            "id": "LGP-011",
+            "title": "Vercel cleanup — site deploys on Coolify now",
+            "description": "Remove all Vercel-specific config, env vars, and deploy logic. Site has migrated to Coolify on Pi 5. Items to clean: 1) .vercel/ directory and project.json, 2) vercel.json if present, 3) Vercel-specific env vars in .env.example (VERCEL_*, NEXT_PUBLIC_VERCEL_*), 4) Vercel deploy steps in CI/CD if any, 5) GitHub Actions Vercel comments/status checks, 6) .vercelignore, 7) Any Vercel rewrites/redirects in next.config.ts. Keep: Coolify deploy pipeline in ci.yml (already working), Dockerfile (needed by Coolify). Verify: npm run build + npm run lint + npm run test still pass after cleanup.",
+            "priority": 2,
+            "passes": false,
+            "status": "todo",
+            "cujIds": []
+        }
+    ]
 }

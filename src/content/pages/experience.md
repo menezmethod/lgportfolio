@@ -2,7 +2,7 @@
 title: Experience
 description: >-
   Site reliability engineer at Fortune 50 scale, promoted from enterprise payments —
-  plus a decade of independent consultancy before that.
+  plus six years of independent consultancy before that.
 entries:
   - company: The Home Depot
     role: Site Reliability Engineer — Home Services Division

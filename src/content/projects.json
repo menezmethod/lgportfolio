@@ -11,16 +11,7 @@
       "decision": "Introduced OpenTelemetry SDK and Collector infrastructure with trace propagation across Go and Java services, custom span attributes for service-specific context, and a unified Jaeger/Tempo backend for trace query.",
       "outcome": "Reduced mean-time-to-incident by giving on-call engineers end-to-end request traces across the Home Services stack, enabling faster root-cause identification in multi-service failure scenarios."
     },
-    "stack": [
-      "Go",
-      "Java",
-      "OpenTelemetry",
-      "OTel Collector",
-      "Jaeger",
-      "Grafana Tempo",
-      "Kubernetes",
-      "GKE"
-    ],
+    "stack": ["Go", "Java", "OpenTelemetry", "OTel Collector", "Jaeger", "Grafana Tempo", "Kubernetes", "GKE"],
     "architecture": "OTel SDK instrumentation -> Collector pipeline -> Tempo/Jaeger backend -> Grafana trace exploration",
     "cloud": "GKE, Cloud Logging, Cloud Monitoring, GCS",
     "hardware": "Cloud-native Kubernetes services",
@@ -74,7 +65,7 @@
   {
     "slug": "magic-jungle-telemetry-mesh",
     "title": "Magic Jungle Telemetry Mesh",
-    "eyebrow": "Hero build | edge observability",
+    "eyebrow": "Experiment | edge observability",
     "summary": "ESP32 environmental nodes feeding a Raspberry Pi 5 gateway, local vision workloads, and a public GCP analytics board for backyard growth telemetry.",
     "narrative": {
       "problem": "Owning sensors is not the same as operating a system. The goal is a resilient edge network with useful telemetry, not a pile of disconnected boards.",
@@ -109,7 +100,7 @@
   {
     "slug": "edge-fleet-control-plane",
     "title": "Edge Fleet Control Plane",
-    "eyebrow": "Hero build | self-healing edge ops",
+    "eyebrow": "Experiment | self-healing edge ops",
     "summary": "A control plane for Pi 5 and ESP32 hardware that manages heartbeats, signed OTA rollouts, incident timelines, and public health telemetry from one operator surface.",
     "narrative": {
       "problem": "A shelf of boards is inventory, not architecture. The missing piece is coordinated fleet health, rollout discipline, and observable failure handling.",
@@ -143,7 +134,7 @@
   {
     "slug": "autonomous-print-cell",
     "title": "Autonomous Print Cell",
-    "eyebrow": "Hero build | machine vision + manufacturing",
+    "eyebrow": "Experiment | machine vision + manufacturing",
     "summary": "A Bambu P1S production cell with ESP32 power and environmental sensing, Pi 5 vision analysis, and cloud-side quality analytics for failed-print detection.",
     "narrative": {
       "problem": "A printer is a tool. A print cell becomes a systems project only when failures, energy use, and quality signals are captured and acted on automatically.",

@@ -192,7 +192,7 @@ function PortfolioContent() {
               Targeting Senior SRE roles.{' '}
               Tampa Bay based, open to remote and hybrid (≤2 days/week).{' '}
               I own reliability, observability, and operational excellence for scheduling, dispatch, and fulfillment services.
-              Previous proof: two years building Go payment services across 2400+ stores with platinum-tier uptime and sub-50ms critical paths.
+              Previous proof: four years building Go payment services across 2400+ stores with platinum-tier uptime and sub-50ms critical paths.
             </p>
           ) : (
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl leading-relaxed">
@@ -200,7 +200,7 @@ function PortfolioContent() {
               As an SRE at{' '}
               <strong className="text-foreground">The Home Depot</strong>, I design distributed tracing across multi-service stacks,{' '}
               build SLO-driven reliability practices, and keep critical workflows running.{' '}
-              Previously: two years on Enterprise Payments — Go services, 2400+ stores, platinum-tier uptime.
+              Previously: four years on Enterprise Payments — Go services, 2400+ stores, platinum-tier uptime.
             </p>
           )}
 
