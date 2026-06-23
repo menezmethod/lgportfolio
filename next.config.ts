@@ -32,6 +32,20 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   poweredByHeader: false,
+  async redirects() {
+    return [
+      {
+        source: "/projects",
+        destination: "/work",
+        permanent: true,
+      },
+      {
+        source: "/resume",
+        destination: "/contact",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     // Cache static pages at CDN and browser (free-tier friendly when traffic spikes)
     const staticCache = "public, max-age=3600, s-maxage=3600, stale-while-revalidate=60";
