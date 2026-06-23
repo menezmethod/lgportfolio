@@ -368,6 +368,7 @@ export default function Chat() {
               {messages.map((message) => (
                 <div
                   key={message.id}
+                  data-cy={`message-${message.role}`}
                   className={cn(
                     'flex gap-4 max-w-5xl animate-fadeIn w-full',
                     message.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'
@@ -438,6 +439,7 @@ export default function Chat() {
             >
               <Input
                 data-testid="chat-input"
+                data-cy="chat-input"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about architecture, systems, or projects..."
@@ -447,6 +449,7 @@ export default function Chat() {
               />
               <Button
                 data-testid="chat-send"
+                data-cy="chat-send"
                 type="submit"
                 size="icon"
                 aria-label="Send message"
