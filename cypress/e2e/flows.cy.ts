@@ -1,15 +1,12 @@
 // Flows — critical user + API flows.
-// Uses `data-cy` selectors per project convention. `failOnStatusCode: false`
-// for redirects (we want to inspect the 30x response, not follow it).
-
-// Selector helpers — tolerant of both deployed attributes (fall back to
-// href / data-testid while the PR adding data-cy attributes is not yet
-// deployed; once deployed, the data-cy variant is preferred).
-const inputSel = '[data-cy="chat-input"], [data-testid="chat-input"]';
-const sendSel = '[data-cy="chat-send"], [data-testid="chat-send"]';
-const chatSel = '[data-cy="nav-chat"], a[href="/chat"]';
+// Uses actual production DOM: nav buttons with href, data-testid for chat.
+// failOnStatusCode: false for redirects (inspect 30x response).
 
 describe('Flows — navigation', () => {
+  const waitForHydration = () => {
+    cy.get('body', { timeout: 30000 }).should('not.contain', 'booting...');
+  };
+
   it('clicks each navbar link and lands on the right page', () => {
     const cases = [
       { href: '/', expect: /Reliability that/i },
@@ -23,12 +20,10 @@ describe('Flows — navigation', () => {
 
     cases.forEach(({ href, expect }) => {
       cy.visit('/');
-      // Prefer data-cy when present (post-deploy); fall back to href selector
-      // so the test stays green against the pre-deploy production build.
-      cy.get(`[data-cy="nav-${href === '/' ? 'home' : href.slice(1).replace('/', '-')}"], a[href="${href}"]`)
-        .first()
-        .should('be.visible')
-        .click();
+      waitForHydration();
+      // Nav buttons are <a data-slot="button" href="..."> — use href selector
+      cy.get(`a[data-slot="button"][href="${href}"]`).first().should('be.visible').click();
+      waitForHydration();
       cy.url().should('include', href);
       cy.contains(expect).should('exist');
     });
@@ -36,9 +31,11 @@ describe('Flows — navigation', () => {
 
   it('clicks the AI Chat navbar button and lands on /chat', () => {
     cy.visit('/');
-    cy.get(chatSel).first().should('be.visible').click();
+    waitForHydration();
+    cy.get('a[data-slot="button"][href="/chat"]').first().should('be.visible').click();
+    waitForHydration();
     cy.url().should('include', '/chat');
-    cy.get(inputSel).should('be.visible');
+    cy.get('[data-testid="chat-input"]').should('be.visible');
   });
 });
 
@@ -46,7 +43,6 @@ describe('Flows — redirects', () => {
   it('redirects /projects -> /work (permanent)', () => {
     cy.request({ url: '/projects', followRedirect: false, failOnStatusCode: false }).then(
       (res) => {
-        // Next.js `permanent: true` returns HTTP 308 by default.
         expect([301, 308]).to.include(res.status);
         expect(res.headers.location).to.match(/\/work/);
       },
@@ -64,34 +60,35 @@ describe('Flows — redirects', () => {
 
   it('follows /projects -> /work to a rendered page', () => {
     cy.visit('/projects');
+    cy.get('body', { timeout: 30000 }).should('not.contain', 'booting...');
     cy.url().should('match', /\/work$/);
     cy.contains('h1', /Systems with/i).should('be.visible');
   });
 
   it('follows /resume -> /contact to a rendered page', () => {
     cy.visit('/resume');
+    cy.get('body', { timeout: 30000 }).should('not.contain', 'booting...');
     cy.url().should('match', /\/contact$/);
     cy.contains('h1', /Get In Touch/i).should('be.visible');
   });
 });
 
 describe('Flows — chat UI', () => {
+  const waitForHydration = () => {
+    cy.get('body', { timeout: 30000 }).should('not.contain', 'booting...');
+  };
+
   it('types a message, sends it, and receives an assistant reply', () => {
     cy.visit('/chat');
+    waitForHydration();
 
-    // Capture the chat log's text length before sending so we can assert a
-    // new assistant reply (or visible error fallback) added content — without
-    // depending on per-message role attributes, which only exist post-deploy.
     cy.get('div[role="log"]').invoke('text').then((before) => {
       const beforeLen = before.length;
-
       const question = "What's Luis's experience with high-scale payment systems?";
-      cy.get(inputSel).should('be.visible').type(question, { delay: 5 });
-      cy.get(sendSel).click();
 
-      // The user's own bubble appears immediately, so the log grows by at
-      // least the question length. A real assistant reply (or a visible
-      // error/rate-limit fallback bubble) must add more content beyond that.
+      cy.get('[data-testid="chat-input"]').should('be.visible').type(question, { delay: 5 });
+      cy.get('[data-testid="chat-send"]').click();
+
       cy.get('div[role="log"]', { timeout: 90000 }).invoke('text').should((after) => {
         expect(
           after.length,
@@ -131,9 +128,6 @@ describe('Flows — API', () => {
       timeout: 90000,
       failOnStatusCode: false,
     }).then((res) => {
-      // 200 + non-empty body is the happy path. 429 means the endpoint is
-      // reachable and only rate-limited — accepted as "reachable" so the test
-      // doesn't false-fail when the production rate limiter is doing its job.
       expect([200, 429]).to.include(res.status);
       if (res.status === 200) {
         const bodyStr =
@@ -144,7 +138,6 @@ describe('Flows — API', () => {
   });
 
   it('POST /api/chat rejects an unauthenticated request with 405 on GET', () => {
-    // The chat route only accepts POST. A GET should not 200.
     cy.request({
       method: 'GET',
       url: '/api/chat',

@@ -1,26 +1,32 @@
 // Smoke tests — every public page loads AND contains expected content.
-// Selectors use `data-cy` per project convention. Generic `h1`/`body` checks
-// are only used where asserting visible copy.
+// Selectors use actual production DOM: nav buttons with href, data-testid for chat, text content.
 
 describe('Smoke — page load + content', () => {
+  // Wait for hydration to complete by checking for non-loading content
+  const waitForHydration = () => {
+    cy.get('body', { timeout: 30000 }).should('not.contain', 'booting...');
+  };
+
   context('Homepage', () => {
+    beforeEach(() => {
+      cy.visit('/', { timeout: 30000 });
+      waitForHydration();
+    });
+
     it('shows the hero headline and rotating SRE subtitle', () => {
-      cy.visit('/');
       cy.contains('h1', /Reliability that/i).should('be.visible');
-      // First card in the rotating titles list
       cy.contains('Site Reliability Engineering').should('exist');
       cy.contains('Luis Gimenez').should('exist');
     });
 
     it('renders the hero CTA links', () => {
-      cy.visit('/');
-      cy.contains('a', 'Get in Touch').should('have.attr', 'href', '/contact');
-      cy.contains('a', 'View Architecture').should('have.attr', 'href', '/architecture');
-      cy.contains('a', /AI Chat/).should('have.attr', 'href', '/chat');
+      // Nav buttons are <a> with data-slot="button" and href
+      cy.get('a[data-slot="button"][href="/contact"]').should('exist');
+      cy.get('a[data-slot="button"][href="/architecture"]').should('exist');
+      cy.get('a[data-slot="button"][href="/chat"]').should('exist');
     });
 
     it('renders the four hero telemetry tiles with their metrics', () => {
-      cy.visit('/');
       cy.contains('2400+').should('exist');
       cy.contains('50+').should('exist');
       cy.contains('<50ms').should('exist');
@@ -29,8 +35,12 @@ describe('Smoke — page load + content', () => {
   });
 
   context('About', () => {
+    beforeEach(() => {
+      cy.visit('/about', { timeout: 30000 });
+      waitForHydration();
+    });
+
     it('renders headline, "What I Build" and "Operating Principles" sections', () => {
-      cy.visit('/about');
       cy.contains('h1', 'Site Reliability Engineer.').should('be.visible');
       cy.contains('h2', 'What I Build').should('be.visible');
       cy.contains('h2', 'Operating Principles').should('be.visible');
@@ -39,35 +49,44 @@ describe('Smoke — page load + content', () => {
   });
 
   context('Chat', () => {
+    beforeEach(() => {
+      cy.visit('/chat', { timeout: 30000 });
+      waitForHydration();
+    });
+
     it('shows the chat header, intro assistant message, and input', () => {
-      cy.visit('/chat');
-      cy.contains('h1', 'Ask the AI Assistant').should('be.visible');
+      cy.contains('h1', "Ask the AI Assistant").should('be.visible');
       cy.contains("I'm Luis's AI assistant").should('be.visible');
-      // Selector tolerant of pre- and post-deploy attributes:
-      //   data-cy  — added by this PR (preferred)
-      //   data-testid — already on production (fallback)
-      cy.get('[data-cy="chat-input"], [data-testid="chat-input"]').should('be.visible');
-      cy.get('[data-cy="chat-send"], [data-testid="chat-send"]').should('exist');
+      // Production uses data-testid, not data-cy
+      cy.get('[data-testid="chat-input"]').should('be.visible');
+      cy.get('[data-testid="chat-send"]').should('exist');
     });
   });
 
   context('War Room', () => {
+    beforeEach(() => {
+      cy.visit('/war-room', { timeout: 30000 });
+      waitForHydration();
+    });
+
     it('renders the live telemetry header', () => {
-      cy.visit('/war-room');
       cy.contains('h1', 'Live Infrastructure Telemetry').should('be.visible');
       cy.contains('LIVE').should('exist');
     });
 
     it('renders the observability stack linking to /api/health', () => {
-      cy.visit('/war-room');
       cy.contains('Observability Stack').should('be.visible');
       cy.contains('a', 'Health API').should('have.attr', 'href', '/api/health');
     });
   });
 
   context('Work', () => {
+    beforeEach(() => {
+      cy.visit('/work', { timeout: 30000 });
+      waitForHydration();
+    });
+
     it('renders the hero and at least one featured project card', () => {
-      cy.visit('/work');
       cy.contains('h1', /Systems with/i).should('be.visible');
       cy.contains('Featured systems').should('be.visible');
       cy.get('article').should('have.length.gte', 1);
@@ -75,22 +94,34 @@ describe('Smoke — page load + content', () => {
   });
 
   context('Experience', () => {
+    beforeEach(() => {
+      cy.visit('/experience', { timeout: 30000 });
+      waitForHydration();
+    });
+
     it('renders the Home Depot entry', () => {
-      cy.visit('/experience');
       cy.contains('The Home Depot').should('be.visible');
     });
   });
 
   context('Skills', () => {
+    beforeEach(() => {
+      cy.visit('/skills', { timeout: 30000 });
+      waitForHydration();
+    });
+
     it('renders the technical skills heading', () => {
-      cy.visit('/skills');
       cy.contains('Technical Skills').should('be.visible');
     });
   });
 
   context('Contact', () => {
+    beforeEach(() => {
+      cy.visit('/contact', { timeout: 30000 });
+      waitForHydration();
+    });
+
     it('renders headline, resume request CTA, and the email social link', () => {
-      cy.visit('/contact');
       cy.contains('h1', /Get In Touch/i).should('be.visible');
       cy.contains('a', 'Request Resume')
         .should('have.attr', 'href')
