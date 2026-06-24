@@ -27,14 +27,14 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-12 items-center justify-between">
           <Link href="/" className="flex items-center gap-2"><div className="flex items-center justify-center size-8 rounded-lg font-mono text-sm font-bold bg-primary/10 text-primary">LG</div></Link>
-          <div className="hidden items-center gap-1 md:flex">
+          <div className="hidden items-center gap-1 md:flex" data-cy="nav-desktop">
             {navLinks.map(link => (
               <Button key={link.href} variant="ghost" asChild className={cn("rounded-lg px-4 text-sm font-medium", pathname === link.href ? 'text-primary bg-primary/8' : 'text-muted-foreground')}>
-                <Link href={link.href}>{link.label}</Link>
+                <Link href={link.href} data-cy={`nav-${link.href === '/' ? 'home' : link.href.slice(1).replace('/', '-')}`}>{link.label}</Link>
               </Button>
             ))}
             <div className="mx-2 h-4 w-px bg-border/50" />
-            <Button asChild className="gap-2 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"><Link href="/chat"><Terminal className="size-4" />AI Chat</Link></Button>
+            <Button asChild className="gap-2 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"><Link href="/chat" data-cy="nav-chat"><Terminal className="size-4" />AI Chat</Link></Button>
           </div>
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsOpen(!isOpen)}>{isOpen ? <X className="size-5" /> : <Menu className="size-5" />}</Button>
         </div>

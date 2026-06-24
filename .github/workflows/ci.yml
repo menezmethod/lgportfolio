@@ -1,4 +1,4 @@
-# CI: lint, build, unit tests, e2e (Cypress).
+# CI: lint, build, unit tests, e2e (Cypress against production).
 # Required to pass before merging to main. On push to main, deploys to Coolify (Pi) after all checks pass.
 # Terraform (terraform/) is kept for optional GCP rollback only — not run in CI.
 
@@ -56,12 +56,12 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Run Cypress
+      - name: Run Cypress against production
         uses: cypress-io/github-action@v6
         with:
-          start: npm run start
-          wait-on: "http://localhost:3000"
-          wait-on-timeout: 120
+          # Tests run against gimenez.dev (baseUrl in cypress.config.ts)
+          # No start/wait-on needed — we test live production
+          browser: chrome
 
   deploy:
     runs-on: ubuntu-latest
