@@ -1,89 +1,43 @@
-import { Mail, Github, Linkedin, Twitter, Terminal, FileText } from 'lucide-react';
-
-const socialLinks = [
-  { href: 'mailto:luisgimenezdev@gmail.com', icon: Mail, label: 'Email', text: 'luisgimenezdev@gmail.com' },
-  { href: 'https://github.com/menezmethod', icon: Github, label: 'GitHub', text: '@menezmethod' },
-  { href: 'https://www.linkedin.com/in/gimenezdev/', icon: Linkedin, label: 'LinkedIn', text: 'linkedin.com/in/gimenezdev' },
-  { href: 'https://twitter.com/menezmethod', icon: Twitter, label: 'Twitter', text: '@menezmethod' },
-];
-
 export default function Contact() {
   return (
-    <div className="min-h-screen bg-background text-foreground pt-24 px-6 pb-16">
-      <div className="max-w-3xl mx-auto">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-emerald-400 font-mono text-sm">$</span>
-          <span className="font-mono text-sm text-muted-foreground">cat contact.md</span>
-        </div>
-        <h1 className="text-3xl md:text-5xl font-bold mb-10 md:mb-16 animate-fadeIn">
-          Get In <span className="text-primary">Touch</span>
+    <div className="min-h-screen bg-background text-foreground">
+      <main className="max-w-2xl mx-auto px-6 py-20 md:py-32">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-12">
+          Contact
         </h1>
 
-        <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
-          Selectively accepting interviews for{' '}
-          <span className="text-foreground font-semibold">Senior SRE</span> roles.
-          If you need someone who can own reliability, observability, and incident response at scale,
-          let&apos;s talk.
-        </p>
+        <div className="space-y-6 text-muted-foreground">
+          <p>
+            Open to Senior SRE roles. Tampa Bay based, open to remote and
+            hybrid.
+          </p>
 
-        <div className="mb-12 p-8 bg-card/30 rounded-xl border border-border/50 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-bl-full pointer-events-none transition-transform group-hover:scale-110" />
-          <div className="flex flex-col sm:flex-row items-center gap-8 relative z-10">
-            <div className="flex-1">
-              <h2 className="text-2xl font-semibold mb-2 flex items-center gap-2">
-                <FileText className="size-5 text-primary" />
-                Resume / CV
-              </h2>
-              <p className="text-muted-foreground">
-                Full experience details, architectural case studies, and certifications. Available on request.
-              </p>
-            </div>
+          <div className="space-y-3">
             <a
-              href="mailto:luisgimenezdev@gmail.com?subject=Resume%20Request%20-%20SRE"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hover:scale-105 whitespace-nowrap"
+              href="mailto:luisgimenezdev@gmail.com"
+              className="block text-foreground hover:text-primary transition-colors"
             >
-              <Mail className="w-5 h-5" />
-              Request Resume
+              Email →
+            </a>
+            <a
+              href="https://linkedin.com/in/gimenezdev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-foreground hover:text-primary transition-colors"
+            >
+              LinkedIn →
+            </a>
+            <a
+              href="https://github.com/menezmethod"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-foreground hover:text-primary transition-colors"
+            >
+              GitHub →
             </a>
           </div>
         </div>
-
-        <div className="space-y-4">
-          {socialLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-6 p-5 bg-card/30 rounded-lg border border-border/50 hover:border-primary/30 transition-all group hover:-translate-y-0.5"
-            >
-              <div className="p-3 bg-background rounded-lg border border-border/50 group-hover:border-primary/20 group-hover:text-primary transition-colors text-muted-foreground">
-                <link.icon className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider mb-1">{link.label}</p>
-                <p className="text-foreground text-lg group-hover:text-primary transition-colors">{link.text}</p>
-              </div>
-            </a>
-          ))}
-        </div>
-
-        <div className="mt-16 p-8 bg-card/30 rounded-xl border border-border/50 text-center">
-          <h2 className="text-xl font-semibold mb-4">Need the trade-off rationale?</h2>
-          <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-            My AI assistant can answer technical questions about architecture decisions, system design
-            trade-offs, and the current project build queue. It runs on a retrieval-backed workflow with
-            operational guardrails.
-          </p>
-          <a
-            href="/chat"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-background border border-primary/30 text-primary rounded-lg hover:bg-primary/5 transition-colors font-mono text-sm"
-          >
-            <Terminal className="w-4 h-4" />
-            ./chat --ask
-          </a>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
