@@ -1,122 +1,130 @@
-import { Eye, Shield, GitBranch } from 'lucide-react';
 import Link from 'next/link';
-import ReactMarkdown from 'react-markdown';
-import { getAboutContent, getSkillsContent } from '@/lib/page-content';
-
-const buildIcons = {
-  eye: Eye,
-  shield: Shield,
-  'git-branch': GitBranch,
-} as const;
 
 export default function About() {
-  const about = getAboutContent();
-  const skills = getSkillsContent();
-
   return (
-    <div className="min-h-screen bg-background px-4 pb-16 pt-20 text-foreground md:px-6 md:pt-24">
-      <div className="mx-auto max-w-5xl">
-        <div className="section-indicator mb-6">
-          <span>{about.title}</span>
-        </div>
-        <h1 className="mb-10 text-3xl font-bold md:mb-16 md:text-5xl">
-          {about.headline}{' '}
-          <span className="text-primary">{about.headlineAccent}</span>
+    <div className="min-h-screen bg-background text-foreground">
+      <main className="max-w-2xl mx-auto px-6 py-20 md:py-32">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-12">
+          About
         </h1>
 
-        <div className="grid gap-10 md:grid-cols-3 md:gap-16">
-          <div className="space-y-8 text-lg leading-relaxed text-muted-foreground md:col-span-2">
-            <div className="prose prose-invert max-w-none prose-p:leading-relaxed prose-strong:text-foreground prose-strong:font-semibold">
-              <ReactMarkdown>{about.body}</ReactMarkdown>
-            </div>
-
-            <h2 className="mt-10 mb-6 flex items-center gap-3 text-2xl font-bold text-foreground">
-              <span className="h-8 w-1 rounded-full bg-primary" />
-              What I Build
-            </h2>
-            <ul className="space-y-6">
-              {about.buildItems.map((item) => {
-                const Icon = buildIcons[item.icon];
-                return (
-                  <li key={item.title} className="group">
-                    <div className="flex items-start gap-4 rounded-lg border border-transparent p-4 transition-colors hover:border-border/50 hover:bg-card/50">
-                      <div className="mt-1 rounded-lg bg-primary/10 p-2 text-primary">
-                        <Icon className="size-5" />
-                      </div>
-                      <div>
-                        <span className="mb-1 block text-lg font-semibold text-foreground">
-                          {item.title}
-                        </span>
-                        <p className="text-muted-foreground">{item.description}</p>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-
-            <h2 className="mt-12 mb-6 flex items-center gap-3 text-2xl font-bold text-foreground">
-              <span className="h-8 w-1 rounded-full bg-primary" />
-              Operating Principles
-            </h2>
-            <div className="grid gap-6">
-              {about.principles.map((item) => (
-                <div
-                  key={item.title}
-                  className="rounded-lg border border-border/50 bg-card/30 p-6 transition-colors hover:border-primary/20"
-                >
-                  <h3 className="text-lg font-semibold text-foreground">{item.title}</h3>
-                  <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-                    {item.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <p className="text-base">
-              <Link href="/experience" className="font-medium text-primary hover:text-primary/80">
-                View full experience →
-              </Link>
+        <div className="space-y-12">
+          {/* Bio */}
+          <div className="space-y-4 text-muted-foreground leading-relaxed">
+            <p>
+              SRE at{' '}
+              <span className="text-foreground font-medium">The Home Depot</span>{' '}
+              Home Services Division. Reliability, observability, and operational
+              excellence for scheduling, dispatch, and fulfillment services.
+            </p>
+            <p>
+              Before this role, I spent 4 years on Enterprise Payments — two as a
+              contractor and two full-time after conversion. Go services, 2400+
+              stores, platinum-tier uptime, and zero-downtime migrations that
+              decompose monoliths without dropping a single payment.
+            </p>
+            <p>
+              Based in{' '}
+              <span className="text-foreground">Tampa Bay, FL</span>. Open to
+              remote and hybrid (≤2 days/week).
             </p>
           </div>
 
-          <div className="md:col-span-1">
-            <div className="terminal-window sticky top-24">
-              <div className="terminal-header">
-                <div className="terminal-dot terminal-dot-red" />
-                <div className="terminal-dot terminal-dot-yellow" />
-                <div className="terminal-dot terminal-dot-green" />
-                <span className="terminal-title">stack.yml</span>
+          {/* Experience */}
+          <div>
+            <h2 className="text-sm font-mono text-muted-foreground mb-6 uppercase tracking-wider">
+              Experience
+            </h2>
+            <div className="space-y-8">
+              <div>
+                <h3 className="font-medium">
+                  Site Reliability Engineer — Home Services Division
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  The Home Depot · Mar 2026 – Present
+                </p>
+                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
+                  <li>• OpenTelemetry distributed tracing across multi-service stack</li>
+                  <li>• SLO-driven reliability practices and incident response</li>
+                  <li>• Platform observability tooling</li>
+                </ul>
               </div>
-              <div className="space-y-6 p-5">
-                {skills.categories.slice(0, 4).map((category) => (
-                  <div key={category.name}>
-                    <h4 className="mb-3 border-b border-primary/20 pb-1 text-xs font-mono uppercase tracking-wider text-primary">
-                      {category.name}
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {category.skills.map((skill) => (
-                        <span
-                          key={skill}
-                          className="rounded border border-border/50 bg-card/60 px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                <Link
-                  href="/skills"
-                  className="block text-center text-xs font-mono text-primary hover:text-primary/80"
-                >
-                  view all skills →
-                </Link>
+
+              <div>
+                <h3 className="font-medium">
+                  Software Engineer II — Enterprise Payments Platform
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  The Home Depot · Jan 2024 – Mar 2026
+                </p>
+                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
+                  <li>• Production Go services on GKE for Card Broker routing</li>
+                  <li>• OpenTelemetry pipelines and Grafana dashboards</li>
+                  <li>• Zero-downtime migrations and PCI DSS infrastructure</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-medium">
+                  Contractor — Enterprise Payments Platform
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Daugherty Business Solutions → The Home Depot · Jul 2022 – Jan 2024
+                </p>
+                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
+                  <li>• Joined before Card Broker deployed to any stores</li>
+                  <li>• Earned GCP Professional Cloud Architect certification</li>
+                  <li>• Hired full-time when the team broke the contract to retain</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-medium">
+                  Founder / Software Consultant
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Menez Enterprises · 2016 – 2022
+                </p>
+                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
+                  <li>• Independent consultancy, custom web applications</li>
+                  <li>• End-to-end delivery: architecture, deployment, clients</li>
+                </ul>
               </div>
             </div>
           </div>
+
+          {/* Skills */}
+          <div>
+            <h2 className="text-sm font-mono text-muted-foreground mb-4 uppercase tracking-wider">
+              Skills
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {[
+                'Go', 'Java', 'TypeScript', 'Python',
+                'GCP', 'GKE', 'Terraform', 'Kubernetes', 'Docker',
+                'OpenTelemetry', 'Prometheus', 'Grafana', 'Tempo',
+                'PostgreSQL', 'Redis', 'CockroachDB',
+                'gRPC', 'Protobuf', 'CI/CD',
+                'Distributed Systems', 'SRE', 'Incident Response',
+              ].map((skill) => (
+                <span
+                  key={skill}
+                  className="px-2 py-1 text-xs font-mono bg-card border border-border rounded text-muted-foreground"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <Link
+            href="/contact"
+            className="inline-block text-foreground hover:text-primary transition-colors"
+          >
+            Get in touch →
+          </Link>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
