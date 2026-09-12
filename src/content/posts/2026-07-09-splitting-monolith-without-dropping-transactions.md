@@ -2,7 +2,7 @@
 title: "How We Split a Monolith Without Dropping a Single Transaction"
 date: 2026-07-09
 tags: ["Architecture", "Migration", "Payments"]
-description: "The strangler fig pattern applied to payment systems — extracting services from a monolith that processes real money, with zero downtime and zero reconciliation gaps."
+description: "The strangler fig pattern applied to payment systems: extracting services from a monolith that processes real money, with zero downtime and zero reconciliation gaps."
 ---
 
 <!-- TODO: confirm with Luis — this post describes a specific settlement-extraction
@@ -15,9 +15,7 @@ description: "The strangler fig pattern applied to payment systems — extractin
      described, and to what degree you were the architect vs. a contributor,
      before this goes out under your byline. -->
 
-Settlement runs every night. If it misses a transaction, that merchant doesn't get paid — and someone gets a very angry call at 2 AM. The monolith "SettleCore" had been doing this for six years. Single CockroachDB schema, one Java process, 400K transactions a day. The team needed to extract settlement into its own service without skipping a single row. I was one of the engineers on that team.
-
-Here's how we did it.
+Settlement runs every night. If it misses a transaction, that merchant doesn't get paid, and someone gets a very angry call at 2 AM. The monolith "SettleCore" had been doing this for six years. Single CockroachDB schema, one Java process, 400K transactions a day. The team needed to extract settlement into its own service without skipping a single row. I was one of the engineers on that team.
 
 ## The Architecture
 
@@ -96,7 +94,7 @@ Primary      │ Service    │ Service         │ Service
 
 \* Audit phase: read from service, cross-check every row against the monolith. Any mismatch halted the cutover.
 
-We spent three weeks in the Audit phase. The reconciliation job compared every settlement record — ID, amount, currency, timestamp, gateway response — between the two stores. We found seven discrepancies in the first week, all due to a subtle timezone bug in the service's timestamp normalization. Fixed, replayed, verified.
+We spent three weeks in the Audit phase. The reconciliation job compared every settlement record (ID, amount, currency, timestamp, gateway response) between the two stores. We found seven discrepancies in the first week, all due to a subtle timezone bug in the service's timestamp normalization. Fixed, replayed, verified.
 
 ## Rollbacks: Three, All Data-Related
 
@@ -110,6 +108,6 @@ We rolled back three times:
 
 ## Results
 
-After 11 weeks, settlement was fully extracted. **Zero dropped transactions.** The monolith's settlement code path has a circuit breaker pointing at the service — if the service goes down, the monolith reverts to its original settlement logic. We've never triggered it in production.
+After 11 weeks, settlement was fully extracted. **Zero dropped transactions.** The monolith's settlement code path has a circuit breaker pointing at the service: if the service goes down, the monolith reverts to its original settlement logic. We've never triggered it in production.
 
 The scariest moment: flipping to "Primary" state at 11 PM on a Thursday, watching the dashboard for 30 minutes, seeing green, and realizing nobody noticed. That's the best outcome you can hope for in payments.

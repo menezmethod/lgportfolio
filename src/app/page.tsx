@@ -14,8 +14,10 @@ export default function Home() {
             </h1>
             <p className="text-lg text-muted-foreground">
               Site Reliability Engineer at{' '}
-              <span className="text-foreground">The Home Depot</span>.
-              Reliability, observability, and incident response for Home Services.
+              <span className="text-foreground">The Home Depot</span>,
+              working on Home Services. I keep an eye on reliability and
+              observability, and I&apos;m usually the one who gets pulled
+              in when something breaks.
             </p>
           </div>
 
@@ -63,19 +65,20 @@ export default function Home() {
               currently
             </p>
             <p className="text-sm">
-              SRE on Home Services Division. OpenTelemetry distributed tracing,
-              SLO-driven reliability, incident response for scheduling, dispatch,
-              and fulfillment.
+              SRE on the Home Services team. I use OpenTelemetry traces to
+              figure out what actually broke in scheduling, dispatch, or
+              fulfillment, and I work on the SLOs so we catch it before it
+              gets bad.
             </p>
             <p className="text-sm text-muted-foreground">
-              Previously: 4 years on Enterprise Payments — Go authorization
-              services on CockroachDB, 2,300+ store rollout.
+              Before that: 4 years on Enterprise Payments. Go authorization
+              services on CockroachDB, rolled out to 2,300+ stores.
             </p>
           </div>
 
           {/* Certifications */}
           <div className="text-xs text-muted-foreground font-mono">
-            GCP Professional Cloud Architect — Active
+            GCP Professional Cloud Architect · active
           </div>
         </div>
       </main>

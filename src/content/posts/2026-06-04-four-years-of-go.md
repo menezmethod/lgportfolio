@@ -2,22 +2,22 @@
 title: "What 4 Years of Go at Scale Taught Me About Writing Go"
 date: 2026-06-04
 tags: ["Go", "Software Engineering", "Backend"]
-description: "Concrete Go patterns from 4 years building payment services at Fortune 50 scale — interfaces, error handling, gRPC, and what I wish someone told me sooner."
+description: "Concrete Go patterns from 4 years building payment services at Fortune 50 scale: interfaces, error handling, gRPC, and stuff I wish someone had told me sooner."
 ---
 
-Four years ago I wrote my first Go service at The Home Depot. Before that, I was a Java shop loyalist — Lombok, abstract factories, the whole nine yards. For about two years I maintained Go payment services that moved real money across a 2,300+ store rollout — I've since moved to SRE on Home Services, but writing that much production Go flipped almost everything I thought I knew about backend code.
+Four years ago I wrote my first Go service at The Home Depot. Before that I was a Java guy through and through: Lombok, abstract factories, the whole thing. I spent about two years on Go payment services moving real money across a 2,300+ store rollout. I've since moved over to SRE on Home Services, but writing that much production Go rewired basically everything I thought I knew about backend code.
 
-Here's what stuck.
+Some of this actually stuck with me.
 
-## What I Unlearned
+## What I had to unlearn
 
-The hardest thing to let go was **over-engineering for tomorrow**. Java taught me to layer abstractions early: repository interfaces, service interfaces, factory interfaces, all before a single line of business logic. Go taught me that premature abstraction is the most expensive thing you can write. You can't delete what's already deployed across 20 microservices.
+The hardest habit to break was over-engineering for stuff that might happen later. Java trained me to stack abstractions early: repository interfaces, service interfaces, factory interfaces, all before I'd written a line of actual business logic. Go taught me the hard way that premature abstraction is about the most expensive thing you can write. You can't just delete code once it's deployed across 20 microservices.
 
-Start concrete. Extract interfaces when you have a second implementation pulling at the seams, not when you *think* one might show up. Most never do.
+Start concrete. Pull out an interface once you actually have a second implementation, not because you think one might show up someday. Most of the time it doesn't.
 
-## Error Handling: The Honest Pattern
+## Error handling, the honest way
 
-Clean errors are the single biggest signal of Go maturity I see in code reviews. Junior Go code logs and returns. Senior Go code wraps with intent.
+In code review, clean error handling is the fastest tell for how experienced someone is with Go. Junior code just logs and returns. Experienced code wraps the error with actual intent.
 
 ```go
 // Bad: opaque, loses stack, loses context
@@ -54,18 +54,18 @@ func (e *PaymentError) Unwrap() error { return e.Err }
 
 | Approach | Debuggability | Caller Control | Production Ops |
 |---|---|---|---|
-| Log + return err | Low — context lost | None | Pager duty bait |
-| `fmt.Errorf("...: %w", err)` | High — wraps upstream | `errors.Is`/`As` work | Solid |
-| Sentinel + typed error | Highest — structured fields | Type switch, `errors.As` | Alertable fields |
+| Log + return err | Low, context lost | None | Pager duty bait |
+| `fmt.Errorf("...: %w", err)` | High, wraps upstream | `errors.Is`/`As` work | Solid |
+| Sentinel + typed error | Highest, structured fields | Type switch, `errors.As` | Alertable fields |
 | Panic/recover | Avoid entirely | Breaks control flow | SRE nightmare |
 
-Rule of thumb: if an error reaches `main()` and you can't tell which order failed and why, you're doing it wrong.
+If an error makes it all the way to `main()` and you still can't tell which order failed or why, something's wrong with how you're wrapping it.
 
-## Interfaces: Small, Lived-in, Local
+## Interfaces: small, lived-in, local
 
-I see teams import giant interface packs from shared libraries — 12-method monsters that no single type ever fully implements. That's Java leaking into Go.
+I've seen teams import giant interface packs from shared libraries, 12-method monsters that no single type ever fully implements. That's just Java leaking into Go.
 
-Go interfaces belong **at the call site**, not the definition site. The `io.Reader` pattern — one method — is your north star. If an interface needs more than three methods, step back and ask whether your types are pulling double duty.
+Go interfaces belong at the call site, not the definition site. The `io.Reader` pattern (one method) is basically the model to follow. If an interface needs more than three methods, stop and ask whether your types are doing too much.
 
 ```go
 // Don't export enormous interfaces from shared libs
@@ -84,26 +84,26 @@ type Authorizer interface {
 }
 ```
 
-Your HTTP handler doesn't need the full `PaymentProcessor`. It needs `Authorizer`. Let the concrete type satisfy multiple small interfaces — the compiler enforces it for free.
+Your HTTP handler doesn't need the whole `PaymentProcessor`. It needs `Authorizer`. Let the concrete type satisfy several small interfaces, the compiler enforces that for free.
 
-## gRPC Lessons at 50ms P99
+## gRPC lessons at 50ms P99
 
-gRPC isn't "HTTP/2 with protobuf." It's a distributed systems contract that you'll debug at 2 AM during a payment spike.
+gRPC is a distributed systems contract, one you'll end up debugging at 2 AM during a payment spike.
 
-- **Deadlines are non-negotiable.** Every outbound gRPC call gets a `context.WithTimeout`. Every unary server handler reads `ctx.Deadline()` and respects it. I've watched cascading P0s caused by one unset timeout propagating through a call chain. Set them at the boundary, every time.
-- **Error detail payloads save teams.** Use `google.golang.org/genproto/googleapis/rpc/errdetails` to attach `BadRequest`, `ErrorInfo`, and `RetryInfo` to gRPC status errors. Your downstream consumers will thank you when they can programmatically decide to retry vs. fail.
-- **Streaming !== free.** Bidirectional streaming for event ingestion is powerful, but you need backpressure handling, reconnect backoff, and graceful shutdown sequencing. Production lesson: always put a `select { case <-ctx.Done(): ... }` in every stream receive loop.
+- **Deadlines aren't optional.** Every outbound gRPC call gets a `context.WithTimeout`. Every unary server handler reads `ctx.Deadline()` and actually respects it. I've watched one unset timeout turn into a cascading P0 as it propagated down a call chain. Set them at the boundary. Every time.
+- **Error detail payloads save people time.** Use `google.golang.org/genproto/googleapis/rpc/errdetails` to attach `BadRequest`, `ErrorInfo`, and `RetryInfo` to gRPC status errors. Downstream teams will thank you when they can decide programmatically whether to retry or just fail.
+- **Streaming isn't free.** Bidirectional streaming for event ingestion is great, but you need backpressure handling, reconnect backoff, and a graceful shutdown sequence. Learned the hard way: put a `select { case <-ctx.Done(): ... }` in every stream receive loop.
 
-## What I'd Undo
+## What I'd undo
 
 If I could rewind four years:
 
-1. **Too many repos.** Every payment method type got its own repository with its own CI, its own deploy pipeline, its own config. Monorepo (or at least a sane polyrepo with shared tooling) would have halved our operational overhead.
-2. **Custom config frameworks.** We built our own config library. It was fine until it wasn't — edge cases in refresh, broken diffing, no one remembers how it works. Use env vars, use YAML with structured types, use Vault. Don't write config infra.
-3. **Over-indexing on "idiomatic" microservices.** We split services so aggressively that a single payment flow touched six services. The complexity tax — deployments, tracing, network faults — far exceeded the benefit. A little monolith at the start is fine. Extract when latency or team boundaries demand it, not before.
+1. **Too many repos.** Every payment method type got its own repo, with its own CI, its own deploy pipeline, its own config. A monorepo (or at least a saner polyrepo with shared tooling) would've cut our overhead in half.
+2. **Custom config frameworks.** We built our own config library. It worked fine until it didn't: refresh edge cases, broken diffing, and by the end nobody remembered how it actually worked. Use env vars. Use YAML with structured types. Use Vault. Just don't build your own config infra.
+3. **Splitting services too early.** We split things so aggressively that a single payment flow touched six services. The complexity tax (more deployments, more tracing, more places for the network to fail) was way bigger than what we got out of it. A little monolith at the start is fine. Extract when latency or team boundaries actually force it, not before.
 
-## Why This Matters
+## Why this matters
 
-If you're interviewing for Senior SWE or Staff-level backend roles — especially at companies doing real-money transactions — Go is the language of record in modern payments infrastructure (Stripe, Adyen, Square, and the internal stacks of every large retailer). The patterns above aren't academic opinions; they're the difference between a service that stays up on Black Friday and one that pages you at 3 AM because a nil pointer made it to production.
+If you're interviewing for senior or staff backend roles, especially at places moving real money, you'll run into Go constantly. Stripe, Adyen, Square, most big retailers' internal stacks, it's everywhere in payments. I've seen this play out for real: a service stayed up through Black Friday because of these habits, and I once got paged at 3 AM because a nil pointer slipped past a review.
 
-Write Go that your on-call self can read at 2 AM. Wrap your errors. Keep your interfaces small. Set your deadlines. The compiler's your ally — trust it, and don't fight the language.
+Write Go your on-call self can read at 2 AM. Wrap your errors. Keep interfaces small. Set your deadlines. Trust the compiler instead of fighting the language.
