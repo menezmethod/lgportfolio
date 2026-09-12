@@ -5,7 +5,7 @@ tags: ["Go", "Software Engineering", "Backend"]
 description: "Concrete Go patterns from 4 years building payment services at Fortune 50 scale — interfaces, error handling, gRPC, and what I wish someone told me sooner."
 ---
 
-Four years ago I wrote my first Go service at The Home Depot. Before that, I was a Java shop loyalist — Lombok, abstract factories, the whole nine yards. Today I maintain Go payment services that move real money across 2,400+ stores, and I've flipped on almost everything I thought I knew about writing backend code.
+Four years ago I wrote my first Go service at The Home Depot. Before that, I was a Java shop loyalist — Lombok, abstract factories, the whole nine yards. For about two years I maintained Go payment services that moved real money across a 2,300+ store rollout — I've since moved to SRE on Home Services, but writing that much production Go flipped almost everything I thought I knew about backend code.
 
 Here's what stuck.
 

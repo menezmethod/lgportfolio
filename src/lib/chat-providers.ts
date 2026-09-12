@@ -41,7 +41,7 @@ export interface StreamChatParams {
 }
 
 export interface StreamChatResult {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   result: { toTextStreamResponse: () => Response };
   provider: ChatProviderId;
   model: string;

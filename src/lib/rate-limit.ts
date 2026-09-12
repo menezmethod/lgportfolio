@@ -32,14 +32,14 @@ const dailyCounters = new Map<string, DailyCounter>();
 const CACHED_RESPONSES = new Map<string, string>([
   [
     "tell me about luis",
-    "Luis Gimenez is a Software Engineer II (SE II) on the Enterprise Payments Platform team at The Home Depot — a large engineering team operating 50+ microservices with six-figure hourly transaction volumes.\n\n" +
-      "He did not build the platform. He works within it. His specific contributions include:\n" +
-      "- Built Grafana observability dashboards adopted by VP-level leadership (his signature work)\n" +
+    "Luis Gimenez is a Site Reliability Engineer on the Home Services team at The Home Depot, on a large, integration-heavy platform (Salesforce, GCP, internal services) in a ~$6B division.\n\n" +
+      "Before this role (Jan 2024 – Mar 2026) he was a Software Engineer II on Enterprise Payments, building Go authorization services on CockroachDB. He works within these platforms, not as their sole architect. His specific contributions include:\n" +
+      "- Drove a production change through CAB approval solo and made it the repeatable CI/CD governance pattern\n" +
+      "- Owned a transaction-metrics ETL app end to end\n" +
       "- Contributed production code to Card Broker (credit/debit routing) for approximately two years\n" +
-      "- Owns interrupt rotation — production reliability at 2 AM\n" +
-      "- Advocated for and implemented PII masking for PCI DSS compliance\n" +
+      "- Carried on-call ('interrupt') rotation and contributed to incident response\n" +
       "- GCP Professional Cloud Architect certified\n\n" +
-      "The strongest hiring read is Staff-ready now in platform, observability, reliability, or cloud architecture roles, with credible Principal-track upside in the right environment.\n\n" +
+      "The strongest hiring read is Senior-level backend/platform/SRE roles.\n\n" +
       "For details, visit /about or /work.",
   ],
   [
@@ -64,15 +64,14 @@ const CACHED_RESPONSES = new Map<string, string>([
   ],
   [
     "is luis open to remote work?",
-    "Yes. Luis is based in Florida and is seeking Staff, Principal-track, SRE, or AI infrastructure architecture roles.\n\n" +
-      "Open to remote, hybrid, or relocation — particularly Atlanta, Austin, NYC, SF/Bay Area, Seattle, or Denver.\n\n" +
+    "Yes. Luis is based in Parrish, FL and is seeking Senior Software Engineer (Backend/Go), Senior SRE, or Senior Full-Stack roles.\n\n" +
+      "Default is remote, U.S.-based. Not open to relocation. Light hybrid (up to 2 days/week) works only for an office within commuting distance of Parrish (e.g. Bradenton, Sarasota, St. Petersburg, downtown Tampa), and only with strong comp and WLB.\n\n" +
       "US work authorized. No sponsorship required.",
   ],
   [
     "what certifications does luis have?",
     "Luis holds:\n\n" +
       "- Google Cloud Professional Cloud Architect (Active) — skipped associate, went straight for professional\n" +
-      "- CompTIA Project+\n" +
       "- ITIL Foundation\n\n" +
       "The GCP cert was self-driven and has repeatedly opened doors at Home Depot.",
   ],

@@ -5,11 +5,21 @@ date: "2026-06-25"
 tags: ["Observability", "OpenTelemetry", "Production Incidents"]
 ---
 
+<!-- TODO: confirm with Luis — this post narrates a specific idempotency-key race
+     condition and its fix. cv.md's payments incident work is described as
+     "contributed to incident response: fast log retrieval, hypothesis generation"
+     across incidents involving metric cardinality, circuit breakers, health
+     checks, and upstream timeouts — it doesn't name this specific race/fix.
+     Reframed to team-contributed language per the requested edit (pulled traces,
+     flagged the race, proposed a fix — not sole root-cause-and-fix ownership),
+     but please confirm the incident happened this way before it goes out under
+     your byline. -->
+
 ## The Incident That Wasn't — Yet
 
 Friday, 2:47 PM. A payment service had been running three months without a single charge discrepancy. Then a pager alert fired: "Idempotency check latency spike — p99 > 5s."
 
-Not a crash. Not a double-charge. A latency alert. Without OpenTelemetry, I'd have blamed the database. But every payment path had traces — and they told a different story: a race condition that would eventually cause a double-charge. It just hadn't happened at scale yet.
+Not a crash. Not a double-charge. A latency alert. On-call, I pulled the traces on the payment path rather than jumping straight to blaming the database — and they told a different story: a race condition that would eventually cause a double-charge. It just hadn't happened at scale yet. I flagged it to the team and we dug in together.
 
 ## What the Trace Showed
 
@@ -32,7 +42,7 @@ Two requests for the same `orderID` arrived 47ms apart. The first `check-idempot
 
 ## The Fix
 
-DB-level optimistic lock instead of read-then-write — `INSERT ... ON CONFLICT DO NOTHING` with `RETURNING`:
+I proposed a DB-level optimistic lock instead of read-then-write, and a teammate implemented and reviewed it: `INSERT ... ON CONFLICT DO NOTHING` with `RETURNING`:
 
 ```go
 func (s *PaymentService) Charge(ctx context.Context, orderID string) (*ChargeResult, error) {

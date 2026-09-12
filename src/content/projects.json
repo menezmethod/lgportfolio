@@ -35,7 +35,7 @@
       "problem": "Peak retail traffic and a zero-downtime mandate leave no room for opaque dependencies, weak telemetry, or brittle release procedures.",
       "tradeoff": "Favor observability-first design and buffered distributed flows over simpler synchronous coupling, even when that increases platform complexity up front.",
       "decision": "Worked within a Go and GKE payment environment to improve telemetry, support zero-downtime tender migrations, and make high-risk paths visible during production incidents.",
-      "outcome": "Helped keep a platinum-tier payments domain measurable under load, with leadership-facing observability and sub-50ms p99 performance on critical paths."
+      "outcome": "Helped keep a high-availability payments domain measurable under load, with observability on critical paths."
     },
     "stack": [
       "Go",
@@ -56,10 +56,9 @@
       "caseStudy": "/architecture"
     },
     "metrics": [
-      { "label": "footprint", "value": "2400+ stores" },
-      { "label": "domain", "value": "50+ services" },
-      { "label": "latency", "value": "<50ms p99" },
-      { "label": "availability", "value": "0-downtime mandate" }
+      { "label": "footprint", "value": "2,300+ stores" },
+      { "label": "domain", "value": "card + gift-card authorization" },
+      { "label": "availability", "value": "GKE + Pivotal Cloud Foundry" }
     ]
   },
   {

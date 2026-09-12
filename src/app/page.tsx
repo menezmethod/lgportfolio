@@ -68,8 +68,8 @@ export default function Home() {
               and fulfillment.
             </p>
             <p className="text-sm text-muted-foreground">
-              Previously: 4 years on Enterprise Payments — Go services,
-              2400+ stores, platinum-tier uptime.
+              Previously: 4 years on Enterprise Payments — Go authorization
+              services on CockroachDB, 2,300+ store rollout.
             </p>
           </div>
 
