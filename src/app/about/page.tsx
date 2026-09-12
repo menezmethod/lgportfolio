@@ -18,10 +18,11 @@ export default function About() {
               excellence for scheduling, dispatch, and fulfillment services.
             </p>
             <p>
-              Before this role, I spent 4 years on Enterprise Payments — two as a
-              contractor and two full-time after conversion. Go services, 2400+
-              stores, platinum-tier uptime, and zero-downtime migrations that
-              decompose monoliths without dropping a single payment.
+              Before this role, I spent about 4 years on Enterprise Payments — two
+              as a contractor and two full-time after conversion. Go authorization
+              services on CockroachDB, deployed across a 2,300+ store rollout:
+              Card Broker auth routing, Gift Card Tender from initial design
+              onward, and modernization off legacy NonStop to reduce PCI scope.
             </p>
             <p>
               Based in{' '}
@@ -58,9 +59,9 @@ export default function About() {
                   The Home Depot · Jan 2024 – Mar 2026
                 </p>
                 <ul className="mt-2 text-sm text-muted-foreground space-y-1">
-                  <li>• Production Go services on GKE for Card Broker routing</li>
-                  <li>• OpenTelemetry pipelines and Grafana dashboards</li>
-                  <li>• Zero-downtime migrations and PCI DSS infrastructure</li>
+                  <li>• Go authorization services on CockroachDB, deployed to GKE, for Card Broker routing</li>
+                  <li>• Gift Card Tender from initial design onward: design, implementation, production-readiness review, alerting, on-call</li>
+                  <li>• Contributed to modernization off legacy NonStop and PCI-scope reduction via proxy layers</li>
                 </ul>
               </div>
 
@@ -69,25 +70,38 @@ export default function About() {
                   Contractor — Enterprise Payments Platform
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Daugherty Business Solutions → The Home Depot · Jul 2022 – Jan 2024
+                  Daugherty Business Solutions → The Home Depot · Apr 2022 – Jan 2024
                 </p>
                 <ul className="mt-2 text-sm text-muted-foreground space-y-1">
                   <li>• Joined before Card Broker deployed to any stores</li>
                   <li>• Earned GCP Professional Cloud Architect certification</li>
-                  <li>• Hired full-time when the team broke the contract to retain</li>
+                  <li>• Hired full-time by The Home Depot in Jan 2024</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="font-medium">
-                  Founder / Software Consultant
+                  Independent Software Consultant
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Menez Enterprises · 2016 – 2022
+                  Menez Enterprises · Sep 2018 – Apr 2022
                 </p>
                 <ul className="mt-2 text-sm text-muted-foreground space-y-1">
-                  <li>• Independent consultancy, custom web applications</li>
-                  <li>• End-to-end delivery: architecture, deployment, clients</li>
+                  <li>• Independent freelance consultancy, custom web applications for small-business clients</li>
+                  <li>• End-to-end delivery: architecture, build, deployment, client communication</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-medium">
+                  Web Developer
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  G World Properties · Sep 2015 – Sep 2018
+                </p>
+                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
+                  <li>• Built and maintained websites, internal tools, and APIs for a real-estate company (WordPress, MySQL, Python)</li>
+                  <li>• Contributed React/Node and Spring components to web applications and services</li>
                 </ul>
               </div>
             </div>

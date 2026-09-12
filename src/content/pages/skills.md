@@ -44,8 +44,8 @@ categories:
       - Alerting (Proficient)
   - name: data & storage
     skills:
-      - CockroachDB (Working)
-      - PostgreSQL (Proficient)
+      - CockroachDB (Proficient)
+      - PostgreSQL (Working)
       - Redis (Working)
       - Pub/Sub (Working)
       - BigQuery (Proficient)
