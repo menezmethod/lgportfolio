@@ -13,18 +13,18 @@
  */
 export const KNOWLEDGE_BASE = `
 # ═══════════════════════════════════════════════════════════════════════════════
-# LUIS GIMENEZ — HONEST PROFESSIONAL KNOWLEDGE BASE v3.2 (Enterprise-ready)
+# LUIS GIMENEZ — HONEST PROFESSIONAL KNOWLEDGE BASE v3.4 (Enterprise-ready)
 # ═══════════════════════════════════════════════════════════════════════════════
 # PURPOSE: Powers a RAG-based AI assistant on gimenez.dev for recruiters and hiring managers.
 # CORE PRINCIPLE: Radical honesty about role, level, and contributions.
-# Luis is an SE II on a large team. He did NOT build the platform.
+# Luis is an SRE on a large team. He did NOT build the platform.
 # He operates within it, contributes to it, and keeps it observable.
 #
 # ENTERPRISE SUMMARY (for recruiter queries):
-# Luis Gimenez is a Software Engineer II at The Home Depot on the Enterprise Payments Platform (50+ microservices, six-figure hourly transaction volumes, Platinum-tier, PCI DSS). He is GCP Professional Cloud Architect certified and contributes to observability (Grafana dashboards adopted by VP leadership), Card Broker routing, production reliability, cloud migration, and PII/security remediation. He is seeking Senior, Staff, Principal-track, SRE, or AI infrastructure architecture roles — remote, hybrid, or relocation (Atlanta, Austin, NYC, SF, Seattle, Denver). US work authorized.
+# Luis Gimenez is a Site Reliability Engineer at The Home Depot on the Home Services platform — a large, integration-heavy environment (Salesforce, GCP, internal services) in a ~$6B division. Before this role (Jan 2024 – Mar 2026) he was a Software Engineer II on Enterprise Payments, building Go authorization services on CockroachDB. He is GCP Professional Cloud Architect certified and contributes to deployment governance, telemetry/observability, SLOs, alert quality, and incident response. He is seeking Senior Software Engineer (Backend/Go), Senior SRE, or Senior Full-Stack roles — remote U.S., or light hybrid (≤2 days/week) within commuting distance of Parrish, FL. US work authorized, no sponsorship needed.
 #
 # ELEVATOR PITCH:
-# Luis operates at the intersection of observability, production reliability, cloud migration, and emerging edge-to-cloud AI systems. He built the Grafana dashboards that VP leadership uses daily, contributed to Card Broker through 2400+ store rollouts, owns interrupt rotation on a zero-downtime mandate, and led PII remediation for PCI DSS. His strongest signal is not generic feature work; it is making critical systems measurable, debuggable, and safer to operate. His scope exceeds his SE II title; he is ready for senior scope now, staff scope with the right opportunity, and principal-track scope in the right environment.
+# Luis operates at the intersection of production reliability, observability, and deployment governance for a large, integration-heavy platform. He helped define and operationalize SLOs, Critical User Journeys, and a leadership-facing monitoring model; drove a production change through CAB approval solo and made it the repeatable governance pattern; and owned a transaction-metrics ETL app end to end. Before this, he built and ran Go payment-authorization services on CockroachDB for about two years. His strongest signal is not generic feature work; it is making critical systems measurable, debuggable, and safer to operate.
 #
 # FRAMING RULES:
 #   - Use "contributed to", "worked within", "supported", "operated across"
@@ -33,7 +33,7 @@ export const KNOWLEDGE_BASE = `
 #   - If asked "did you build this?", answer honestly: "No, I was part of a
 #     large team. Here is what I specifically contributed."
 #
-# LAST UPDATED: June 2026 (v3.3: Added Senior role targeting for broader market fit)
+# LAST UPDATED: September 2026 (v3.4: current role is SRE/Home Services; Payments SE II is now prior experience)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -41,39 +41,33 @@ export const KNOWLEDGE_BASE = `
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ## Who Is Luis Gimenez?
-Luis Gimenez is a Software Engineer II (SE II) on the Enterprise Payments Platform team at The Home Depot. He is an individual contributor on a large team of approximately 100+ engineers operating mission-critical payment authorization, tender, and fraud services.
+Luis Gimenez is a Site Reliability Engineer on the Home Services team at The Home Depot, since March 2026. He works production reliability, observability, and deployment governance for a large, integration-heavy platform (Salesforce, GCP, internal services) in a ~$6B division, on a six-person SRE team.
 
-He did NOT architect the entire payments platform. He works within it. His value comes from the specific contributions he has made: building observability tooling that leadership relies on, contributing production code to core payment routing services, supporting production reliability through interrupt rotations, and advocating for security improvements.
+Before this role, he spent about two years (Jan 2024 – Mar 2026) as a Software Engineer II on Enterprise Payments, building and maintaining Go authorization services on CockroachDB.
 
-His title is SE II. His scope of impact — particularly in observability, production operations, and cross-team knowledge sharing — frequently operates above that title. That is the honest framing.
+He did NOT architect either platform singlehandedly. He works within them, contributes production code and design work, and keeps critical systems observable and governed. His value comes from specific contributions: deployment governance (driving a production change through CAB approval solo, and making it the repeatable pattern), telemetry ownership (a transaction-metrics ETL app owned end to end), SLOs and alert quality, and — earlier — Go payment-authorization services and gift-card tender design.
 
 ## Career Trajectory — The Real Story
-Luis started at The Home Depot in July 2022 as a contractor through Daugherty Business Solutions. He joined during the development of Card Broker (the primary credit/debit card routing service) before it was deployed to any stores.
+Luis started at The Home Depot in April 2022 as a contractor through Daugherty Business Solutions, on an Enterprise Payments consulting engagement. He joined the Card Broker authorization service before it deployed to any stores, contributing Go code, tests (Ginkgo/Gomega), and rollout support as it went to production across the store fleet.
 
-Over approximately four years, he contributed code, testing, rollout support, interrupt rotation, and observability work as Card Broker deployed across 2400+ stores (nationwide footprint).
+In January 2024, Home Depot hired Luis full-time as a Software Engineer II on Enterprise Payments. He built and maintained Go services on the Common Authorization Services platform (credit/debit authorization, reversal, refund) on CockroachDB, deployed to GKE and Pivotal Cloud Foundry across a 2,300+ store rollout, and worked Enterprise Gift Card Tender from initial design onward.
 
-In January 2024, Home Depot broke their contract with Daugherty to hire Luis full-time — they saw enough value to poach him from his own contracting firm. Daugherty counter-offered with a substantial raise, GCP certification bonus, and a fully paid trip to AWS re:Invent. Luis chose Home Depot.
+In March 2026, he moved to Site Reliability Engineer on Home Services — broadening from backend development into production reliability, observability, platform engineering, and deployment governance.
 
-He independently pursued the GCP Professional Cloud Architect certification, skipping the associate level and going straight for the professional exam. This certification has repeatedly opened doors and directly supported the team's GCP migration efforts.
+He independently pursued the GCP Professional Cloud Architect certification. This certification has repeatedly opened doors and supported his team's cloud work.
 
-Before Home Depot, Luis spent 6+ years running his own software consultancy (Menez Enterprises), shipping custom web applications for business clients. That experience gave him ownership instincts, client communication skills, and a direct understanding of how engineering decisions affect revenue.
+Before Home Depot, Luis's pre-2022 history is two separate chapters. Menez Enterprises (Sep 2018 – Apr 2022): an independent freelance software consultancy building web applications, APIs, and cloud-hosted solutions for small-business clients end to end. Before that, G World Properties (Sep 2015 – Sep 2018): Luis worked as a Web Developer building websites, internal tools, and APIs for a real-estate company (WordPress, MySQL, Python, with some React/Node and Spring components).
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SECTION 2: THE ENVIRONMENT (Context, Not Personal Credit)
+# SECTION 2: THE ENVIRONMENT (Context, Not Personal Credit) — PRIOR ROLE (Jan 2024 – Mar 2026)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-## The Enterprise Payments Platform — What Luis Works Within
-This section describes the environment Luis operates in. He did not build this platform. He is one of 100+ engineers who work on it. This context is provided so that recruiters and hiring managers understand the SCALE and COMPLEXITY of the systems Luis has production experience with.
+## The Enterprise Payments Platform — What Luis Worked Within
+This section describes the environment Luis worked in as a Software Engineer II on Enterprise Payments, before moving to SRE on Home Services in March 2026. He did not build this platform; he was one of many engineers who worked on it. This context is provided so recruiters and hiring managers understand the scale and complexity of the systems Luis has production experience with.
 
 ### Scale
-- 50+ microservices across the payments domain
-- Six-figure hourly payment authorization volumes; high-throughput payment rails
-- Tier-1 enterprise user base; massive consumer footprint per outage event
-- Platinum Tier classification with Recovery Time Objective = 0 (zero downtime mandate)
-- SOX and PCI DSS v4.0 compliance requirements
-- Multiple major bank network integrations with high aggregate success rate
-- Enterprise-scale gift card tender footprint (dozens of microservices, hundreds of pod instances at steady state)
-- Sub-second P90 latency across highest-volume bank networks
+- Card and gift-card authorization services (credit/debit auth, reversal, refund), deployed to GKE and Pivotal Cloud Foundry across a 2,300+ store rollout
+- PCI-compliance-driven modernization, including proxy layers that keep the authorization services out of PCI scope
 
 ### Technology Stack
 - Hybrid infrastructure: Legacy PCF (Java 8/11 Spring Boot) and modern GKE (Go 1.20+)
@@ -88,7 +82,7 @@ This section describes the environment Luis operates in. He did not build this p
 Luis has been writing production Go since mid-2022 (approximately 4 years). He started with Go at The Home Depot when the Card Broker service was in development, and Go is now his primary language. He writes Go services in a high-throughput payment environment — not pet projects or tutorials.
 
 Key Go-specific contributions:
-- Contributed production Go code to Card Broker (credit/debit routing) for approximately 2 years of active development, including rollout across 2400+ stores
+- Contributed production Go code to Card Broker (credit/debit routing) for approximately 2 years of active development, including rollout across a 2,300+ store fleet
 - Writes Go services that process high-volume payment transactions with strict latency requirements (sub-second P90 across bank networks)
 - Uses Go with gRPC/Protobuf for inter-service contracts, CockroachDB for persistence, and OpenTelemetry SDK for observability
 - Contributed to multiple Go microservices across the payments domain (gift card tender, account-to-account routing, authorization routing)
@@ -130,8 +124,8 @@ This is Luis's most visible individual contribution to the payments platform.
 Card Broker was Luis's primary project for approximately four years, from pre-deployment through production stabilization.
 
 - Contributed production code to Card Broker, the primary credit/debit card routing service
-- Contributed production Go code to the primary credit-card routing service, participating in rollout across 2400+ stores and authoring operational runbooks for interrupt rotation
-- Supported the full lifecycle: development, testing, rollout across 2400+ stores, interrupt rotation, observability
+- Contributed production Go code to the primary credit-card routing service, participating in rollout across a 2,300+ store fleet and authoring operational runbooks for interrupt rotation
+- Supported the full lifecycle: development, testing, rollout across a 2,300+ store fleet, interrupt rotation, observability
 - Created operational runbooks for Card Broker support procedures
 - This is the foundational work that proved Luis's value and led to his full-time hire
 - To be clear: Luis did not design Card Broker. He was a contributor on the team that built and deployed it.
@@ -147,17 +141,14 @@ Card Broker was Luis's primary project for approximately four years, from pre-de
 - Was part of the early migration wave from PCF to GCP when the team was 100% on PCF
 - GCP certification directly supported and informed migration decisions
 
-## Contribution 5: Production Reliability & Interrupt Rotation (Ongoing)
-- Owned interrupt rotation responsibilities across the payments platform
-- Isolated production failures across distributed microservices by correlating logs across Loki, Tempo, and Prometheus
-- Pushed critical production fixes through strict financial Change Management (CHG) protocols
-- Zero data loss maintained across all changes during his rotations
-- This is the unglamorous work that keeps Platinum-tier systems running at 2 AM
+## Contribution 5: Production Reliability & On-Call (Payments era)
+- Carried the on-call ("interrupt") rotation for the payments authorization services
+- Contributed to production incident response: fast log retrieval, hypothesis generation, and cross-team coordination — across incidents involving Prometheus metric cardinality, circuit-breaker resilience, health-check/liveness-probe design, and upstream dependency timeouts
+- Contributed to the resulting blameless postmortems
+- Not the root-cause owner or fix author on these incidents — one contributor among the responders
 
-## Contribution 6: PII Remediation & Security (Advocate and Implementer)
-- Advocated for GCP Sensitive Data Protection based on his certification knowledge
-- Implemented automated PII masking in telemetry to support PCI DSS v4.0 compliance
-- Remediated multiple production locations where PII was exposed in telemetry; advocated for and implemented the fix across the platform
+## Contribution 6: PCI-Scope Reduction (Contributor)
+- Contributed to modernization off legacy NonStop and to PCI-scope reduction — proxy layers that keep the authorization services out of PCI scope
 
 ## Contribution 7: Cardinality & Performance Optimization (Contributor)
 - Contributed to Prometheus cardinality containment that reduced series from an unbounded 10,000+ to approximately 280
@@ -197,11 +188,10 @@ Card Broker was Luis's primary project for approximately four years, from pre-de
 
 ## GCP Professional Cloud Architect (Active)
 - Pursued independently — realized the associate cert was not required and went straight for the professional exam
-- This certification has repeatedly opened doors: informed migration decisions, supported PII remediation advocacy, and contributed to the team's cloud strategy
+- This certification has repeatedly opened doors: informed migration decisions and contributed to the team's cloud strategy
 - One of Google Cloud's most rigorous certifications — validates enterprise-grade cloud architecture design
 
 ## Other Certifications
-- CompTIA Project+ (project management fundamentals)
 - ITIL Foundation (IT service lifecycle — relevant for payment systems operational maturity)
 
 ## Education
@@ -241,7 +231,7 @@ Card Broker was Luis's primary project for approximately four years, from pre-de
 - Companies that value reliability engineering, observability, and production operations
 - Teams migrating from legacy to cloud-native architectures
 - Startups or scale-ups that need a senior operator to turn AI ideas into real infrastructure
-- Organizations where the unglamorous critical work (interrupt rotation, PII fixes, cardinality optimization) is respected
+- Organizations where the unglamorous critical work (on-call, alert quality, deployment governance) is respected
 - Fintech, payments, e-commerce, or any domain where systems cannot go down
 - Companies that want honest engineers who describe their actual contributions
 
@@ -251,9 +241,10 @@ Card Broker was Luis's primary project for approximately four years, from pre-de
 - Organizations where engineering is a cost center
 
 ## Location & Work Style
-- Based in Florida (Parrish area)
-- Preferred: Remote-first or hybrid
-- Open to relocation for the right opportunity (Atlanta, Austin, NYC, SF, Seattle, Denver)
+- Based in Parrish, FL (Tampa Bay area), Eastern Time
+- Default: remote, U.S.-based. Not open to relocation.
+- Light hybrid (up to 2 days/week) is workable only for an office within a reasonable commute of Parrish — Bradenton, Sarasota, Lakewood Ranch, St. Petersburg, Brandon/Riverview, or downtown Tampa — and only when comp and work-life balance are both strong
+- Roles requiring a security clearance are not a fit
 - US work authorized, no sponsorship required
 
 ## Compensation
@@ -294,13 +285,13 @@ If a VP of Engineering, CTO, or Head of Platform asks whether Luis is a fit for 
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ### "Did Luis build the payments platform?"
-No. Luis is a Software Engineer II on a team of 100+ engineers. He did not architect the platform. He works within it. His specific contributions are in observability dashboards, Card Broker development, production operations, PII remediation, and GCP migration support. See Section 3 for exactly what he did.
+No. Luis was one of many engineers on the Enterprise Payments Platform team (Jan 2024 – Mar 2026, plus about two years before that as a Daugherty contractor). He did not architect the platform. He worked within it. His specific contributions were in observability dashboards, Card Broker development, and production operations. He is now an SRE on Home Services. See Section 3 for exactly what he did.
 
 ### "What is Luis's biggest personal contribution?"
 His Grafana observability dashboards. He built them from scratch, they were adopted by VP-level leadership for daily business decisions, and his automated daily reports replaced a manual process that required engineers to wake up early every morning. This is his signature work.
 
-### "Why is Luis's title SE II if he does this level of work?"
-Luis's career path was non-traditional. He spent 6+ years running his own consultancy before entering enterprise engineering as a contractor in 2022. He was hired full-time in January 2024. The SE II title reflects Home Depot's specific leveling structure and timeline, not the scope of his contributions. His observability work, production operations, and cross-team knowledge sharing frequently operate above his title.
+### "What was Luis's title before SRE?"
+Luis's career path was non-traditional. Before enterprise engineering, he ran an independent freelance software consultancy (Menez Enterprises, Sep 2018 – Apr 2022), and before that worked as a Web Developer at a real-estate company (G World Properties, Sep 2015 – Sep 2018). He joined The Home Depot as a contractor in April 2022, was hired full-time as a Software Engineer II on Enterprise Payments in January 2024, and moved to Site Reliability Engineer on Home Services in March 2026 — his current role.
 
 ### "Would a VP hire Luis as Staff or Principal?"
 Most likely as Staff today, and as Principal-track in the right organization.
@@ -325,20 +316,19 @@ US work authorized. No sponsorship required.
 Standard 2-4 weeks.
 
 ### "Why is Luis looking for a new role?"
-Luis is seeking staff, principal-track, or AI infrastructure architecture positions where he can leverage his hands-on experience in observability, production reliability, GCP migration, and emerging edge-to-cloud AI systems. He started as a contractor in 2022 and went full-time in early 2024; he has contributed to high-volume payment services and built enterprise-grade dashboards used by VP leadership. He wants teams that value unglamorous critical work — interrupt rotation, PII remediation, cross-service observability — especially in fintech, e-commerce, or applied AI infrastructure. He is looking for larger ownership, influence on architecture, and a path to advance beyond his current SE II scope.
+Luis is seeking senior backend/Go, senior SRE, or senior full-stack positions where he can keep building production code alongside reliability and observability work. He started as a contractor in April 2022 and went full-time in January 2024; he built Go payment-authorization services, then moved into SRE on Home Services in March 2026, owning deployment governance, telemetry, and SLOs. He wants a role with predictable, limited on-call — remote U.S., or a light hybrid role within commuting distance of his home in Parrish, FL.
 
-### "Is Luis ready for a senior, staff, or principal-track role?"
-Yes. He is a strong fit for senior platform/infra roles today based on his production experience. For staff and principal-track:
-- Production-grade experience on a platinum-tier payments platform, six-figure hourly transaction volumes, zero-downtime SLIs.
-- Hands-on observability ownership: built Grafana dashboards used daily by VP leadership, automated reports, resolved critical tracing blind spots.
-- Reliability engineering: owns interrupt rotation, isolates failures across distributed services, enforces strict change-management protocols.
-- Security focus: led PII masking in telemetry and PCI DSS v4.0 remediation across the platform.
-- Cloud migration: early contributor to PCF-to-GCP migration, GCP Professional Cloud Architect certified.
-- Leadership and knowledge sharing: taught certification prep, presented AI-driven reliability concepts, brought AWS re:Invent learnings back to the team.
-His responsibilities often exceed his SE II title. The most defensible framing is Senior-ready now, Staff-ready with the right scope, and Principal-track in the right environment.
+### "Is Luis ready for a senior role?"
+Yes — he's a strong fit for senior backend/platform/SRE roles today based on his production experience:
+- Go authorization services on CockroachDB across a 2,300+ store rollout; Gift Card Tender from initial design onward.
+- Deployment governance: drove a production change through CAB approval solo and made it the repeatable CI/CD governance pattern for later applications.
+- Observability ownership: owned a transaction-metrics ETL app end to end; helped define SLOs, Critical User Journeys, and a leadership-facing monitoring model.
+- Alert quality: cut recurring false-positive alerts by replacing time-based muting with volume-aware thresholds.
+- Cloud: GCP Professional Cloud Architect certified.
+- Two Home Depot Bravo awards (pipeline recovery; production incident response).
 
 ### "What kind of work does Luis want?"
-Unglamorous, critical work: interrupt rotation, production debugging, observability, PII and security remediation, cross-service tracing. He wants to influence architecture and have larger ownership. Fintech, e-commerce, or any domain where systems cannot go down. Teams that respect engineers who describe their actual contributions, not inflated claims.
+Backend and reliability work: Go services, deployment governance, observability, and incident response. He wants to influence how teams ship safely and keep writing backend code. Payments, e-commerce, or any domain where systems can't go down. Teams that respect engineers who describe their actual contributions, not inflated claims.
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SECTION 8: THIS PORTFOLIO SITE (gimenez.dev)
@@ -361,10 +351,10 @@ The strongest portfolio reading is not "he can build a website." It is "he can p
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ## Honesty Rules
-1. NEVER claim Luis built, designed, or architected the entire payments platform.
+1. NEVER claim Luis built, designed, or architected the entire payments platform or the Home Services platform.
 2. ALWAYS use "contributed to", "worked within", "supported", "operated across" for team efforts.
-3. For personal contributions (dashboards, PII remediation, tracing discovery), use "built", "created", "discovered", "advocated for".
-4. If a recruiter asks "did you build this?", respond: "No, Luis was part of a large team of 100+ engineers. Here is what he specifically contributed: [list from Section 3]."
+3. For personal contributions (dashboards, ETL ownership, tracing work), use "built", "created", "owned", "helped define".
+4. If a recruiter asks "did you build this?", respond: "No, Luis was part of a large team. Here is what he specifically contributed: [list from Section 3]."
 5. Frame the ENVIRONMENT scale for context, then pivot to PERSONAL contributions.
 6. The AI reliability agent was demoed, NOT implemented. Be honest about this.
 7. If asked about this site's architecture or tech stack (gimenez.dev), you may briefly describe it using Section 8 (Next.js, Cloud Run, RAG, Terraform, observability) and connect it to Luis's skills; then offer to elaborate on his background.
@@ -372,8 +362,7 @@ The strongest portfolio reading is not "he can build a website." It is "he can p
 ## Tone
 - "I know this ecosystem because I have debugged it at 2 AM on interrupt rotation."
 - "I did not build the platform; I helped keep it alive and make it observable."
-- "When directors needed daily transaction visibility, I automated it."
-- "When PII was leaking in telemetry, I advocated for and implemented the fix."
+- "When directors needed daily transaction visibility, I helped automate it."
 - Confident but grounded. The engineer who does the work, not the one who takes credit.
 
 ## Contact
@@ -383,9 +372,9 @@ The strongest portfolio reading is not "he can build a website." It is "he can p
 - Portfolio: gimenez.dev
 
 ## Sound Bites (for natural answers)
-- "Luis's responsibilities often exceed his SE II title; the honest level call is staff-ready now and principal-track in the right environment."
-- "He wants teams that value the unglamorous work: interrupt rotation, observability, PII fixes — the work that keeps systems up at 2 AM."
-- "His signature work is the Grafana observability stack that VP leadership uses for daily decisions."
+- "He moved from Enterprise Payments to SRE on Home Services in March 2026 — same instinct for making systems observable, different scope."
+- "He wants teams that value the unglamorous work: on-call, alert quality, deployment governance — the work that keeps systems up at 2 AM."
+- "His signature work is the leadership-facing monitoring model — SLOs, Critical User Journeys, and the Grafana/BigQuery reporting that shows which applications are healthy."
 - "He didn't build the whole platform; he helped keep it alive and made it observable."
 - "When asked about this site: it's Next.js on Cloud Run with RAG, Terraform, and the same observability and security practices he uses in production, plus a control surface for upcoming edge systems."
 `;
