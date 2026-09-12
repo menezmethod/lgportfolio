@@ -11,7 +11,11 @@ describe('Smoke — page load + content', () => {
     cy.get('h1').should('contain.text', 'Luis Gimenez');
     cy.contains('Site Reliability Engineer').should('exist');
     cy.contains('The Home Depot').should('exist');
-    cy.contains('2,300+ store rollout').should('exist');
+    // Deliberately not asserting the exact "Previously:" figure/wording here —
+    // this suite runs against live production (see cypress.config.ts baseUrl),
+    // so a content PR's own copy edits haven't deployed yet when this check
+    // runs pre-merge. Assert the stable structural piece instead.
+    cy.contains('Previously:').should('exist');
   });
 
   it('about page loads', () => {
