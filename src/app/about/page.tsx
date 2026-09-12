@@ -12,22 +12,24 @@ export default function About() {
           {/* Bio */}
           <div className="space-y-4 text-muted-foreground leading-relaxed">
             <p>
-              SRE at{' '}
-              <span className="text-foreground font-medium">The Home Depot</span>{' '}
-              Home Services Division. Reliability, observability, and operational
-              excellence for scheduling, dispatch, and fulfillment services.
+              I&apos;m an SRE at{' '}
+              <span className="text-foreground font-medium">The Home Depot</span>,
+              on the Home Services side. Basically I keep scheduling, dispatch,
+              and fulfillment running, and I&apos;m the one digging in when they
+              don&apos;t.
             </p>
             <p>
-              Before this role, I spent about 4 years on Enterprise Payments — two
-              as a contractor and two full-time after conversion. Go authorization
-              services on CockroachDB, deployed across a 2,300+ store rollout:
-              Card Broker auth routing, Gift Card Tender from initial design
-              onward, and modernization off legacy NonStop to reduce PCI scope.
+              Before this, I did about 4 years on Enterprise Payments: two as a
+              contractor, two full-time after they converted me. Go
+              authorization services on CockroachDB, rolled out across 2,300+
+              stores. Card Broker auth routing, Gift Card Tender from the
+              initial design, and helping get us off legacy NonStop to shrink
+              PCI scope.
             </p>
             <p>
-              Based in{' '}
+              I&apos;m based in{' '}
               <span className="text-foreground">Tampa Bay, FL</span>. Open to
-              remote and hybrid (≤2 days/week).
+              remote or hybrid, up to 2 days a week in office.
             </p>
           </div>
 
