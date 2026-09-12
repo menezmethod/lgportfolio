@@ -101,7 +101,7 @@ export function sanitizeInput(content: string): SecurityCheckResult {
   return { safe: true, sanitized: cleaned };
 }
 
-interface ChatMessage {
+export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
 }

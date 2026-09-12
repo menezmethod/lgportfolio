@@ -4,6 +4,7 @@ import {
   sanitizeInput,
   trimMessagesToContextCap,
   validateMessages,
+  type ChatMessage,
 } from "@/lib/security";
 
 describe("security", () => {
@@ -118,7 +119,7 @@ describe("security", () => {
   describe("trimMessagesToContextCap", () => {
     it("keeps the latest user turn when older assistant replies exceed the char budget", () => {
       const longAnswer = "x".repeat(6000);
-      const history = [
+      const history: ChatMessage[] = [
         { role: "user", content: "old question" },
         { role: "assistant", content: longAnswer },
         { role: "user", content: "old question 2" },
