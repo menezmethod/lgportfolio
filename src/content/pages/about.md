@@ -35,9 +35,9 @@ principles:
       response time. If it does neither, it is infrastructure theater.
 ---
 
-I work inside one of the hardest engineering environments to fake: enterprise-scale home services. At **The Home Depot**, I own reliability, observability, and operational excellence for the Home Services platform — scheduling, dispatch, and fulfillment workflows that serve millions of customers.
+I work inside one of the hardest engineering environments to fake: enterprise-scale home services. At **The Home Depot**, I work on reliability, observability, and deployment governance for the Home Services platform — scheduling, dispatch, and fulfillment workflows.
 
-My focus is not generic full-stack work. I instrument critical paths, reduce operational ambiguity, and move risky systems without customer impact. As an SRE at a Fortune 50 retailer, that means designing distributed tracing across multi-service stacks, building SLO-driven reliability practices, and leading incident response that keeps critical workflows running. Before this role, I spent four years on the Enterprise Payments team — two as a contractor and two full-time after conversion — building Go payment services that process real transactions at scale, building OpenTelemetry pipelines that expose gaps in legacy architectures, and leading zero-downtime migrations that decompose monoliths without dropping a single payment.
+My focus is not generic full-stack work. I instrument critical paths, reduce operational ambiguity, and help move risky systems without customer impact. As an SRE at a Fortune 50 retailer, that means distributed tracing across multi-service stacks, SLO-driven reliability practices, and being the person other teams call to pull the right logs and scope an incident fast. Before this role, I spent about two years on the Enterprise Payments team building Go authorization services on CockroachDB — Card Broker routing, Gift Card Tender from initial design onward, and modernization off legacy NonStop to reduce PCI scope.
 
 Based in the **Tampa Bay area**, I am open to remote and hybrid (≤2 days/week) roles in site reliability engineering, platform infrastructure, and systems architecture.
 
