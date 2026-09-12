@@ -1,6 +1,6 @@
 ---
 title: "Rate Limit Postmortem: One Config Change That Broke My Chat"
-description: "How setting CHAT_MAX_RPM_PER_IP to 2 made my portfolio chat unusable — and the exact fix strategy that works."
+description: "Setting CHAT_MAX_RPM_PER_IP to 2 made my portfolio chat unusable. Here's how I found and fixed it."
 date: "2026-06-07"
 tags: ["Infrastructure", "API Design", "Production Incidents"]
 ---
@@ -9,9 +9,9 @@ tags: ["Infrastructure", "API Design", "Production Incidents"]
 
 My portfolio chat uses a 3-layer rate limiting system:
 
-1. **Per-IP rate limit** — `CHAT_MAX_RPM_PER_IP` (max requests per minute per IP)
-2. **Session cap** — `NEXT_PUBLIC_CHAT_MAX_MESSAGES` (max messages per chat session)
-3. **Daily budget** — Hard total across all users
+1. **Per-IP rate limit:** `CHAT_MAX_RPM_PER_IP` (max requests per minute per IP)
+2. **Session cap:** `NEXT_PUBLIC_CHAT_MAX_MESSAGES` (max messages per chat session)
+3. **Daily budget:** hard total across all users
 
 The original values were conservative: 2 RPM per IP, 10 messages per session, 25 total. I was worried about inference costs on the self-hosted Ollama server.
 

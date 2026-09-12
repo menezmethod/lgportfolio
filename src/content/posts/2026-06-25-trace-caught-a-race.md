@@ -17,7 +17,7 @@ tags: ["Observability", "OpenTelemetry", "Production Incidents"]
 
 ## The incident that wasn't (yet)
 
-Friday, 2:47 PM. A payment service had been running three months without a single charge discrepancy. Then a pager alert fired: "Idempotency check latency spike — p99 > 5s."
+Friday, 2:47 PM. A payment service had been running three months without a single charge discrepancy. Then a pager alert fired: "Idempotency check latency spike: p99 > 5s."
 
 A latency alert, nothing more dramatic than that yet. On-call, I pulled traces on the payment path instead of jumping straight to blaming the database. They told a different story: a race condition that would eventually cause a double-charge. It just hadn't happened at scale yet. I flagged it to the team and we dug in together.
 

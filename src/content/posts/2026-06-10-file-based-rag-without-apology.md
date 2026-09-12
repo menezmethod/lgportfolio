@@ -1,6 +1,6 @@
 ---
 title: "File-Based RAG Without Apology"
-description: "Why I chose a 200-line knowledge module over pgvector — and when you should too."
+description: "Why I chose a 200-line knowledge module over pgvector, and when you should too."
 date: "2026-06-10"
 tags: ["Architecture", "RAG", "AI Infrastructure"]
 ---
@@ -20,7 +20,7 @@ That's what the first version of this site did. The Terraform had a Cloud SQL Po
 
 I was about to deploy a distributed vector search system when I asked a simple question: **how much text actually needs to be searchable?**
 
-The answer was about 200 lines — my resume experience, project descriptions, and skills. That's it. I don't have a 10,000-document knowledge base. I have a markdown file that fits on one screen.
+The answer was about 200 lines: my resume experience, project descriptions, and skills. That's it. I don't have a 10,000-document knowledge base. I have a markdown file that fits on one screen.
 
 I deleted the Cloud SQL dependency and replaced it with:
 
@@ -47,7 +47,7 @@ For a portfolio site, in-context is the right call. For a documentation search e
 
 ## The Real Architecture
 
-The chat still has the complete pipeline — rate limiting, prompt injection defense, caching, streaming, error handling. The only thing it doesn't have is a database. That's not "less of a system." It's the right system for the actual requirements.
+The chat still has the complete pipeline: rate limiting, prompt injection defense, caching, streaming, error handling. The only thing it doesn't have is a database. That's not "less of a system." It's the right system for the actual requirements.
 
 The pgvector infrastructure is still in the Terraform directory. If I ever need it, it's one `terraform apply` away.
 

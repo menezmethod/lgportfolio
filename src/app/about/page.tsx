@@ -41,7 +41,7 @@ export default function About() {
             <div className="space-y-8">
               <div>
                 <h3 className="font-medium">
-                  Site Reliability Engineer — Home Services Division
+                  Site Reliability Engineer · Home Services Division
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   The Home Depot · Mar 2026 – Present
@@ -55,7 +55,7 @@ export default function About() {
 
               <div>
                 <h3 className="font-medium">
-                  Software Engineer II — Enterprise Payments Platform
+                  Software Engineer II · Enterprise Payments Platform
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   The Home Depot · Jan 2024 – Mar 2026
@@ -69,7 +69,7 @@ export default function About() {
 
               <div>
                 <h3 className="font-medium">
-                  Contractor — Enterprise Payments Platform
+                  Contractor · Enterprise Payments Platform
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   Daugherty Business Solutions → The Home Depot · Apr 2022 – Jan 2024

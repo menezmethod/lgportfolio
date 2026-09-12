@@ -1,6 +1,6 @@
 ---
 title: "Overengineering vs. Shipping: How I Decided When Simple Is Better"
-description: "A framework for deciding when to build the scalable system and when to hardcode the 200-line solution — from building an AI chat that works without a database."
+description: "A framework for deciding when to build the scalable system and when to just hardcode the 200-line solution, from building an AI chat that works without a database."
 date: "2026-06-18"
 tags: ["Architecture", "Engineering Philosophy", "Infrastructure"]
 ---
@@ -9,7 +9,7 @@ tags: ["Architecture", "Engineering Philosophy", "Infrastructure"]
 
 I was about to deploy pgvector for a portfolio site. Cloud SQL spec'd, embedding pipeline stubbed, vector index configured. Professional. Production-ready. One problem: the knowledge base was 200 lines of text. I'd designed a distributed system for a single markdown file.
 
-I call this the **default move** — reaching for the familiar stack (event bus, microservice, cache layer) before you measure the problem. It's not malice. It's habit.
+I call this the **default move**: reaching for the familiar stack (event bus, microservice, cache layer) before you measure the problem. It's not malice. It's habit.
 
 ## What I Actually Built
 
@@ -48,17 +48,17 @@ The hardcode wins on every axis *except* scale I'll never need. The vector DB is
 
 I now ask three questions before any architecture decision:
 
-**1. How much data, really?** Not "what if we get acquired?" — the actual data. 200 lines is different from 500M events/day.
+**1. How much data, really?** Not "what if we get acquired?" The actual data. 200 lines is different from 500M events/day.
 
 **2. How many users, really?** This chat serves me and maybe a dozen recruiters. Not 100K concurrent.
 
 **3. What's the cost of being wrong?** Worst case for my hardcoded chat: the model misses something, I add a line. Worst case for a payment system on in-memory store: six-figure data loss.
 
-Question three is decisive. Payment systems, auth, medical records — those get the full distributed treatment. A portfolio chat? Ship the 200 lines.
+Question three is decisive. Payment systems, auth, medical records: those get the full distributed treatment. A portfolio chat? Ship the 200 lines.
 
 ## When to Go Big
 
-I'm not anti-infrastructure. I manage real Terraform pipelines and CI systems at work. When the answers are "terabytes of data," "thousands of users," "regulatory fine" — build the robust system. But don't tell yourself that's your portfolio site.
+I'm not anti-infrastructure. I manage real Terraform pipelines and CI systems at work. When the answers are "terabytes of data," "thousands of users," "regulatory fine," build the distributed system. But don't tell yourself that's your portfolio site.
 
 The skill isn't building distributed systems. It's knowing when *not* to.
 

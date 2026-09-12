@@ -59,11 +59,11 @@ type DualWriter struct {
 }
 
 func (dw *DualWriter) WriteCapture(ctx context.Context, tx *Capture) error {
-    // Primary write — monolith must succeed
+    // Primary write: monolith must succeed
     if err := dw.writeToMonolith(ctx, tx); err != nil {
         return err // don't proceed, money is at stake
     }
-    // Secondary write — best effort, tracked
+    // Secondary write: best effort, tracked
     if err := dw.cb.Execute(func() error {
         return dw.writeToService(ctx, tx)
     }); err != nil {
