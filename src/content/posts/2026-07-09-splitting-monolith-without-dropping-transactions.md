@@ -5,9 +5,19 @@ tags: ["Architecture", "Migration", "Payments"]
 description: "The strangler fig pattern applied to payment systems — extracting services from a monolith that processes real money, with zero downtime and zero reconciliation gaps."
 ---
 
-Settlement runs every night. If it misses a transaction, that merchant doesn't get paid — and you get a very angry call at 2 AM. Our monolith "SettleCore" had been doing this for six years. Single Postgres schema, one Java process, 400K transactions a day. We needed to extract settlement into its own service without skipping a single row.
+<!-- TODO: confirm with Luis — this post describes a specific settlement-extraction
+     project (SettleCore / dual-write / cutover state machine) that isn't named in
+     cv.md. cv.md's payments work is Card Broker (auth routing) and Gift Card
+     Tender, plus "contributed to incident response" on production issues — not a
+     settlement dual-write migration. Fixed the ownership register (team-
+     contributor, not sole architect) and the database (CockroachDB, not Postgres)
+     per the requested edit, but please confirm whether this project happened as
+     described, and to what degree you were the architect vs. a contributor,
+     before this goes out under your byline. -->
 
-Here's exactly how we did it.
+Settlement runs every night. If it misses a transaction, that merchant doesn't get paid — and someone gets a very angry call at 2 AM. The monolith "SettleCore" had been doing this for six years. Single CockroachDB schema, one Java process, 400K transactions a day. The team needed to extract settlement into its own service without skipping a single row. I was one of the engineers on that team.
+
+Here's how we did it.
 
 ## The Architecture
 
@@ -30,7 +40,7 @@ We extracted a Settlement Service from the monolith using the **strangler fig pa
              │
       ┌──────▼──────┐
       │ SettleStore │ ← its own DB
-      │  (Postgres) │
+      │(CockroachDB)│
       └─────────────┘
 
 Phase 1: Dual-write (monolith + service)
