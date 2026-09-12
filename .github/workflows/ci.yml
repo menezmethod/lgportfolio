@@ -91,7 +91,7 @@ jobs:
 
           echo "Triggering Coolify deploy (lgportfolio app only — never inferencia/ollama)"
           # COOLIFY_APP_UUID must be the lgportfolio application in Coolify UI, not inferencia.
-          deploy_response="$(curl -fsSL -X GET \
+          deploy_response="$(curl -fsSL -X POST \
             -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
             -H "Accept: application/json" \
             "${COOLIFY_URL%/}/api/v1/deploy?uuid=${COOLIFY_APP_UUID}&force=false")"
