@@ -21,9 +21,9 @@ With RPM=2, if a user asked a question that required follow-up, they'd hit the l
 
 The worst part: the main page content listed "AI Chat" as a feature, and it was broken out of the box.
 
-## The Fix (Data-Driven)
+## The fix
 
-I didn't guess. I looked at real usage patterns from the War Room analytics:
+Instead of guessing again, I looked at real usage patterns from the War Room analytics:
 
 - Average user session: 4-6 messages
 - Average time between messages: 20-45 seconds
@@ -48,8 +48,6 @@ const BUDGET_KILL: RateLimitConfig = {
 };
 ```
 
-## The Lesson
+## What I took away from this
 
-Rate limiting is not a binary "on/off" feature. You need three different numbers that interact: burst tolerance, session depth, and daily ceiling. Each solves a different problem (burst abuse vs. session length vs. cost runaway). Setting any one of them wrong makes the whole system feel broken.
-
-**Relevant to:** API design, platform engineering, backend roles where you own the boundary between your service and its consumers.
+Rate limiting isn't one on/off knob. It's three numbers that interact: burst tolerance, session depth, and daily ceiling, and each one is solving a different problem (burst abuse, session length, cost runaway). Get any one of them wrong and the whole feature just feels broken to whoever's using it.

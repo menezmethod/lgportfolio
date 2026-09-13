@@ -5,17 +5,11 @@ date: "2026-06-01"
 tags: ["Go", "Infrastructure", "Edge Computing"]
 ---
 
-## The Problem
+I needed one API endpoint that could sit in front of multiple AI backends (Ollama for chat and embeddings, Kokoro for TTS) without exposing either one directly to the internet. Just running everything on one machine and exposing it works fine, until you want a second backend type or you want to move something to different hardware. Then it breaks.
 
-I needed a single API endpoint that could front multiple AI backends (Ollama for chat and embeddings, Kokoro for TTS) without exposing each service directly to the internet. The naive approach (run everything on one machine, expose it) breaks as soon as you want to add a second backend type or move a service to different hardware.
+## The architecture
 
-## The Architecture
-
-The router is a Go binary that does exactly three things:
-
-1. **Parse the OpenAI-compatible API path** (`/v1/chat/completions`, `/v1/audio/speech`, `/v1/embeddings`)
-2. **Route to the correct backend** based on capability tags
-3. **Stream responses** back to the client without buffering
+The router is a Go binary. It does three things: parses the OpenAI-compatible path (`/v1/chat/completions`, `/v1/audio/speech`, `/v1/embeddings`), routes to the right backend by capability tag, and streams responses back without buffering.
 
 ```
 client → Cloudflare Tunnel → Coolify/Traefik (Pi5) → inferencia (:8080)
@@ -25,7 +19,7 @@ client → Cloudflare Tunnel → Coolify/Traefik (Pi5) → inferencia (:8080)
                                       Ollama (Mac)    Kokoro TTS (Mac)   [future]
 ```
 
-The key design decision was **capability-based routing**, not path-based. Each backend registers what it can do:
+The real decision was capability-based routing instead of path-based. Each backend registers what it can actually do:
 
 ```go
 type Backend interface {
@@ -35,19 +29,12 @@ type Backend interface {
 }
 ```
 
-This means adding a new backend (say, a dedicated embeddings service) is a registration, not a routing table change.
+Adding a new backend, say a dedicated embeddings service, is just a registration. Not a routing table change.
 
-## What I'd Do Differently
+## What's still missing
 
-**Health-aware routing is missing.** Currently if Ollama goes down, the router still accepts requests and fails at proxy time. The next iteration should probe backends and 503 proactively when upstream is unhealthy. I'll add this when I have a concrete need. Speculative flexibility is a trap.
+Health-aware routing. Right now, if Ollama goes down, the router still takes the request and fails at proxy time instead of catching it earlier. The next version should probe backends and return 503 before that happens. I haven't built it because I don't have a concrete need for it yet, and building it now would just be speculative flexibility. That's usually a trap.
 
-## Why Host on a Pi 5?
+## Why a Pi 5?
 
-It's not about performance. The Pi 5 is a reverse proxy, not an inference server. The real inference happens on the Mac M4 Max over the LAN. The Pi 5 is the **control plane**: it runs Coolify, Traefik, and the router. Keeping the proxy at the network edge (vs. tunneling everything from the Mac) means:
-
-- The Mac can sleep when idle
-- TLS termination happens at the edge
-- The router is always reachable even if the inference server reboots
-- It's a cheap place to experiment with deployment patterns that translate directly to production
-
-**Relevant to:** Senior platform/infra roles where you own the "thin edge" (ingress, routing, middleware), not just the monolith behind it.
+Not for performance. The Pi 5 is a reverse proxy, not an inference server. The actual inference runs on my Mac M4 Max over the LAN. The Pi 5 is the control plane: it runs Coolify, Traefik, and the router. Keeping the proxy at the network edge instead of tunneling everything off the Mac means the Mac can sleep when it's idle, TLS terminates at the edge, the router stays reachable even if the inference box reboots, and it's a cheap place to try deployment patterns before they matter in production.

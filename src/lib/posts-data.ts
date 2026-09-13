@@ -26,9 +26,11 @@ export function getAllPosts(): PostData[] {
       const { data, content } = matter(raw);
       return {
         slug: f.replace(/\.md$/, ""),
-        title: data.title || "Untitled",
-        description: data.description || "",
-        date: data.date || "",
+        title: String(data.title || "Untitled"),
+        description: String(data.description || ""),
+        date: data.date instanceof Date
+          ? data.date.toISOString().slice(0, 10)
+          : String(data.date || ""),
         tags: (data.tags || []) as string[],
         content,
       };
