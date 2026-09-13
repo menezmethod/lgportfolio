@@ -1,4 +1,4 @@
-// Smoke tests — every public page loads and shows its real current content.
+// Smoke tests: every public page loads and shows its real current content.
 // Rewritten 2026-09-11: the previous version tested a hero-tiles/telemetry-dashboard
 // homepage from an earlier redesign (stats like "2400+", "99.99%", routes like
 // /work, /architecture, /war-room) that no longer exists on the current
@@ -11,11 +11,11 @@ describe('Smoke — page load + content', () => {
     cy.get('h1').should('contain.text', 'Luis Gimenez');
     cy.contains('Site Reliability Engineer').should('exist');
     cy.contains('The Home Depot').should('exist');
-    // Deliberately not asserting the exact "Previously:" figure/wording here —
-    // this suite runs against live production (see cypress.config.ts baseUrl),
-    // so a content PR's own copy edits haven't deployed yet when this check
-    // runs pre-merge. Assert the stable structural piece instead.
-    cy.contains('Previously:').should('exist');
+    // Assert a stable fact (team name), not exact prose wording: this suite
+    // runs against live production (see cypress.config.ts baseUrl), so a
+    // content/voice PR's own copy edits haven't deployed yet when this check
+    // runs pre-merge, and exact phrasing here breaks on the next voice pass.
+    cy.contains('Enterprise Payments').should('exist');
   });
 
   it('about page loads', () => {
