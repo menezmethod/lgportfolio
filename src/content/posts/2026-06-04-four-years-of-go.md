@@ -104,6 +104,6 @@ If I could rewind four years:
 
 ## Why this matters
 
-If you're interviewing for senior or staff backend roles, especially at places moving real money, you'll run into Go constantly. Stripe, Adyen, Square, most big retailers' internal stacks, it's everywhere in payments. I've seen this play out for real: a service stayed up through Black Friday because of these habits, and I once got paged at 3 AM because a nil pointer slipped past a review.
+None of this is clever. It's just what stops being optional once real money and a real on-call rotation are involved. Cut a corner in a payment path and it comes back to bite you, usually at the worst possible time, and then you're the one on the call explaining why.
 
-Write Go your on-call self can read at 2 AM. Wrap your errors. Keep interfaces small. Set your deadlines. Trust the compiler instead of fighting the language.
+Write Go your on-call self can actually read at 2 AM. Wrap your errors. Keep interfaces small. Set your deadlines. That covers most of it.

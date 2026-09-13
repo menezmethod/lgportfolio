@@ -1,35 +1,8 @@
-import fs from 'fs';
-import path from 'path';
 import Link from 'next/link';
-
-interface Post {
-  slug: string;
-  title: string;
-  date: string;
-  summary: string;
-}
-
-function getPosts(): Post[] {
-  const postsDir = path.join(process.cwd(), 'src/content/posts');
-  const files = fs.readdirSync(postsDir).filter(f => f.endsWith('.md'));
-
-  return files.map(file => {
-    const content = fs.readFileSync(path.join(postsDir, file), 'utf-8');
-    const titleMatch = content.match(/^title:\s*(.+)$/m);
-    const dateMatch = content.match(/^date:\s*(.+)$/m);
-    const summaryMatch = content.match(/^summary:\s*(.+)$/m);
-
-    return {
-      slug: file.replace('.md', ''),
-      title: titleMatch?.[1] || file,
-      date: String(dateMatch?.[1] || ''),
-      summary: String(summaryMatch?.[1] || ''),
-    };
-  }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-}
+import { getAllPosts } from '@/lib/posts-data';
 
 export default function Writing() {
-  const posts = getPosts();
+  const posts = getAllPosts();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -49,7 +22,7 @@ export default function Writing() {
                   {post.title}
                 </h2>
                 <p className="text-muted-foreground mt-1">
-                  {post.summary}
+                  {post.description}
                 </p>
               </Link>
             </article>
