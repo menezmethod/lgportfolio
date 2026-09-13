@@ -24,12 +24,6 @@ export default function Home() {
           {/* Links */}
           <div className="space-y-4">
             <Link
-              href="/writing"
-              className="block text-foreground hover:text-primary transition-colors"
-            >
-              Writing →
-            </Link>
-            <Link
               href="/about"
               className="block text-foreground hover:text-primary transition-colors"
             >

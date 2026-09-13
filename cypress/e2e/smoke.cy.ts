@@ -23,11 +23,6 @@ describe('Smoke — page load + content', () => {
     cy.get('h1').should('contain.text', 'About');
   });
 
-  it('writing page loads', () => {
-    cy.visit('/writing');
-    cy.get('h1').should('contain.text', 'Writing');
-  });
-
   it('contact page loads with the open-to-roles note', () => {
     cy.visit('/contact');
     cy.get('h1').should('contain.text', 'Contact');
