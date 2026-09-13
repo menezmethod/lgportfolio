@@ -7,7 +7,7 @@ export default function NotFound() {
       <div className="max-w-md text-center space-y-6">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-card/60 border border-border/50 font-mono text-sm text-muted-foreground">
           <span className="text-red-400">$</span>
-          <span>404 — not found</span>
+          <span>404: not found</span>
         </div>
 
         <h1 className="text-5xl md:text-7xl font-bold text-foreground">

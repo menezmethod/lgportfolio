@@ -35,9 +35,9 @@ principles:
       response time. If it does neither, it is infrastructure theater.
 ---
 
-I work inside one of the hardest engineering environments to fake: enterprise-scale home services. At **The Home Depot**, I work on reliability, observability, and deployment governance for the Home Services platform — scheduling, dispatch, and fulfillment workflows.
+I work inside one of the hardest engineering environments to fake: enterprise-scale home services. At **The Home Depot**, I work on reliability, observability, and deployment governance for the Home Services platform: scheduling, dispatch, and fulfillment workflows.
 
-My focus is not generic full-stack work. I instrument critical paths, reduce operational ambiguity, and help move risky systems without customer impact. As an SRE at a Fortune 50 retailer, that means distributed tracing across multi-service stacks, SLO-driven reliability practices, and being the person other teams call to pull the right logs and scope an incident fast. Before this role, I spent about two years on the Enterprise Payments team building Go authorization services on CockroachDB — Card Broker routing, Gift Card Tender from initial design onward, and modernization off legacy NonStop to reduce PCI scope.
+My focus is not generic full-stack work. I instrument critical paths, reduce operational ambiguity, and help move risky systems without customer impact. As an SRE at a Fortune 50 retailer, that means distributed tracing across multi-service stacks, SLO-driven reliability practices, and being the person other teams call to pull the right logs and scope an incident fast. Before this role, I spent about two years on the Enterprise Payments team building Go authorization services on CockroachDB: Card Broker routing, Gift Card Tender from initial design onward, and modernization off legacy NonStop to reduce PCI scope.
 
 Based in the **Tampa Bay area**, I am open to remote and hybrid (≤2 days/week) roles in site reliability engineering, platform infrastructure, and systems architecture.
 

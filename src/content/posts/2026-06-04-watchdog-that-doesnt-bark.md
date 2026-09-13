@@ -1,6 +1,6 @@
 ---
 title: "The Watchdog That Doesn't Bark"
-description: "Building a self-healing monitor that recovers silently — and when to actually wake up a human."
+description: "Building a self-healing monitor that recovers silently, and knowing when to actually wake up a human."
 date: "2026-06-04"
 tags: ["Infrastructure", "Self-Healing", "Edge Computing"]
 ---
@@ -11,7 +11,7 @@ My portfolio site's AI chat went down. The chat API returned empty responses. Th
 
 Root cause: Coolify recreated the inferencia container with a new name and IP, the environment variable pointed to a stale IP, and no one noticed until someone tried to use the chat.
 
-The fix was trivial (update one env var). The *pattern* was the problem — a silent failure with no recovery path.
+The fix was trivial (update one env var). The *pattern* was the problem: a silent failure with no recovery path.
 
 ## The Architecture
 
@@ -32,11 +32,11 @@ If any link fails, it tries an automatic recovery (restart the container, update
 
 Most monitoring setups alert on every hiccup. The noise trains humans to ignore alerts. I made a deliberate tradeoff:
 
-- **Silent recovery** — If the watchdog fixes it, no message. Zero noise.
-- **Single alert on failure** — If recovery fails, exactly one Telegram message. Not a page storm.
-- **No pager duty for a portfolio site** — The site has SLOs but they aren't "wake me up at 3 AM" SLOs. If recovery fails, the alert sits in Telegram until morning.
+- **Silent recovery:** if the watchdog fixes it, no message. Zero noise.
+- **Single alert on failure:** if recovery fails, exactly one Telegram message. Not a page storm.
+- **No pager duty for a portfolio site:** the site has SLOs but they aren't "wake me up at 3 AM" SLOs. If recovery fails, the alert sits in Telegram until morning.
 
-The watchdog runs as a cron job with `no_agent: true` — it's a pure Python script that delivers its output verbatim. No LLM overhead, no agent loop, just a health check that produces silence or one line of text.
+The watchdog runs as a cron job with `no_agent: true`. It's a pure Python script that delivers its output verbatim. No LLM overhead, no agent loop, just a health check that produces silence or one line of text.
 
 ## The Tradeoff
 

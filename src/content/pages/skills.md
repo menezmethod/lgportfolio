@@ -2,7 +2,7 @@
 title: Skills
 description: >-
   Production skills across reliability engineering, cloud infrastructure, observability, and
-  site reliability — rated by hands-on depth, not resume theater.
+  site reliability, rated by hands-on depth, not resume theater.
 categories:
   - name: programming languages
     skills:

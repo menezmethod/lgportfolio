@@ -1,13 +1,13 @@
-// Flows — critical navigation, against the current site.
+// Flows: critical navigation, against the current site.
 // Rewritten 2026-09-11: the previous version clicked nav buttons
 // (data-slot="button") and routes (/work, /architecture, /war-room) from an
 // earlier redesign. The current live nav (src/app/layout.tsx) is a plain
 // text-link header: Writing, About, Contact. A separate Navbar.tsx component
 // existed with an "AI Chat" nav button and data-cy hooks, but it was dead
-// code — never imported by any page — so it's deleted rather than tested.
+// code (never imported by any page), so it's deleted rather than tested.
 // /chat is still a real route, just not linked from the header nav today.
 
-describe('Flows — navigation', () => {
+describe('Flows: navigation', () => {
   it('header nav links land on the right page', () => {
     const cases: Array<{ href: string; heading: string }> = [
       { href: '/writing', heading: 'Writing' },

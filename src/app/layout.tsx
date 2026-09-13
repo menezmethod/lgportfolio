@@ -9,9 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Luis Gimenez — SRE at The Home Depot",
+  title: "Luis Gimenez · SRE at The Home Depot",
   description:
-    "Site Reliability Engineer. Reliability, observability, and incident response for Home Services at The Home Depot.",
+    "Site reliability engineer at The Home Depot. I work on Home Services: reliability, observability, and incident response.",
 };
 
 export default function RootLayout({
