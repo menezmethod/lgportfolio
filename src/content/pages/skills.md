@@ -31,8 +31,6 @@ categories:
       - Kubernetes (Working)
       - Docker (Proficient)
       - CI/CD (Proficient)
-      - gRPC (Proficient)
-      - Protobuf (Working)
       - API Design (Proficient)
   - name: observability
     skills:

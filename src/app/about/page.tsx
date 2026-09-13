@@ -119,8 +119,7 @@ export default function About() {
                 'Go', 'Java', 'TypeScript', 'Python',
                 'GCP', 'GKE', 'Terraform', 'Kubernetes', 'Docker',
                 'OpenTelemetry', 'Prometheus', 'Grafana', 'Tempo',
-                'PostgreSQL', 'Redis', 'CockroachDB',
-                'gRPC', 'Protobuf', 'CI/CD',
+                'PostgreSQL', 'Redis', 'CockroachDB', 'CI/CD',
                 'Distributed Systems', 'SRE', 'Incident Response',
               ].map((skill) => (
                 <span

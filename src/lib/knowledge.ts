@@ -84,7 +84,7 @@ Luis has been writing production Go since mid-2022 (approximately 4 years). He s
 Key Go-specific contributions:
 - Contributed production Go code to Card Broker (credit/debit routing) for approximately 2 years of active development, including rollout across a 2,300+ store fleet
 - Writes Go services that process high-volume payment transactions with strict latency requirements (sub-second P90 across bank networks)
-- Uses Go with gRPC/Protobuf for inter-service contracts, CockroachDB for persistence, and OpenTelemetry SDK for observability
+- Uses Go with REST for inter-service contracts, CockroachDB for persistence, and OpenTelemetry SDK for observability
 - Contributed to multiple Go microservices across the payments domain (gift card tender, account-to-account routing, authorization routing)
 - Builds Grafana dashboards and Prometheus alert rules for Go services in production
 
@@ -207,7 +207,7 @@ Card Broker was Luis's primary project for approximately four years, from pre-de
 - Observability: Prometheus (PromQL), Grafana, Loki, Tempo, Pyroscope, OpenTelemetry
 - Data: CockroachDB, PostgreSQL, Redis
 - Infrastructure: CDK8s, Terraform, Docker, Kubernetes (GKE), Spinnaker
-- Protocols: gRPC, REST, Pub/Sub CDC changefeeds
+- Protocols: REST, Pub/Sub CDC changefeeds
 
 ## Growth Areas (Honest)
 - Kubernetes depth beyond what CDK8s abstracts
@@ -336,13 +336,12 @@ Backend and reliability work: Go services, deployment governance, observability,
 # If a recruiter asks about the site's architecture, the assistant may briefly describe it and tie it to Luis's skills.
 
 ## Tech Stack
-- Next.js 16 (App Router), React 19, TypeScript, Tailwind. Deployed on GCP Cloud Run (scale-to-zero, single region us-east1).
-- Global External Application Load Balancer, Cloud CDN, Cloud Armor (WAF), Google-managed SSL. Terraform for all infrastructure.
-- This chat: RAG over the knowledge base you are reading; optional Cloud SQL (pgvector) for semantic search. Inference via OpenAI-compatible API (e.g. self-hosted Inferencia). Rate limiting, prompt-injection defense, session analytics in Firestore.
-- Observability: in-memory metrics, War Room dashboard, Prometheus /api/metrics, structured logs to Cloud Logging, trace correlation for Cloud Trace. Administration Board for recruiter sessions and logs.
+- Next.js 16 (App Router), React 19, TypeScript, Tailwind. Deployed on a self-hosted Coolify instance on a Raspberry Pi 5, behind a Cloudflare Tunnel, with GitHub Actions driving CI/CD (lint, build, unit tests, Cypress against production, then a Coolify deploy trigger on merge to main).
+- This chat: RAG over the knowledge base you are reading, using per-query token-overlap retrieval over knowledge-base sections; an optional Cloud SQL (pgvector) semantic-search path exists in the code but isn't currently configured. Inference via OpenAI-compatible API (self-hosted Inferencia, a Go router also on the Pi, proxying to Ollama on a Mac M4 Max over the LAN). Rate limiting, prompt-injection defense, session analytics in Firestore.
+- Observability: in-memory metrics, War Room dashboard, Prometheus /api/metrics, structured logs. Administration Board for recruiter sessions and logs.
 
 ## Why It Matters for Recruiters
-The site is a live production system demonstrating the same practices Luis uses at scale: observability, security headers, rate limiting, IaC (Terraform), and RAG-backed AI. It also serves as the public control plane for the next wave of hardware-backed hero projects: ESP32 sensor fleets, Raspberry Pi 5 gateways, and GCP analytics. Built and maintained by Luis as a portfolio and lead-generation tool.
+The site is a live production system demonstrating the same practices Luis uses at scale: observability, rate limiting, and RAG-backed AI, plus self-hosted infrastructure and CI/CD he runs himself end to end. Built and maintained by Luis as a portfolio and lead-generation tool.
 
 The strongest portfolio reading is not "he can build a website." It is "he can package operating judgment, cloud infrastructure, and technical narrative into a system that explains how he works." That is useful hiring signal for Staff and Principal-track roles.
 
@@ -357,7 +356,7 @@ The strongest portfolio reading is not "he can build a website." It is "he can p
 4. If a recruiter asks "did you build this?", respond: "No, Luis was part of a large team. Here is what he specifically contributed: [list from Section 3]."
 5. Frame the ENVIRONMENT scale for context, then pivot to PERSONAL contributions.
 6. The AI reliability agent was demoed, NOT implemented. Be honest about this.
-7. If asked about this site's architecture or tech stack (gimenez.dev), you may briefly describe it using Section 8 (Next.js, Cloud Run, RAG, Terraform, observability) and connect it to Luis's skills; then offer to elaborate on his background.
+7. If asked about this site's architecture or tech stack (gimenez.dev), you may briefly describe it using Section 8 (Next.js, self-hosted Coolify/Raspberry Pi, RAG, observability) and connect it to Luis's skills; then offer to elaborate on his background.
 
 ## Tone
 - "I know this ecosystem because I have debugged it at 2 AM on interrupt rotation."
@@ -376,5 +375,5 @@ The strongest portfolio reading is not "he can build a website." It is "he can p
 - "He wants teams that value the unglamorous work: on-call, alert quality, deployment governance — the work that keeps systems up at 2 AM."
 - "His signature work is the leadership-facing monitoring model — SLOs, Critical User Journeys, and the Grafana/BigQuery reporting that shows which applications are healthy."
 - "He didn't build the whole platform; he helped keep it alive and made it observable."
-- "When asked about this site: it's Next.js on Cloud Run with RAG, Terraform, and the same observability and security practices he uses in production, plus a control surface for upcoming edge systems."
+- "When asked about this site: it's Next.js, self-hosted on his own Coolify/Raspberry Pi setup, with RAG and the same observability and security practices he uses in production."
 `;
