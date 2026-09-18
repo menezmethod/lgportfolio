@@ -70,6 +70,32 @@ export default function Home() {
             </p>
           </div>
 
+          <section className="border border-border rounded-xl p-6 space-y-4">
+            <p className="text-sm text-muted-foreground font-mono">recruiter side quest</p>
+            <h2 className="text-xl font-semibold">See the systems thinking in motion.</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              SaucerJam is a live browser multiplayer build: fixed-step simulation,
+              authoritative rooms, reconnects, and touch controls. Play first, then
+              invite me to a short playtest with your team.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <a
+                href="https://qd.menezmethod.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                Play SaucerJam
+              </a>
+              <a
+                href="mailto:luisgimenezdev@gmail.com?subject=SaucerJam%20playtest%20invite&body=Hi%20Luis%2C%0A%0AI%27d%20like%20to%20invite%20you%20to%20a%20short%20SaucerJam%20playtest.%0A%0ARole%2Fcompany%3A%20%0APreferred%20time%3A%20%0ATeam%20size%3A%20"
+                className="inline-flex items-center justify-center px-4 py-2 border border-border rounded-lg hover:border-primary transition-colors"
+              >
+                Invite Luis to play
+              </a>
+            </div>
+          </section>
+
           {/* Certifications */}
           <div className="text-xs text-muted-foreground font-mono">
             GCP Professional Cloud Architect · active

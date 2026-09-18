@@ -16,6 +16,8 @@ describe('Smoke — page load + content', () => {
     // content/voice PR's own copy edits haven't deployed yet when this check
     // runs pre-merge, and exact phrasing here breaks on the next voice pass.
     cy.contains('Enterprise Payments').should('exist');
+    cy.contains('Play SaucerJam').should('be.visible');
+    cy.contains('Invite Luis to play').should('be.visible');
   });
 
   it('about page loads', () => {

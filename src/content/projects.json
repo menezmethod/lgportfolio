@@ -1,5 +1,41 @@
 [
   {
+    "slug": "saucerjam",
+    "title": "SaucerJam",
+    "eyebrow": "Personal build | browser multiplayer",
+    "summary": "A no-install browser arena combat game with a shared fixed-step simulation, authoritative multiplayer, bot practice, private rooms, and touch-ready controls.",
+    "narrative": {
+      "problem": "Browser games often choose between instant playability and trustworthy multiplayer state, leaving either the first-time player or the live match experience compromised.",
+      "tradeoff": "Keep the game small enough to launch from one URL while still treating movement, collision, weapons, reconnects, and round results as server-owned systems.",
+      "decision": "Share one deterministic simulation between practice and the server, validate untrusted inputs at the boundary, predict local movement for feel, and stream only the state each pilot needs.",
+      "outcome": "Shipped a playable public arena with keyboard, mouse, and touch controls, private rooms, persistent pilot records, match recaps, and a verified desktop/mobile release gate."
+    },
+    "stack": [
+      "TypeScript",
+      "Node.js",
+      "Socket.IO",
+      "Three.js",
+      "Webpack",
+      "Playwright"
+    ],
+    "architecture": "Fixed-step shared simulation -> Socket.IO rooms -> predicted browser renderer",
+    "cloud": "Node.js server, same-origin static client, WebSocket transport",
+    "hardware": "Desktop, touch, and mobile browser controls",
+    "status": "live",
+    "featured": true,
+    "origin": "personal",
+    "links": {
+      "github": "https://github.com/menezmethod/saucerjam",
+      "demo": "https://qd.menezmethod.com"
+    },
+    "metrics": [
+      { "label": "match", "value": "20 eliminations / 5 min" },
+      { "label": "rooms", "value": "Public + private" },
+      { "label": "input", "value": "Keyboard / mouse / touch" },
+      { "label": "verification", "value": "106 tests + E2E" }
+    ]
+  },
+  {
     "slug": "otel-home-services-tracing",
     "title": "OTel Distributed Tracing for Home Services",
     "eyebrow": "SRE | distributed observability",
