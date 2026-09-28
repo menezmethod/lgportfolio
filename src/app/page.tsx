@@ -75,12 +75,12 @@ export default function Home() {
             <h2 className="text-xl font-semibold">See the systems thinking in motion.</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               SaucerJam is a live browser multiplayer build: fixed-step simulation,
-              authoritative rooms, reconnects, and touch controls. Play first, then
-              invite me to a short playtest with your team.
+              authoritative rooms, reconnects, and one-tap invite links. Play a round,
+              or start an arena and send me the invite — I join in one tap.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <a
-                href="https://qd.menezmethod.com"
+                href="https://saucerjam.com/?utm_source=portfolio&utm_medium=recruiter_side_quest&utm_campaign=launch"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
@@ -88,12 +88,25 @@ export default function Home() {
                 Play SaucerJam
               </a>
               <a
-                href="mailto:luisgimenezdev@gmail.com?subject=SaucerJam%20playtest%20invite&body=Hi%20Luis%2C%0A%0AI%27d%20like%20to%20invite%20you%20to%20a%20short%20SaucerJam%20playtest.%0A%0ARole%2Fcompany%3A%20%0APreferred%20time%3A%20%0ATeam%20size%3A%20"
+                href="https://saucerjam.com/?host=1&utm_source=portfolio&utm_medium=recruiter_invite&utm_campaign=launch"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center justify-center px-4 py-2 border border-border rounded-lg hover:border-primary transition-colors"
               >
                 Invite Luis to play
               </a>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Invite starts a private arena and hands you the link to send. Prefer to
+              schedule it?{" "}
+              <a
+                className="underline hover:text-foreground"
+                href="mailto:luisgimenezdev@gmail.com?subject=SaucerJam%20playtest%20invite&body=Hi%20Luis%2C%0A%0AI%27d%20like%20to%20invite%20you%20to%20a%20short%20SaucerJam%20playtest.%0A%0ARole%2Fcompany%3A%20%0APreferred%20time%3A%20%0ATeam%20size%3A%20"
+              >
+                email me
+              </a>
+              .
+            </p>
           </section>
 
           {/* Certifications */}

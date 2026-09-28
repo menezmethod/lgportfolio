@@ -26,13 +26,13 @@
     "origin": "personal",
     "links": {
       "github": "https://github.com/menezmethod/saucerjam",
-      "demo": "https://qd.menezmethod.com"
+      "demo": "https://saucerjam.com/?utm_source=portfolio&utm_medium=work_page&utm_campaign=launch"
     },
     "metrics": [
       { "label": "match", "value": "20 eliminations / 5 min" },
       { "label": "rooms", "value": "Public + private" },
       { "label": "input", "value": "Keyboard / mouse / touch" },
-      { "label": "verification", "value": "106 tests + E2E" }
+      { "label": "verification", "value": "311 tests + browser E2E" }
     ]
   },
   {
