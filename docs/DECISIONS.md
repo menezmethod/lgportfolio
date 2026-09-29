@@ -4,9 +4,9 @@
 - **Framework:** Next.js 16 App Router with TypeScript (Node 20.9+)
 - **Styling:** Tailwind CSS with original site colors preserved (#32c0f4 cyan, #e97124 orange)
 - **AI Chat:** AI SDK + Inferencia (OpenAI-compatible)
-- **RAG:** GCP Cloud SQL (PostgreSQL + pgvector) optional; falls back to file-based knowledge
-- **Infrastructure:** GCP Cloud Run via Terraform
-- **CI/CD:** Cloud Build (push to `main` → build & deploy to Cloud Run)
+- **RAG:** Cloudflare Vectorize + Workers AI embeddings (free tier); falls back to file-based knowledge when not configured
+- **Infrastructure:** self-hosted Coolify (ARM server) behind a Cloudflare Tunnel; GCP Terraform kept for optional rollback
+- **CI/CD:** GitHub Actions (lint/build/test/Cypress) → Coolify deploy on merge to `main`
 - **Version:** Single source of truth in `package.json`, read via `src/lib/version.ts`
 
 ## Key Decisions
@@ -31,7 +31,7 @@ See [docs/adr/](./adr/) for formal ADRs.
 - [x] `npm run test:e2e` — Cypress smoke tests pass
 - [x] All pages render: Home, About, Work, Architecture, Chat, Contact, War Room
 - [x] Chat API with rate limiting, prompt injection defense, and caching
-- [x] RAG pipeline (file-based; Cloud SQL optional)
+- [x] RAG pipeline (Cloudflare Vectorize; file-based fallback)
 - [x] Terraform IaC complete
 - [x] Cloud Build CI/CD (push to main → deploy)
 - [x] Security headers (CSP, HSTS, X-Frame-Options)

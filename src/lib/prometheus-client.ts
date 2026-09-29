@@ -24,7 +24,8 @@ interface PromVectorResponse {
   };
 }
 
-const QUERY_TIMEOUT_MS = 8_000;
+const QUERY_TIMEOUT_MS = 15_000;
+const QUERY_ATTEMPTS = 2;
 
 export function isPrometheusConfigured(): boolean {
   return Boolean(process.env.PROMETHEUS_URL?.trim());
@@ -52,15 +53,27 @@ function authHeaders(): HeadersInit {
 
 async function promFetch(path: string, params: URLSearchParams): Promise<PromVectorResponse> {
   const url = `${prometheusBaseUrl()}${path}?${params.toString()}`;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), QUERY_TIMEOUT_MS);
-  try {
-    const res = await fetch(url, { headers: authHeaders(), signal: controller.signal, cache: "no-store" });
-    if (!res.ok) throw new Error(`Prometheus ${res.status}: ${await res.text()}`);
-    return (await res.json()) as PromVectorResponse;
-  } finally {
-    clearTimeout(timer);
+  let lastError: unknown;
+  // Retry once on timeout/network errors — Prometheus shares the Pi with Ollama, so a
+  // single slow scrape must not flip the whole War Room to the in-memory fallback.
+  for (let attempt = 0; attempt < QUERY_ATTEMPTS; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), QUERY_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { headers: authHeaders(), signal: controller.signal, cache: "no-store" });
+      if (!res.ok) throw new Error(`Prometheus ${res.status}: ${await res.text()}`);
+      return (await res.json()) as PromVectorResponse;
+    } catch (error) {
+      lastError = error;
+      const retryable =
+        error instanceof Error &&
+        (error.name === "AbortError" || error.name === "TimeoutError" || error.name === "TypeError");
+      if (!retryable) throw error;
+    } finally {
+      clearTimeout(timer);
+    }
   }
+  throw lastError;
 }
 
 function parseInstant(data: PromVectorResponse): PrometheusInstantResult | null {

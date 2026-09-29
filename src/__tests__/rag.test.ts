@@ -1,19 +1,19 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-// Mock pg Pool before importing rag module
-const mockQuery = vi.fn();
-vi.mock("pg", () => ({
-  Pool: vi.fn(() => ({
-    query: mockQuery,
-  })),
-}));
-
-// Save original fetch
 const originalFetch = global.fetch;
+
+function workerResponse(matches: unknown[]) {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => ({ matches }),
+  } as unknown as Response;
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
   global.fetch = vi.fn();
+  vi.stubEnv("CLOUDFLARE_RAG_KEY", "test-key");
 });
 
 afterEach(() => {
@@ -21,97 +21,77 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-// Import AFTER mocks — rag.ts reads env vars at module scope
-// Since env vars are read at module load time, Cloud SQL path requires resetModules
-import { generateEmbedding } from "@/lib/rag";
+import { isCloudflareRagConfigured, retrieveContext, retrieveFileContext } from "@/lib/rag";
 
 describe("rag", () => {
-  describe("generateEmbedding", () => {
-    it("calls Google Generative Language API with correct URL and body", async () => {
-      vi.stubEnv("GOOGLE_API_KEY", "test-api-key");
+  describe("configuration", () => {
+    it("is configured when the worker key is set", () => {
+      expect(isCloudflareRagConfigured()).toBe(true);
+    });
 
-      const mockResponse = {
-        ok: true,
-        json: async () => ({
-          embedding: { values: Array(768).fill(0.1) },
-        }),
-      };
-      vi.mocked(global.fetch).mockResolvedValue(mockResponse as Response);
+    it("is not configured without the worker key", () => {
+      vi.unstubAllEnvs();
+      expect(isCloudflareRagConfigured()).toBe(false);
+    });
+  });
 
-      await generateEmbedding("test query");
+  describe("retrieveContext", () => {
+    it("returns worker matches (plus behavior rules) when configured", async () => {
+      vi.mocked(global.fetch).mockResolvedValue(
+        workerResponse([
+          { score: 0.62, source: "knowledge", content: "Luis works on Home Services reliability." },
+          { score: 0.3, source: "knowledge", content: "below-threshold chunk" },
+        ])
+      );
 
+      const result = await retrieveContext("What does Luis do at Home Depot?");
+
+      expect(result).toContain("Home Services reliability");
+      expect(result).toContain("SECTION 9");
+      expect(result).not.toContain("below-threshold");
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining("text-embedding-004:embedContent?key=test-api-key"),
+        expect.stringContaining("/retrieve"),
         expect.objectContaining({
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: expect.stringContaining("test query"),
+          headers: expect.objectContaining({ "x-rag-key": "test-key" }),
+          body: expect.stringContaining("What does Luis do at Home Depot?"),
         })
       );
     });
 
-    it("returns embedding values array on success", async () => {
-      vi.stubEnv("GOOGLE_API_KEY", "test-api-key");
-
-      const values = Array(768).fill(0.5);
-      vi.mocked(global.fetch).mockResolvedValue({
-        ok: true,
-        json: async () => ({ embedding: { values } }),
-      } as Response);
-
-      const result = await generateEmbedding("test");
-      expect(result).toEqual(values);
-      expect(result).toHaveLength(768);
+    it("uses file context for low-signal queries even when Cloudflare is configured", async () => {
+      const result = await retrieveContext("hi there");
+      expect(result).toBe(retrieveFileContext("hi there", 5));
+      expect(global.fetch).not.toHaveBeenCalled();
     });
 
-    it("throws when GOOGLE_API_KEY is not set", async () => {
-      delete process.env.GOOGLE_API_KEY;
-
-      await expect(generateEmbedding("test")).rejects.toThrow(
-        "GOOGLE_API_KEY not configured"
+    it("falls back to file context when no matches clear the threshold", async () => {
+      vi.mocked(global.fetch).mockResolvedValue(
+        workerResponse([{ score: 0.3, source: "knowledge", content: "weak match" }])
       );
+
+      const result = await retrieveContext("payments observability grafana");
+      expect(result).toBe(retrieveFileContext("payments observability grafana", 5));
     });
 
-    it("throws when API returns non-OK response", async () => {
-      vi.stubEnv("GOOGLE_API_KEY", "test-api-key");
+    it("falls back to file context when the worker call fails", async () => {
+      vi.mocked(global.fetch).mockRejectedValue(new Error("network down"));
 
-      vi.mocked(global.fetch).mockResolvedValue({
-        ok: false,
-        statusText: "Bad Request",
-      } as Response);
-
-      await expect(generateEmbedding("test")).rejects.toThrow(
-        "Embedding generation failed"
-      );
+      const result = await retrieveContext("payments observability grafana");
+      expect(result).toBe(retrieveFileContext("payments observability grafana", 5));
     });
 
-    it("returns empty array when embedding.values is missing", async () => {
-      vi.stubEnv("GOOGLE_API_KEY", "test-api-key");
+    it("falls back to file context when Cloudflare is not configured", async () => {
+      vi.unstubAllEnvs();
 
-      vi.mocked(global.fetch).mockResolvedValue({
-        ok: true,
-        json: async () => ({ embedding: {} }),
-      } as Response);
-
-      const result = await generateEmbedding("test");
-      expect(result).toEqual([]);
+      const result = await retrieveContext("payments observability grafana");
+      expect(result).toBe(retrieveFileContext("payments observability grafana", 5));
+      expect(global.fetch).not.toHaveBeenCalled();
     });
   });
 
-  // Test retrieveContext in a separate describe that uses dynamic import
-  // so we can control the Cloud SQL env vars before module loads
-  describe("retrieveContext", () => {
-    it("returns a focused file context when Cloud SQL env vars are missing", async () => {
-      const { retrieveContext, retrieveFileContext } = await import("@/lib/rag");
-      const full = retrieveFileContext("payments observability grafana", 5);
-      const result = await retrieveContext("payments observability grafana");
-      expect(result.length).toBeGreaterThan(100);
-      expect(result.length).toBeLessThan(35000);
-      expect(result).toBe(full);
-    });
-
+  describe("retrieveFileContext", () => {
     it("returns a smaller greeting context for low-signal queries", async () => {
-      const { retrieveFileContext } = await import("@/lib/rag");
       const { KNOWLEDGE_BASE } = await import("@/lib/knowledge");
       const greeting = retrieveFileContext("hi there", 3);
       const broad = retrieveFileContext("payments observability grafana card broker", 3);

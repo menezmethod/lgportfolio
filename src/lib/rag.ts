@@ -1,72 +1,62 @@
 /**
  * RAG: retrieval for the AI chat.
- * - When Cloud SQL (GCP) is configured: vector search via pgvector.
+ * - When the Cloudflare RAG worker is configured: vector search via Workers AI
+ *   embeddings + Vectorize (the worker holds the Cloudflare bindings).
  * - Otherwise: file-based knowledge base (KNOWLEDGE_BASE).
- * Embeddings: Google Generative Language API (text-embedding-004).
+ * Embeddings: Workers AI (@cf/baai/bge-m3, 1024 dimensions).
  */
 
-import { Pool } from "pg";
+import { KNOWLEDGE_BASE } from "./knowledge";
 
-const connectionName = process.env.CLOUD_SQL_CONNECTION_NAME;
-const dbName = process.env.RAG_DB_NAME;
-const dbUser = process.env.RAG_DB_USER;
-const dbPassword = process.env.RAG_DB_PASSWORD;
-const dbHost = process.env.RAG_DB_HOST; // optional: for local Cloud SQL Proxy (e.g. 127.0.0.1)
+const DEFAULT_WORKER_URL = "https://lgportfolio-rag.luisgimenezdev.workers.dev";
+/** Cosine similarity floor, calibrated for bge-m3: relevant chunks score ~0.45–0.7. */
+const MATCH_THRESHOLD = 0.4;
+const WORKER_TIMEOUT_MS = 10_000;
 
-const hasCloudSql =
-  connectionName && dbName && dbUser && dbPassword;
-
-let pool: Pool | null = null;
-
-function getPool(): Pool | null {
-  if (!hasCloudSql) return null;
-  if (pool) return pool;
-  try {
-    const host = dbHost || `/cloudsql/${connectionName}`;
-    pool = new Pool({
-      host,
-      database: dbName,
-      user: dbUser,
-      password: dbPassword,
-      max: 1,
-      idleTimeoutMillis: 10000,
-      connectionTimeoutMillis: 10000,
-    });
-    return pool;
-  } catch {
-    return null;
-  }
+function workerUrl(): string {
+  const url = process.env.CLOUDFLARE_RAG_WORKER_URL?.trim() || DEFAULT_WORKER_URL;
+  return url.replace(/\/$/, "");
 }
 
-export async function generateEmbedding(text: string): Promise<number[]> {
-  const apiKey = process.env.GOOGLE_API_KEY;
+function workerKey(): string | null {
+  return process.env.CLOUDFLARE_RAG_KEY?.trim() || null;
+}
 
-  if (!apiKey) {
-    throw new Error("GOOGLE_API_KEY not configured");
-  }
+export function isCloudflareRagConfigured(): boolean {
+  return Boolean(workerKey());
+}
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "models/text-embedding-004",
-        content: { parts: [{ text }] },
-        taskType: "RETRIEVAL_QUERY",
-      }),
-    }
-  );
+export interface VectorMatch {
+  score: number;
+  source: string;
+  content: string;
+}
 
+async function retrieveWorkerMatches(query: string, topK: number): Promise<VectorMatch[]> {
+  const key = workerKey();
+  if (!key) throw new Error("Cloudflare RAG not configured");
+
+  const response = await fetch(`${workerUrl()}/retrieve`, {
+    method: "POST",
+    headers: { "x-rag-key": key, "Content-Type": "application/json" },
+    body: JSON.stringify({ query, topK }),
+    signal: AbortSignal.timeout(WORKER_TIMEOUT_MS),
+  });
   if (!response.ok) {
-    throw new Error(`Embedding generation failed: ${response.statusText}`);
+    throw new Error(`RAG worker failed: ${response.status}`);
   }
 
   const data = await response.json();
-  return data.embedding?.values || [];
+  const matches = data?.matches;
+  if (!Array.isArray(matches)) return [];
+  return matches
+    .filter((m: { content?: unknown }) => typeof m?.content === "string" && m.content.length > 0)
+    .map((m: { score?: number; source?: unknown; content: string }) => ({
+      score: typeof m.score === "number" ? m.score : 0,
+      source: typeof m.source === "string" ? m.source : "unknown",
+      content: m.content,
+    }));
 }
-
-import { KNOWLEDGE_BASE } from "./knowledge";
 
 const FILE_SECTION_SPLIT = /(?=# ═{3,}\n# SECTION \d+:)/;
 const FILE_PREAMBLE_MAX_CHARS = 2500;
@@ -168,35 +158,31 @@ function deduplicateContext(context: string): string {
   return out.join(chunkSeparator);
 }
 
-/** Format embedding array for PostgreSQL vector(768). */
-function toVectorLiteral(embedding: number[]): string {
-  return `[${embedding.join(",")}]`;
-}
-
 export async function retrieveContext(query: string, topK = 5): Promise<string> {
-  const client = getPool();
-
-  if (!client) {
+  // Low-signal queries (greetings, one-liners) keep the curated file context —
+  // it always includes the identity and behavior-rule sections.
+  if (!isCloudflareRagConfigured() || isLowSignalQuery(query, tokenize(query))) {
     return retrieveFileContext(query, topK);
   }
 
   try {
-    const embedding = await generateEmbedding(query);
-    const vectorLiteral = toVectorLiteral(embedding);
-
-    const { rows } = await client.query<{ content: string; source: string }>(
-      `SELECT content, source FROM match_documents($1::vector(768), 0.7, $2)`,
-      [vectorLiteral, topK]
+    const matches = (await retrieveWorkerMatches(query, topK)).filter(
+      (match) => match.score >= MATCH_THRESHOLD
     );
 
-    if (!rows || rows.length === 0) {
+    if (matches.length === 0) {
       return retrieveFileContext(query, topK);
     }
 
-    const raw = rows
-      .map((r) => `[Source: ${r.source || "unknown"}] ${r.content}`)
-      .join("\n\n---\n\n");
-    return deduplicateContext(raw);
+    // Always include the AI behavior rules alongside vector matches (the file
+    // path guarantees them; the vector path must too).
+    const behaviorSection = splitKnowledgeSections().find((section) =>
+      /SECTION 9:/i.test(section)
+    );
+    const chunks = matches.map((match) => `[Source: ${match.source}] ${match.content}`);
+    if (behaviorSection) chunks.push(`[Source: knowledge] ${behaviorSection}`);
+
+    return deduplicateContext(chunks.join("\n\n---\n\n"));
   } catch {
     return retrieveFileContext(query, topK);
   }

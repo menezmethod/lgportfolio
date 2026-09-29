@@ -30,6 +30,12 @@ export default function Home() {
               About / Experience →
             </Link>
             <Link
+              href="/chat"
+              className="block text-foreground hover:text-primary transition-colors"
+            >
+              Ask my AI about me →
+            </Link>
+            <Link
               href="https://github.com/menezmethod"
               target="_blank"
               rel="noopener noreferrer"
