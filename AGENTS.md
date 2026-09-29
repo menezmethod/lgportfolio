@@ -72,7 +72,7 @@ Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`
 
 - Copy `.env.example` to `.env.local`. All portfolio pages work without API keys.
 - `INFERENCIA_API_KEY` + `INFERENCIA_BASE_URL` are needed for the AI chat. Without them, chat returns 503 but all pages work.
-- **RAG:** By default the chat uses the file-based knowledge base. For vector search, use GCP Cloud SQL (PostgreSQL + pgvector): set `enable_rag_cloud_sql = true` in Terraform; apply schema (`scripts/init-rag-db.sql`) and seed (`npx tsx scripts/seed-rag-db.ts`). Cloud Run gets `CLOUD_SQL_CONNECTION_NAME`, `RAG_DB_*` from Terraform when enabled.
+- **RAG:** Cloudflare Vectorize + Workers AI embeddings (`@cf/baai/bge-m3`, 1024 dims) via the `lgportfolio-rag` worker in `workers/rag/` (deploy: `npx wrangler deploy`, secret `RAG_KEY`). App env: `CLOUDFLARE_RAG_KEY` (+ optional `CLOUDFLARE_RAG_WORKER_URL`). Index `lgportfolio-kb` (cosine). Seed/refresh: `npx tsx scripts/seed-rag-cloudflare.ts`. Without the key, file-based KB retrieval is used. Workers AI is also the last-resort chat fallback provider.
 - In production on **Coolify**, set secrets in the Coolify app env (or `.env` on the Pi). On **GCP Cloud Run**, Inferencia values come from **Secret Manager** via `cloudbuild.yaml` `--set-secrets`.
 - Optional: `NEXT_PUBLIC_GA_MEASUREMENT_ID` for Google Analytics 4.
 - **`GOOGLE_CLOUD_PROJECT`** — Set in Terraform for Cloud Run so logs include `logging.googleapis.com/trace` and appear in **Trace** and Logs Explorer. Required for Observability → Trace to show requests.

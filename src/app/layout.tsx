@@ -30,6 +30,9 @@ export default function RootLayout({
             <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">
               About
             </Link>
+            <Link href="/chat" className="text-muted-foreground hover:text-foreground transition-colors">
+              Chat
+            </Link>
             <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
               Contact
             </Link>

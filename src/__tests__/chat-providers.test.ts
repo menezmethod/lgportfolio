@@ -66,6 +66,24 @@ describe("chat-providers", () => {
     expect(isChatConfigured()).toBe(true);
   });
 
+  it("appends the Cloudflare Workers AI fallback last when configured", () => {
+    vi.stubEnv("CLOUDFLARE_RAG_KEY", "cf-key");
+    const chain = buildChatProviderChain();
+    const last = chain[chain.length - 1];
+    expect(last.id).toBe("cloudflare");
+    expect(last.model).toBe("@cf/meta/llama-3.3-70b-instruct-fp8-fast");
+  });
+
+  it("uses only Cloudflare when it is the sole provider", () => {
+    delete process.env.INFERENCIA_API_KEY;
+    delete process.env.OPENROUTER_API_KEY;
+    vi.stubEnv("CLOUDFLARE_RAG_KEY", "cf-key");
+    const chain = buildChatProviderChain();
+    expect(chain).toHaveLength(1);
+    expect(chain[0].id).toBe("cloudflare");
+    expect(isChatConfigured()).toBe(true);
+  });
+
   it("falls back to openrouter when inferencia stream throws (e.g. 502)", async () => {
     mockStreamText
       .mockReturnValueOnce({

@@ -138,6 +138,12 @@ export default function About() {
           >
             Get in touch →
           </Link>
+          <Link
+            href="/war-room"
+            className="inline-block ml-6 text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            Live telemetry from this site →
+          </Link>
         </div>
       </main>
     </div>

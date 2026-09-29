@@ -23,7 +23,7 @@ const INFERENCIA_FAST_FAIL_MS = 18_000;
 const OPENROUTER_PER_MODEL_MS = 35_000;
 const TOTAL_INFERENCE_BUDGET_MS = 52_000;
 
-export type ChatProviderId = "inferencia" | "openrouter";
+export type ChatProviderId = "inferencia" | "openrouter" | "cloudflare";
 
 export interface ChatProviderSpec {
   id: ChatProviderId;
@@ -64,8 +64,13 @@ export function isOpenRouterConfigured(): boolean {
   return Boolean(process.env.OPENROUTER_API_KEY?.trim());
 }
 
+/** Workers AI last-resort fallback via the RAG worker (free 10k neurons/day; hard cap, then fails). */
+export function isCloudflareConfigured(): boolean {
+  return Boolean(process.env.CLOUDFLARE_RAG_KEY?.trim());
+}
+
 export function isChatConfigured(): boolean {
-  return isInferenciaConfigured() || isOpenRouterConfigured();
+  return isInferenciaConfigured() || isOpenRouterConfigured() || isCloudflareConfigured();
 }
 
 export function buildChatProviderChain(): ChatProviderSpec[] {
@@ -110,6 +115,26 @@ export function buildChatProviderChain(): ChatProviderSpec[] {
         createClient: createOpenRouter,
       });
     }
+  }
+
+  if (isCloudflareConfigured()) {
+    const workerUrl = (
+      process.env.CLOUDFLARE_RAG_WORKER_URL?.trim() ||
+      "https://lgportfolio-rag.luisgimenezdev.workers.dev"
+    ).replace(/\/$/, "");
+    chain.push({
+      id: "cloudflare",
+      label: "Workers AI (llama-3.3-70b)",
+      model:
+        process.env.CLOUDFLARE_CHAT_MODEL?.trim() ||
+        "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+      timeoutMs: OPENROUTER_PER_MODEL_MS,
+      createClient: () =>
+        createOpenAI({
+          baseURL: `${workerUrl}/v1`,
+          apiKey: process.env.CLOUDFLARE_RAG_KEY!.trim(),
+        }),
+    });
   }
 
   return chain;

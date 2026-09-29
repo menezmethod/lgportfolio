@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { recordRequest } from '@/lib/telemetry';
-import { retrieveContext } from '@/lib/rag';
+import { isCloudflareRagConfigured, retrieveContext } from '@/lib/rag';
 
 // In-memory cache for RAG responses (free-tier: absorb duplicate queries when traffic spikes)
 const RAG_CACHE_TTL_MS = 60_000; // 1 min
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     }
 
     const context = await retrieveContext(query, 5);
-    const source = process.env.CLOUD_SQL_CONNECTION_NAME ? 'cloudsql' : 'fallback';
+    const source = isCloudflareRagConfigured() ? 'cloudflare' : 'fallback';
     const body = JSON.stringify({ context, source });
 
     if (ragCache.size >= RAG_CACHE_MAX_ENTRIES) {

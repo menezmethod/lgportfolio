@@ -3,16 +3,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // Mock rag module before importing route
 vi.mock("@/lib/rag", () => ({
   retrieveContext: vi.fn().mockResolvedValue("Mock RAG context about Luis Gimenez's experience"),
+  isCloudflareRagConfigured: vi.fn().mockReturnValue(false),
 }));
 
 import { POST } from "@/app/api/rag/route";
-import { retrieveContext } from "@/lib/rag";
+import { isCloudflareRagConfigured, retrieveContext } from "@/lib/rag";
 import { NextRequest } from "next/server";
 
 beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => {});
   // Re-establish the mock return value after clearAllMocks
   vi.mocked(retrieveContext).mockResolvedValue("Mock RAG context about Luis Gimenez's experience");
+  vi.mocked(isCloudflareRagConfigured).mockReturnValue(false);
 });
 
 afterEach(() => {
@@ -44,11 +46,18 @@ describe("/api/rag", () => {
     expect(retrieveContext).toHaveBeenCalledWith("What does Luis do?", 5);
   });
 
-  it("returns source: 'fallback' when CLOUD_SQL_CONNECTION_NAME is not set", async () => {
-    delete process.env.CLOUD_SQL_CONNECTION_NAME;
+  it("returns source: 'fallback' when Cloudflare is not configured", async () => {
+    vi.mocked(isCloudflareRagConfigured).mockReturnValue(false);
     const response = await POST(makeRequest({ query: "test query" }));
     const body = await response.json();
     expect(body.source).toBe("fallback");
+  });
+
+  it("returns source: 'cloudflare' when Cloudflare is configured", async () => {
+    vi.mocked(isCloudflareRagConfigured).mockReturnValue(true);
+    const response = await POST(makeRequest({ query: "cloudflare configured query" }));
+    const body = await response.json();
+    expect(body.source).toBe("cloudflare");
   });
 
   it("returns X-Cache: MISS on first request for a query", async () => {
