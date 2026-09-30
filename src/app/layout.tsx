@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import PageViewTracker from "@/components/PageViewTracker";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={inter.className}>
+        <PageViewTracker />
         <nav className="max-w-2xl mx-auto px-6 py-8 flex items-center justify-between">
           <Link href="/" className="text-lg font-semibold hover:text-primary transition-colors">
             LG
