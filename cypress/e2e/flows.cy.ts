@@ -1,31 +1,33 @@
 // Flows: critical navigation, against the current site.
-// Rewritten 2026-09-11: the previous version clicked nav buttons
-// (data-slot="button") and routes (/work, /architecture, /war-room) from an
-// earlier redesign. The current live nav (src/app/layout.tsx) is a plain
-// text-link header: About, Contact. A separate Navbar.tsx component
-// existed with an "AI Chat" nav button and data-cy hooks, but it was dead
-// code (never imported by any page), so it's deleted rather than tested.
-// /chat is still a real route, just not linked from the header nav today.
-// The /writing section (blog) was removed 2026-09-13.
+// The header (src/components/site/SiteHeader.tsx) links Work, Systems, About, GitHub, Resume, Contact.
 
 describe('Flows: navigation', () => {
   it('header nav links land on the right page', () => {
     const cases: Array<{ href: string; heading: string }> = [
-      { href: '/about', heading: 'About' },
-      { href: '/contact', heading: 'Contact' },
+      { href: '/work', heading: 'Things I built' },
+      { href: '/about', heading: 'Software engineer' },
+      { href: '/contact', heading: 'Open to Senior Platform' },
     ];
 
     cases.forEach(({ href, heading }) => {
       cy.visit('/');
-      cy.get(`a[href="${href}"]`).first().click();
+      cy.get(`header a[href="${href}"]`).first().click();
       cy.url().should('include', href);
       cy.get('h1').should('contain.text', heading);
     });
   });
 
-  it('homepage link list reaches About and Contact directly', () => {
+  it('prompt bar sends a question to the chat prefilled', () => {
     cy.visit('/');
-    cy.contains('a', 'About / Experience').should('have.attr', 'href', '/about');
-    cy.contains('a', 'Contact').should('have.attr', 'href', '/contact');
+    cy.get('#ask').type('hello{enter}');
+    cy.url().should('include', '/chat?q=hello');
+    cy.get('[data-cy="chat-input"]').should('have.value', 'hello');
+  });
+
+  it('homepage case-study links open real pages', () => {
+    cy.visit('/');
+    cy.contains('a', 'Open case study').first().click();
+    cy.url().should('include', '/work/');
+    cy.get('h1').should('exist');
   });
 });

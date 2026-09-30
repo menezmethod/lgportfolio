@@ -8,9 +8,9 @@
 
 ### Overview
 
-This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature and live War Room observability dashboard. **Production deploy:** merge to `main` → CI passes → Coolify API deploy on Pi (see `docs/DEPLOY-COOLIFY.md`). Manual fallback: `./scripts/deploy-coolify.sh`.
+This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature and live War Room observability dashboard. **Production deploy:** merge to `main` → CI passes → Coolify API deploy (see `docs/DEPLOY-COOLIFY.md`).
 
-**Primary production hosting:** **Coolify** on homelab Pi 5 (`192.168.0.207`) — see **`docs/DEPLOY-COOLIFY.md`**. Same Docker network as Inferencia + Prometheus.
+**Primary production hosting:** **Coolify** on a free-tier cloud VM, behind Cloudflare DNS and proxy. Chat retrieval and generation run on Cloudflare (Vectorize, Workers AI). `docs/DEPLOY-COOLIFY.md` describes the current setup.
 
 **GCP path (preserved, optional rollback):** `terraform/`, `cloudbuild.yaml`, and `Dockerfile` are kept. You can still deploy to **Cloud Run** behind a Global External ALB with Cloud CDN and Cloud Armor, or use low-cost direct Cloud Run ingress. Nothing in this migration deletes that stack.
 
@@ -18,9 +18,8 @@ This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature 
 
 **Coolify (production)**
 
-1. Merge to `main` → CI passes → Coolify deploy on Pi (see **`docs/DEPLOY-COOLIFY.md`**).
-2. Manual fallback: `./scripts/deploy-coolify.sh`.
-3. Configure environment variables in Coolify (Inferencia, admin, `PROMETHEUS_URL`, etc.) — see **`docs/DEPLOY-COOLIFY.md`** and `.env.example`.
+1. Merge to `main` → CI passes → Coolify deploy (see **`docs/DEPLOY-COOLIFY.md`**).
+2. Configure environment variables in Coolify (Inferencia, admin, `PROMETHEUS_URL`, etc.) — see **`docs/DEPLOY-COOLIFY.md`** and `.env.example`.
 
 **GCP / Cloud Run (optional rollback)**
 
@@ -73,7 +72,7 @@ Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`
 - Copy `.env.example` to `.env.local`. All portfolio pages work without API keys.
 - `INFERENCIA_API_KEY` + `INFERENCIA_BASE_URL` are needed for the AI chat. Without them, chat returns 503 but all pages work.
 - **RAG:** Cloudflare Vectorize + Workers AI embeddings (`@cf/baai/bge-m3`, 1024 dims) via the `lgportfolio-rag` worker in `workers/rag/` (deploy: `npx wrangler deploy`, secret `RAG_KEY`). App env: `CLOUDFLARE_RAG_KEY` (+ optional `CLOUDFLARE_RAG_WORKER_URL`). Index `lgportfolio-kb` (cosine). Seed/refresh: `npx tsx scripts/seed-rag-cloudflare.ts`. Without the key, file-based KB retrieval is used. Workers AI is also the last-resort chat fallback provider.
-- In production on **Coolify**, set secrets in the Coolify app env (or `.env` on the Pi). On **GCP Cloud Run**, Inferencia values come from **Secret Manager** via `cloudbuild.yaml` `--set-secrets`.
+- In production on **Coolify**, set secrets in the Coolify app env . On **GCP Cloud Run**, Inferencia values come from **Secret Manager** via `cloudbuild.yaml` `--set-secrets`.
 - Optional: `NEXT_PUBLIC_GA_MEASUREMENT_ID` for Google Analytics 4.
 - **`GOOGLE_CLOUD_PROJECT`** — Set in Terraform for Cloud Run so logs include `logging.googleapis.com/trace` and appear in **Trace** and Logs Explorer. Required for Observability → Trace to show requests.
 

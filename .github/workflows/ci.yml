@@ -1,6 +1,6 @@
 # CI: lint, build, unit tests, e2e (Cypress against production).
-# Required to pass before merging to main. On push to main, deploys to Coolify (Pi) after all checks pass.
-# Terraform (terraform/) is kept for optional GCP rollback only — not run in CI.
+# Required to pass before merging to main. On push to main, deploys to Coolify after all checks pass.
+# Terraform (terraform/) is kept for optional GCP rollback only, not run in CI.
 
 name: CI
 

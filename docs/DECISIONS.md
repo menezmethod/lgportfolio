@@ -3,9 +3,9 @@
 ## Project Setup
 - **Framework:** Next.js 16 App Router with TypeScript (Node 20.9+)
 - **Styling:** Tailwind CSS with original site colors preserved (#32c0f4 cyan, #e97124 orange)
-- **AI Chat:** AI SDK + Inferencia (OpenAI-compatible)
+- **AI Chat:** AI SDK with retrieval on Cloudflare Vectorize and generation on Cloudflare Workers AI (other providers are optional)
 - **RAG:** Cloudflare Vectorize + Workers AI embeddings (free tier); falls back to file-based knowledge when not configured
-- **Infrastructure:** self-hosted Coolify (ARM server) behind a Cloudflare Tunnel; GCP Terraform kept for optional rollback
+- **Infrastructure:** Coolify on a free-tier cloud VM behind Cloudflare DNS and proxy; GCP Terraform kept for optional rollback
 - **CI/CD:** GitHub Actions (lint/build/test/Cypress) → Coolify deploy on merge to `main`
 - **Version:** Single source of truth in `package.json`, read via `src/lib/version.ts`
 

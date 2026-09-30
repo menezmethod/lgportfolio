@@ -118,3 +118,28 @@ describe("/api/admin/logs", () => {
     }
   });
 });
+
+import { isAdminRequest, safeEqual } from "@/lib/admin-auth";
+
+describe("admin-auth", () => {
+  const req = (h: Record<string, string>) => new Request("http://x/admin", { headers: h });
+
+  it("compares secrets in constant time and rejects different lengths", () => {
+    expect(safeEqual("abc", "abc")).toBe(true);
+    expect(safeEqual("abc", "abd")).toBe(false);
+    expect(safeEqual("abc", "abcd")).toBe(false);
+    expect(safeEqual("", "abc")).toBe(false);
+  });
+
+  it("accepts x-admin-secret and Bearer, rejects wrong, missing, and unset", () => {
+    vi.stubEnv("ADMIN_SECRET", "s3cret-value");
+    expect(isAdminRequest(req({ "x-admin-secret": "s3cret-value" }))).toBe(true);
+    expect(isAdminRequest(req({ authorization: "Bearer s3cret-value" }))).toBe(true);
+    expect(isAdminRequest(req({ "x-admin-secret": "s3cret-valuX" }))).toBe(false);
+    expect(isAdminRequest(req({ "x-admin-secret": "s3cret" }))).toBe(false);
+    expect(isAdminRequest(req({}))).toBe(false);
+    vi.stubEnv("ADMIN_SECRET", "");
+    expect(isAdminRequest(req({ "x-admin-secret": "" }))).toBe(false);
+    vi.unstubAllEnvs();
+  });
+});

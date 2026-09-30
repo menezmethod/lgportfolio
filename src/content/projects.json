@@ -1,304 +1,323 @@
 [
   {
-    "slug": "saucerjam",
-    "title": "SaucerJam",
-    "eyebrow": "Personal build | browser multiplayer",
-    "summary": "A no-install browser arena combat game with a shared fixed-step simulation, authoritative multiplayer, bot practice, private rooms, and touch-ready controls.",
-    "narrative": {
-      "problem": "Browser games often choose between instant playability and trustworthy multiplayer state, leaving either the first-time player or the live match experience compromised.",
-      "tradeoff": "Keep the game small enough to launch from one URL while still treating movement, collision, weapons, reconnects, and round results as server-owned systems.",
-      "decision": "Share one deterministic simulation between practice and the server, validate untrusted inputs at the boundary, predict local movement for feel, and stream only the state each pilot needs.",
-      "outcome": "Shipped a playable public arena with keyboard, mouse, and touch controls, private rooms, persistent pilot records, match recaps, and a verified desktop/mobile release gate."
-    },
+    "slug": "home-services-reliability",
+    "title": "Home Services telemetry apps and SLOs",
+    "kind": "Professional",
+    "where": "The Home Depot, Mar 2026 to present",
+    "summary": "Python and Go services on GCP that ingest Salesforce data into BigQuery for Grafana: the internal telemetry apps for Home Services.",
+    "role": "Primary owner of the telemetry apps, with team input. I helped define the SLOs and Critical User Journeys, and that model was defined with the team.",
     "stack": [
-      "TypeScript",
-      "Node.js",
-      "Socket.IO",
-      "Three.js",
-      "Webpack",
-      "Playwright"
-    ],
-    "architecture": "Fixed-step shared simulation -> Socket.IO rooms -> predicted browser renderer",
-    "cloud": "Node.js server, same-origin static client, WebSocket transport",
-    "hardware": "Desktop, touch, and mobile browser controls",
-    "status": "live",
-    "featured": true,
-    "origin": "personal",
-    "links": {
-      "github": "https://github.com/menezmethod/saucerjam",
-      "demo": "https://saucerjam.com/?utm_source=portfolio&utm_medium=work_page&utm_campaign=launch"
-    },
-    "metrics": [
-      { "label": "match", "value": "20 eliminations / 5 min" },
-      { "label": "rooms", "value": "Public + private" },
-      { "label": "input", "value": "Keyboard / mouse / touch" },
-      { "label": "verification", "value": "311 tests + browser E2E" }
-    ]
-  },
-  {
-    "slug": "otel-home-services-tracing",
-    "title": "OTel Distributed Tracing for Home Services",
-    "eyebrow": "SRE | distributed observability",
-    "company": "The Home Depot",
-    "summary": "Designed and rolled out an OpenTelemetry distributed tracing platform across the Home Services domain, giving cross-service request visibility into scheduling, dispatch, and fulfillment workflows.",
-    "narrative": {
-      "problem": "Home Services spans multiple services and handoffs — scheduling, dispatch, vendor coordination, and payment — with limited cross-service trace visibility, making latency attribution and error isolation difficult during incidents.",
-      "tradeoff": "Invest in a standards-based OTel tracing layer that requires coordinated instrumentation across teams, rather than per-service ad-hoc logging that is faster to ship but does not scale operationally.",
-      "decision": "Introduced OpenTelemetry SDK and Collector infrastructure with trace propagation across Go and Java services, custom span attributes for service-specific context, and a unified Jaeger/Tempo backend for trace query.",
-      "outcome": "Reduced mean-time-to-incident by giving on-call engineers end-to-end request traces across the Home Services stack, enabling faster root-cause identification in multi-service failure scenarios."
-    },
-    "stack": ["Go", "Java", "OpenTelemetry", "OTel Collector", "Jaeger", "Grafana Tempo", "Kubernetes", "GKE"],
-    "architecture": "OTel SDK instrumentation -> Collector pipeline -> Tempo/Jaeger backend -> Grafana trace exploration",
-    "cloud": "GKE, Cloud Logging, Cloud Monitoring, GCS",
-    "hardware": "Cloud-native Kubernetes services",
-    "status": "production",
-    "featured": true,
-    "origin": "professional",
-    "metrics": [
-      { "label": "domain", "value": "Home Services stack" },
-      { "label": "latency", "value": "Sub-second trace query" },
-      { "label": "coverage", "value": "Cross-service traces" },
-      { "label": "impact", "value": "Faster MTTR" }
-    ]
-  },
-  {
-    "slug": "payment-card-tender-system",
-    "title": "Payment Card Tender System",
-    "eyebrow": "Enterprise production system",
-    "company": "The Home Depot",
-    "summary": "Contributed to the tender path that carries credit, debit, and gift card traffic across a nationwide store footprint and ecommerce, with observability and migration work on the critical path.",
-    "narrative": {
-      "problem": "Peak retail traffic and a zero-downtime mandate leave no room for opaque dependencies, weak telemetry, or brittle release procedures.",
-      "tradeoff": "Favor observability-first design and buffered distributed flows over simpler synchronous coupling, even when that increases platform complexity up front.",
-      "decision": "Worked within a Go and GKE payment environment to improve telemetry, support zero-downtime tender migrations, and make high-risk paths visible during production incidents.",
-      "outcome": "Helped keep a high-availability payments domain measurable under load, with observability on critical paths."
-    },
-    "stack": [
+      "Python",
       "Go",
+      "BigQuery",
       "GKE",
-      "CockroachDB",
-      "Redis",
+      "Cloud Run"
+    ],
+    "status": "Current role",
+    "featured": true,
+    "story": [
+      {
+        "label": "Platform",
+        "text": "The platform integrates Salesforce, Apigee, and Copado."
+      },
+      {
+        "label": "Decision",
+        "text": "I cut an over-engineered star schema after validating that the real Grafana and alerting query patterns did not justify the normalization."
+      },
+      {
+        "label": "Outcome",
+        "text": "A metrics ETL shipped with design, schema, CI/CD, and production readiness, and a clean multi-hour backfill that created its own table."
+      },
+      {
+        "label": "SLOs",
+        "text": "Helped define SLOs, health checks, and Critical User Journeys, and a leadership-facing monitoring model with traffic-weighted roll-ups across business domains."
+      },
+      {
+        "label": "Alerts",
+        "text": "Volume-aware thresholds replaced time-based muting, cross-checked by a peer so real incidents still page. Each alert ties to a CUJ step, a user impact, and a runbook."
+      }
+    ],
+    "teamStack": [
       "OpenTelemetry",
       "Prometheus",
       "Grafana"
-    ],
-    "architecture": "Observability-first payment routing on distributed Go services",
-    "cloud": "GKE, BigQuery, Pub/Sub, Cloud KMS",
-    "hardware": "Retail edge and store infrastructure",
-    "status": "production",
-    "featured": true,
-    "origin": "professional",
-    "links": {
-      "caseStudy": "/architecture"
-    },
-    "metrics": [
-      { "label": "footprint", "value": "2,300+ stores" },
-      { "label": "domain", "value": "card + gift-card authorization" },
-      { "label": "availability", "value": "GKE + Pivotal Cloud Foundry" }
     ]
   },
   {
-    "slug": "magic-jungle-telemetry-mesh",
-    "title": "Magic Jungle Telemetry Mesh",
-    "eyebrow": "Experiment | edge observability",
-    "summary": "ESP32 environmental nodes feeding a Raspberry Pi 5 gateway, local vision workloads, and a public GCP analytics board for backyard growth telemetry.",
-    "narrative": {
-      "problem": "Owning sensors is not the same as operating a system. The goal is a resilient edge network with useful telemetry, not a pile of disconnected boards.",
-      "tradeoff": "Keep sensing, buffering, and first-pass inference local for latency and resilience; ship curated events and long-horizon aggregates to GCP for analytics and a public dashboard.",
-      "decision": "Use ESP32 nodes for capture, MQTT into a Pi 5 gateway for edge rules and Frigate, then normalize events in Cloud Run and persist time-series analytics in BigQuery.",
-      "outcome": "Turns a backyard project into proof of silicon-to-satellite thinking: hardware, enclosures, observability, edge AI, and cloud analytics in one system."
-    },
+    "slug": "deployment-path",
+    "title": "Deployment path for non-developers",
+    "kind": "Professional",
+    "where": "The Home Depot, Home Services",
+    "summary": "A reusable path that lets non-developers ship Home Services applications to production through the required gates.",
+    "role": "I built the path.",
     "stack": [
-      "ESP32",
-      "Raspberry Pi 5",
-      "MQTT",
-      "Frigate",
-      "Cloud Run",
-      "BigQuery",
-      "Grafana",
-      "Terraform"
+      "Security scanning",
+      "Static analysis",
+      "Hardened base images",
+      "Branch protection",
+      "CI/CD",
+      "Rollback planning"
     ],
-    "architecture": "Sensor mesh -> Pi 5 gateway -> Cloud Run control plane -> BigQuery analytics",
-    "cloud": "Cloud Run, BigQuery, Cloud Monitoring, Terraform",
-    "hardware": "ESP32 fleet, Raspberry Pi 5, cameras, 3D-printed enclosures",
-    "status": "building",
+    "status": "Current role",
     "featured": true,
-    "origin": "personal",
-    "metrics": [
-      { "label": "cadence", "value": "24/7 telemetry" },
-      { "label": "latency", "value": "<2s ingest target" },
-      { "label": "retention", "value": "365d analytics" },
-      { "label": "artifact", "value": "Public dashboard" }
-    ],
-    "nextMilestone": "Bring the first outdoor node online and publish a live telemetry board."
-  },
-  {
-    "slug": "edge-fleet-control-plane",
-    "title": "Edge Fleet Control Plane",
-    "eyebrow": "Experiment | self-healing edge ops",
-    "summary": "A control plane for Pi 5 and ESP32 hardware that manages heartbeats, signed OTA rollouts, incident timelines, and public health telemetry from one operator surface.",
-    "narrative": {
-      "problem": "A shelf of boards is inventory, not architecture. The missing piece is coordinated fleet health, rollout discipline, and observable failure handling.",
-      "tradeoff": "Use a lightweight edge gateway and event bus instead of heavyweight cluster tooling so the system stays cheap, understandable, and deployable on real hobby hardware.",
-      "decision": "Run fleet coordination and local buffering on the Pi 5, push signed rollout metadata and incident state through Cloud Run APIs, and store historical reliability signals in BigQuery.",
-      "outcome": "Demonstrates that the same operational patterns used in enterprise systems can govern small edge fleets with real SLOs, rollback paths, and health visibility."
-    },
-    "stack": [
-      "Raspberry Pi 5",
-      "ESP32",
-      "TypeScript",
-      "Cloud Run",
-      "BigQuery",
-      "OpenTelemetry",
-      "Terraform"
-    ],
-    "architecture": "Edge heartbeat mesh -> Cloud Run fleet API -> BigQuery reliability timeline",
-    "cloud": "Cloud Run, BigQuery, Secret Manager, Cloud Monitoring",
-    "hardware": "Raspberry Pi 5, ESP32 nodes, smart relays",
-    "status": "building",
-    "featured": true,
-    "origin": "personal",
-    "metrics": [
-      { "label": "fleet", "value": "6+ edge nodes" },
-      { "label": "detection", "value": "<60s fault target" },
-      { "label": "rollback", "value": "<2m OTA rollback" },
-      { "label": "surface", "value": "Single ops board" }
-    ],
-    "nextMilestone": "Stand up signed firmware manifests and device heartbeat reporting."
-  },
-  {
-    "slug": "autonomous-print-cell",
-    "title": "Autonomous Print Cell",
-    "eyebrow": "Experiment | machine vision + manufacturing",
-    "summary": "A Bambu P1S production cell with ESP32 power and environmental sensing, Pi 5 vision analysis, and cloud-side quality analytics for failed-print detection.",
-    "narrative": {
-      "problem": "A printer is a tool. A print cell becomes a systems project only when failures, energy use, and quality signals are captured and acted on automatically.",
-      "tradeoff": "Run vision and anomaly checks locally so detection remains fast and inexpensive; send structured events to GCP for quality trends, auditability, and remote monitoring.",
-      "decision": "Pair the printer with ESP32 telemetry, local camera analysis on the Pi 5, and a Cloud Run ingestion pipeline that records print events, defects, and energy data into BigQuery.",
-      "outcome": "Creates a hardware-backed AI operations case study that blends manufacturing telemetry, edge inference, and cloud analytics without becoming another generic web app."
-    },
-    "stack": [
-      "Bambu P1S",
-      "ESP32",
-      "Raspberry Pi 5",
-      "Frigate",
-      "Cloud Run",
-      "BigQuery",
-      "Looker Studio"
-    ],
-    "architecture": "Print telemetry + local vision -> Pi 5 event broker -> GCP quality analytics",
-    "cloud": "Cloud Run, BigQuery, Looker Studio, Cloud Monitoring",
-    "hardware": "Bambu P1S, ESP32 power monitor, Raspberry Pi 5, camera rig",
-    "status": "building",
-    "featured": true,
-    "origin": "personal",
-    "metrics": [
-      { "label": "vision", "value": "<90s defect target" },
-      { "label": "monitoring", "value": "24/7 camera feed" },
-      { "label": "analytics", "value": "Per-job energy cost" },
-      { "label": "artifact", "value": "Quality dashboard" }
-    ],
-    "nextMilestone": "Instrument the printer job stream and calibrate local failed-print detection."
-  },
-  {
-    "slug": "gimenez-dev-operator-console",
-    "title": "gimenez.dev Operator Console",
-    "eyebrow": "Live supporting system",
-    "summary": "The portfolio itself as a live operator surface: recruiter-facing RAG, admin telemetry, trace-linked logs, and a war room that documents how the system behaves in production.",
-    "narrative": {
-      "problem": "Static portfolios do not answer technical questions, capture intent, or prove operational maturity.",
-      "tradeoff": "Keep the app compact and cheap on Cloud Run while still exposing metrics, logs, admin workflows, and a truthful AI retrieval layer.",
-      "decision": "Use Next.js 16 on Cloud Run with Terraform, Cloud Armor, structured logging, trace correlation, and a constrained RAG workflow backed by portfolio knowledge.",
-      "outcome": "Useful as a lead-generation surface and as a supporting example of security, observability, and AI-as-infrastructure thinking."
-    },
-    "stack": [
-      "Next.js 16",
-      "TypeScript",
-      "Cloud Run",
-      "Terraform",
-      "Cloud Logging",
-      "RAG"
-    ],
-    "architecture": "Cloud Run operator console with recruiter analytics and RAG",
-    "cloud": "Cloud Run, Cloud Logging, Cloud Trace, Terraform",
-    "hardware": "Local inference hardware for the chat workflow",
-    "status": "live",
-    "featured": false,
-    "origin": "personal",
-    "links": {
-      "github": "https://github.com/menezmethod/lgportfolio",
-      "demo": "https://gimenez.dev"
-    },
-    "metrics": [
-      { "label": "cost", "value": "~$2/mo" },
-      { "label": "infra", "value": "Terraform IaC" },
-      { "label": "security", "value": "WAF + rate limits" },
-      { "label": "observability", "value": "Trace-linked logs" }
+    "story": [
+      {
+        "label": "Problem",
+        "text": "Home Services applications were spread across several hosting platforms, including GCP and Pivotal Cloud Foundry, and it was often unclear who owned each one."
+      },
+      {
+        "label": "Decision",
+        "text": "One reusable path with the required gates (governance, security scanning, static analysis, hardened base images, production readiness, branch protection, rollback planning) that non-developers can use to reach production."
+      },
+      {
+        "label": "My part",
+        "text": "I built the path and took the first application through it. Later applications followed."
+      },
+      {
+        "label": "Change approval",
+        "text": "I presented a production change to the change-approval board and senior management on my own, answered their questions, and validated readiness with measured load-test evidence."
+      },
+      {
+        "label": "Outcome",
+        "text": "The first application went through the path and it became the pattern."
+      }
     ]
   },
   {
-    "slug": "churnistic",
-    "title": "Churnistic",
-    "eyebrow": "Archived from headline rotation",
-    "summary": "Automated churn modeling and retraining pipeline built before the portfolio shifted toward edge systems and infrastructure proof.",
-    "narrative": {
-      "problem": "Model drift made predictions stale and retraining too manual.",
-      "tradeoff": "Automate the ML loop and accept a narrower scope rather than overbuild the surrounding product surface.",
-      "decision": "Used event-driven triggers, validation gates, and retraining automation to keep a churn model current.",
-      "outcome": "Still a good ML automation story, but no longer the strongest evidence for a principal edge-to-cloud brand."
-    },
-    "stack": [
-      "TypeScript",
-      "TensorFlow.js",
-      "Firebase Functions",
-      "React"
-    ],
-    "architecture": "Event-driven ML pipeline",
-    "cloud": "Firebase Functions, Cloud Firestore",
-    "hardware": "Cloud-only",
-    "status": "archived",
-    "featured": false,
-    "origin": "personal",
-    "links": {
-      "github": "https://github.com/menezmethod/churnistic"
-    },
-    "metrics": [
-      { "label": "accuracy", "value": "+15%" },
-      { "label": "savings", "value": "5h/week" }
-    ],
-    "archiveReason": "Strong automation work, but it does not reinforce the new silicon-to-satellite narrative."
-  },
-  {
-    "slug": "real-time-trading-engine",
-    "title": "Real-Time Trading Engine",
-    "eyebrow": "Archived from headline rotation",
-    "summary": "A streaming app with WebSockets and gRPC that reads as a capable engineering exercise but not a differentiated systems case study.",
-    "narrative": {
-      "problem": "Needed low-latency streaming data and live portfolio updates.",
-      "tradeoff": "Optimize for real-time transport and service boundaries instead of deeper operational or hardware differentiation.",
-      "decision": "Built a Go backend with WebSockets, gRPC, and PostgreSQL for real-time trading interactions.",
-      "outcome": "Useful as a streaming exercise, but commodity finance demos are not the strongest signal for the current brand."
-    },
+    "slug": "enterprise-payments",
+    "title": "Enterprise Payments",
+    "kind": "Professional",
+    "where": "The Home Depot (Jan 2024 to Mar 2026); earlier through Daugherty Business Solutions, contracting at The Home Depot, Apr 2022 to Jan 2024.",
+    "summary": "Go authorization services on CockroachDB. A card-authorization broker service validates requests, catches duplicates, and converts formats between upstream clients and downstream processors.",
+    "role": "Contributed to the card-authorization broker service. Worked a gift-card tender API from initial design.",
     "stack": [
       "Go",
-      "WebSockets",
-      "gRPC",
-      "PostgreSQL",
-      "React"
+      "CockroachDB",
+      "GKE",
+      "Pivotal Cloud Foundry",
+      "Jenkins",
+      "Spinnaker"
     ],
-    "architecture": "Microservices with gRPC and WebSocket streaming",
-    "cloud": "Cloud Run capable",
-    "hardware": "Cloud-only",
-    "status": "archived",
-    "featured": false,
-    "origin": "personal",
+    "status": "Past role",
+    "featured": true,
+    "story": [
+      {
+        "label": "Problem",
+        "text": "Gift card behavior lived in separate per-channel implementations."
+      },
+      {
+        "label": "Scope",
+        "text": "Broker service: request validation, duplicate detection, and format conversion between upstream clients and downstream processors. Gift-card tender: a central API for balance inquiry, authorization and reversal, activation, and balance adjustment, worked from initial design. I also contributed to modernization off legacy systems."
+      },
+      {
+        "label": "Context",
+        "text": "The retail environment has 2,300+ stores. I carried the on-call rotation and contributed to blameless postmortems."
+      }
+    ],
+    "scope": {
+      "team": "The broker service, the authorization platform, and the modernization off legacy systems were team efforts. Incident response was shared."
+    }
+  },
+  {
+    "slug": "saucerjam",
+    "title": "SaucerJam",
+    "kind": "Live game",
+    "where": "Personal",
+    "summary": "A browser arena game with server-authoritative multiplayer. Runs in the browser.",
+    "role": "Author. The repository is private.",
+    "stack": [
+      "Node.js",
+      "Express",
+      "Socket.IO",
+      "Three.js"
+    ],
+    "status": "Live",
+    "featured": true,
+    "story": [
+      {
+        "label": "Decision",
+        "text": "Clients send inputs only. The server owns health, damage, and projectile positions."
+      },
+      {
+        "label": "How",
+        "text": "One fixed-step 60 Hz simulation is shared by the server and by offline practice. The server steps it and sends 20 Hz snapshots. The client predicts its own movement and replays inputs the server has not yet acknowledged."
+      },
+      {
+        "label": "Play",
+        "text": "Practice with bots runs in the browser. Online play joins a shared arena, or you can create a private room and send an invite link. Rounds end at 20 eliminations or 5 minutes, and rooms hold up to 32 pilots by default."
+      },
+      {
+        "label": "Controls",
+        "text": "Keyboard and mouse, or dual-stick touch."
+      },
+      {
+        "label": "Ops",
+        "text": "A Prometheus metrics endpoint and a health endpoint. Deployed with Coolify."
+      },
+      {
+        "label": "Limit",
+        "text": "Built for a single server process. Horizontal scaling and cross-region matchmaking are not implemented."
+      }
+    ],
     "links": {
-      "github": "https://github.com/menezmethod/st-server"
-    },
-    "metrics": [
-      { "label": "protocol", "value": "WebSocket" },
-      { "label": "backend", "value": "Go + gRPC" }
+      "demo": "https://saucerjam.com/?utm_source=portfolio&utm_medium=case_study&utm_campaign=launch",
+      "invite": "https://saucerjam.com/?host=1&utm_source=portfolio&utm_medium=recruiter_invite&utm_campaign=launch"
+    }
+  },
+  {
+    "slug": "inferencia",
+    "title": "Inferencia",
+    "kind": "Public repo",
+    "where": "Personal, ongoing",
+    "summary": "An OpenAI-compatible Go gateway in front of self-hosted LLM and TTS backends, with health-aware routing. It is designed to run on your own hardware.",
+    "role": "Author and maintainer.",
+    "stack": [
+      "Go",
+      "Ollama",
+      "MLX",
+      "Prometheus",
+      "OpenTelemetry",
+      "Grafana",
+      "Loki",
+      "OpenAPI 3.1"
     ],
-    "archiveReason": "The architecture is solid, but it looks like a product demo instead of a systems architecture headline."
+    "status": "Public",
+    "featured": true,
+    "story": [
+      {
+        "label": "What",
+        "text": "Serves /v1/chat/completions, embeddings, models, and speech in front of Ollama and MLX servers and TTS servers, with API-key auth and a rate limiter."
+      },
+      {
+        "label": "How it works",
+        "text": "A chat request goes through reg.PrimaryHealthy in internal/handler/chat.go. It takes the backends that the health checker in internal/watchdog marks healthy and picks the one with the fewest in-flight requests, with ties broken round-robin (internal/backend/loadbalancer.go). Streaming responses are proxied as server-sent events with a flush per chunk (handleStream). TTS requests are routed by capability and model with a score in internal/router/router.go."
+      },
+      {
+        "label": "Limit",
+        "text": "Each request goes to one backend chosen before dispatch. Per-request failover to another backend is not implemented, and ROADMAP.md lists backend failover as not done."
+      },
+      {
+        "label": "Tests and CI",
+        "text": "24 Go test files, 23 of them Ginkgo-based, counted on main on 2026-09-30. CI runs go test with the race detector, golangci-lint, and gitleaks."
+      },
+      {
+        "label": "Ops",
+        "text": "Prometheus metrics, structured logs, and an OpenAPI 3.1 spec. Grafana, Loki, and alert configs live under deploy/."
+      },
+      {
+        "label": "Status",
+        "text": "Retired from this site's chat path when I moved to Workers AI; kept as a public Go reference."
+      }
+    ],
+    "links": {
+      "github": "https://github.com/menezmethod/inferencia"
+    }
+  },
+  {
+    "slug": "lgportfolio",
+    "title": "This site (gimenez.dev)",
+    "kind": "Public repo",
+    "where": "Personal",
+    "summary": "Next.js 16 with a War Room and a RAG chat. Retrieval runs on Cloudflare Vectorize and chat generation runs on Cloudflare Workers AI.",
+    "role": "Author and maintainer. Deployed with Coolify on a free-tier cloud VM, behind Cloudflare.",
+    "stack": [
+      "Next.js",
+      "TypeScript",
+      "Tailwind",
+      "Cloudflare Vectorize",
+      "Workers AI",
+      "Coolify"
+    ],
+    "status": "Running",
+    "featured": true,
+    "links": {
+      "github": "https://github.com/menezmethod/lgportfolio",
+      "secondary": {
+        "label": "War room",
+        "href": "/war-room"
+      }
+    },
+    "story": [
+      {
+        "label": "What",
+        "text": "A portfolio with a live War Room and a chat that retrieves from my CV and notes before answering."
+      },
+      {
+        "label": "Path of a chat request",
+        "text": "Browser to the Cloudflare proxy, then the Next.js app, then RAG retrieval on Vectorize with Workers AI embeddings, then chat inference on Workers AI. The home page shows the real timings of those two spans."
+      },
+      {
+        "label": "Limits",
+        "text": "War Room counters live in memory and reset when the app restarts."
+      }
+    ]
+  },
+  {
+    "slug": "openclaw-cursor",
+    "title": "openclaw-cursor",
+    "kind": "Public repo",
+    "where": "Personal",
+    "summary": "A single static Go binary: an OpenAI-compatible HTTP proxy that streams cursor-agent output as SSE. Unofficial; not affiliated with Cursor or OpenClaw.",
+    "role": "Author.",
+    "stack": [
+      "Go",
+      "SSE",
+      "OpenAI-compatible API"
+    ],
+    "status": "Public",
+    "featured": false,
+    "links": {
+      "github": "https://github.com/menezmethod/openclaw-cursor"
+    }
+  },
+  {
+    "slug": "meshyants",
+    "title": "MeshyAnts",
+    "kind": "Research",
+    "where": "Personal",
+    "summary": "A Go research prototype built around one falsifiable question. A v1 substrate exists, and there are no published results.",
+    "role": "Author.",
+    "stack": [
+      "Go"
+    ],
+    "status": "Research prototype",
+    "featured": false,
+    "links": {
+      "github": "https://github.com/menezmethod/meshyants"
+    }
+  },
+  {
+    "slug": "petfeeder",
+    "title": "PetFeederESP and CrawFeed",
+    "kind": "Public repos",
+    "where": "Personal",
+    "summary": "ESP32 firmware for a pet feeder and the Flutter app that drives it.",
+    "role": "Author of the firmware and the app. The mechanical design comes from an open DIY build (FAT PET FEEDER).",
+    "stack": [
+      "ESP32",
+      "C++",
+      "MQTT over TLS",
+      "BLE",
+      "Flutter"
+    ],
+    "status": "Public",
+    "featured": false,
+    "story": [
+      {
+        "label": "Firmware",
+        "text": "Wi-Fi provisioning over BLE, six feeding schedules, MQTT over TLS, and OTA updates."
+      },
+      {
+        "label": "App",
+        "text": "CrawFeed, a Flutter app, is the controller."
+      }
+    ],
+    "links": {
+      "github": "https://github.com/menezmethod/PetFeederESP",
+      "secondary": {
+        "label": "CrawFeed app",
+        "href": "https://github.com/menezmethod/pet_feeder_esp_ui"
+      }
+    }
   }
 ]

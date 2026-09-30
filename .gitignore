@@ -79,3 +79,6 @@ terraform/.terraform.lock.hcl
 /src/index.js
 /src/index.css
 .env*
+
+# Private files that must never be committed (redaction rules, forbidden-term lists)
+.private/

@@ -74,7 +74,7 @@ export function classifyVisitor(userAgent: string): VisitorCategory {
   return "unknown";
 }
 
-function summarizeUA(userAgent: string): string {
+export function summarizeUA(userAgent: string): string {
   const ua = userAgent.toLowerCase();
   if (ua.includes("linkedin")) return "LinkedIn";
   if (ua.includes("greenhouse")) return "Greenhouse";
@@ -309,6 +309,9 @@ export function publishDailyBudgetGauge(): void {
   setGauge("chat_daily_budget_used", getDailyBudgetStats().used);
 }
 
+/** Most recent real chat request, kept in memory so the home page can show it with its age. */
+let lastChatSample: { at: number; rag_ms: number; inference_ms: number } | null = null;
+
 export function recordChatMetrics(fields: {
   durationMs: number;
   ragDurationMs: number;
@@ -318,6 +321,12 @@ export function recordChatMetrics(fields: {
 }): void {
   observe("chat_inference_duration_seconds", fields.durationMs);
   observe("chat_rag_retrieval_duration_seconds", fields.ragDurationMs);
+  // Span timings for real model calls only (cache hits and rate-limited requests have no spans).
+  if (!fields.cacheHit && !fields.rateLimited) {
+    observe("chat_span_rag_ms", fields.ragDurationMs);
+    observe("chat_span_inference_ms", fields.durationMs);
+    lastChatSample = { at: Date.now(), rag_ms: fields.ragDurationMs, inference_ms: fields.durationMs };
+  }
   if (fields.cacheHit) increment("chat_cache_hits_total");
   if (fields.rateLimited) {
     increment("chat_rate_limit_hits_total");
@@ -469,7 +478,8 @@ export function getHealthData(
     },
     rate_limiter: { status: "up", budget_remaining: budgetRemaining },
     structured_logging: { status: "up" },
-    prometheus: { status: "up" },
+    // Only claim Prometheus when a server is configured. The War Room overrides this after probing it.
+    prometheus: { status: process.env.PROMETHEUS_URL?.trim() ? "up" : "not_configured" },
   };
 
   const anyDown = Object.values(checks).some((c) => c.status === "down");
@@ -481,7 +491,7 @@ export function getHealthData(
     uptime_seconds: getUptimeSeconds(),
     checks,
     version: APP_VERSION,
-    region: process.env.DEPLOY_REGION || "homelab",
+    region: process.env.DEPLOY_REGION || "n/a",
   };
 }
 
@@ -511,7 +521,25 @@ function computeSLOs(): SLODefinition[] {
   ];
 }
 
+/** p50 of the real chat request spans since the last restart, for the home page trace. */
+export interface ChatSpans {
+  samples: number;
+  rag_p50_ms: number;
+  inference_p50_ms: number;
+  last: { at: number; rag_ms: number; inference_ms: number } | null;
+}
+
+export function getChatSpans(): ChatSpans {
+  return {
+    last: lastChatSample,
+    samples: histogramCount("chat_span_inference_ms"),
+    rag_p50_ms: Math.round(percentile("chat_span_rag_ms", 50)),
+    inference_p50_ms: Math.round(percentile("chat_span_inference_ms", 50)),
+  };
+}
+
 export interface WarRoomData {
+  chat_spans: ChatSpans;
   service_status: HealthData;
   request_metrics: {
     total_24h: number;
@@ -561,6 +589,7 @@ export function getWarRoomData(): WarRoomData {
     .reduce((sum, b) => sum + b.errors, 0);
 
   return {
+    chat_spans: getChatSpans(),
     service_status: getHealthData(),
     request_metrics: {
       total_24h: totalReqs,

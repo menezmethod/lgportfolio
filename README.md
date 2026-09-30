@@ -1,51 +1,47 @@
-# Luis Gimenez — Portfolio & Production System
+# gimenez.dev
 
-**Live site:** [gimenez.dev](https://gimenez.dev) · **War Room:** [gimenez.dev/war-room](https://gimenez.dev/war-room)
+Source for [gimenez.dev](https://gimenez.dev), the portfolio of Luis Gimenez. It is also a small production system: a Next.js app with a RAG chat and a live War Room, deployed with Coolify on a free-tier cloud VM.
 
-[![CI](https://img.shields.io/github/actions/workflow/status/menezmethod/lgportfolio/ci.yml?branch=main&logo=github&label=CI)](https://github.com/menezmethod/lgportfolio/actions)
-[![Deploy](https://img.shields.io/badge/Coolify-Deployed-6366f1)](https://gimenez.dev)
-[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=next.js)](https://nextjs.org)
-[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+## Stack
 
-A **production Next.js portfolio** deployed on **Coolify** (`gimenez.dev`), with an AI-powered recruiter chat, live observability (War Room), session analytics, and optional **GCP** infra preserved in-repo for rollback (Cloud Run, ALB, Terraform, Cloud Build — not removed).
+- **App:** Next.js 16 (App Router), React 19, TypeScript, Tailwind 4.
+- **Hosting:** Coolify on a free-tier cloud VM, with Cloudflare DNS and proxy in front. Merging to `main` runs CI (lint, build, unit tests) on GitHub Actions and then triggers the Coolify deploy. See [docs/DEPLOY-COOLIFY.md](docs/DEPLOY-COOLIFY.md).
+- **Chat:** retrieval and generation run on Cloudflare. A Cloudflare Worker (`workers/rag`) embeds with Workers AI and searches a Vectorize index, and Workers AI generates the answer. File-based retrieval over `src/lib/knowledge.ts` is the fallback.
+- **Provider chain in code:** `src/lib/chat-providers.ts` can try [inferencia](https://github.com/menezmethod/inferencia) and OpenRouter before Workers AI, but only when their environment variables are set. inferencia is an optional provider that is disabled in production, so chat generation runs on Cloudflare Workers AI.
+- **Observability:** in-app telemetry and structured JSON logs feed the public `/war-room` page. When `PROMETHEUS_URL` is set and reachable, the page reads Prometheus instead, and a source badge says which. `/api/metrics` exposes the Prometheus text format behind an admin secret.
+- **Rollback path:** Terraform, Cloud Build, and a Cloud Run deployment are kept in `terraform/`, `cloudbuild.yaml`, and the `Dockerfile`. See [docs/DEPLOY-CLOUDRUN.md](docs/DEPLOY-CLOUDRUN.md).
 
-## 🚀 Quick Start
+Limit: War Room counters live in memory and reset when the app restarts.
+
+## Run it locally
 
 ```bash
-# Clone
-git clone https://github.com/menezmethod/lgportfolio.git
-cd lgportfolio
-
-# Install
 npm install
-
-# Set up environment
-cp .env.example .env.local
-# Add your Clerk, Firebase, Inferencia, GA4 keys
-
-# Start dev server
-npm run dev
+cp .env.example .env.local   # optional: Cloudflare RAG and admin keys
+npm run dev                  # http://localhost:3000
 ```
 
-## 🏗️ Architecture
+Every public page works without keys. Chat returns 503 until an inference provider is configured.
 
-The portfolio is a Next.js App Router application deployed on **Coolify** (Docker on a homelab Pi), with server-side rendering for public pages and client components for interactive features. The AI recruiter chat uses a multi-tier fallback stack (Gemini → Anthropic → Inferencia/local LLM) with session persistence via Firestore. Observability is provided by a live War Room dashboard with Prometheus metrics and structured logging. The optional GCP deployment path (Cloud Run + Terraform) is preserved for rollback scenarios.
+## Checks
 
-### Key Components
+```bash
+npm run lint
+npm run test        # Vitest
+npm run build
+```
 
-- **AI Recruiter Chat** — Multi-provider chat with knowledge base, session memory, email capture, and admin controls
-- **War Room** — Live observability dashboard with telemetry, Prometheus metrics, and error tracing
-- **Blog** — Technical writing on infrastructure engineering with syntax highlighting
-- **Infrastructure** — Coolify on homelab Pi; Terraform for optional GCP Cloud Run rollback
+Cypress end-to-end tests run in CI (`npm run test:e2e`). See [docs/CI-AND-TESTS.md](docs/CI-AND-TESTS.md).
 
-## 🤖 Auto-Pipeline
+## Content
 
-This repo is part of an autonomous fleet. PRs are auto-reviewed, auto-tested, and auto-merged by the fleet pipeline.
+- Pages read from `src/content/pages/*.md` and `src/content/projects.json`.
+- The chat knowledge base is `src/lib/knowledge.ts`. Claims there follow the CV: if the CV does not support a statement, it does not belong in the file.
+- Personal projects are built on personal equipment.
+- `scripts/build-resume.mjs` builds `public/Luis-Gimenez-Resume.pdf` from the CV source with headless Chrome. It applies public-safe substitutions from a private, gitignored file (`.private/resume-redactions.json`, or the path in `RESUME_REDACTIONS_FILE`) and stops with an explanation if that file is missing.
+- Checks that name private terms read `.private/forbidden-terms.json` when it exists and are skipped with a warning when it does not (for example in CI). Neither file is committed.
 
-## 📚 Documentation
+## More
 
-- [PRD](./PRD.md) — Product Requirements Document
-- [Architecture (RICO)](./RICO.md) — Architecture decision records
-- [AGENTS.md](./AGENTS.md) — Agent instructions for Cursor/IDE
-- [Deployment Guide](./docs/deploy.md) — Full deployment documentation
-- [Knowledge Base](./knowledge/) — AI chat knowledge entries
+- [AGENTS.md](AGENTS.md): how to run, deploy, and debug this repo.
+- [docs/](docs/README.md): deployment, cost, CI, and architecture decisions.

@@ -3,14 +3,11 @@
  * Import from here — do not hardcode model/base URL in routes.
  */
 
-/** Production default: gemma4:12b on Pi Ollama (see Inferencia /health models list). */
+/** Default chat model name for the optional Inferencia provider (see its /health models list). */
 export const DEFAULT_INFERENCIA_CHAT_MODEL = "gemma4:12b";
 
-/** Coolify / homelab: inferencia container on Docker network. */
+/** Coolify: inferencia container on the same Docker network, when one is deployed. */
 export const DEFAULT_INFERENCIA_BASE_URL_COOLIFY = "http://inferencia:8080/v1"; // pragma: allowlist secret
-
-/** Public tunnel fallback (local dev / external probes only). */
-export const DEFAULT_INFERENCIA_BASE_URL_PUBLIC = "https://llm.menezmethod.com/v1"; // pragma: allowlist secret
 
 export function getInferenciaChatModel(): string {
   const fromEnv = process.env.INFERENCIA_CHAT_MODEL?.trim();

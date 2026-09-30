@@ -25,7 +25,9 @@ export async function GET(req: Request) {
     });
   }
 
+  // Visitor paths and user agents stay out of the public payload (privacy).
   const data = await getWarRoomDataAsync();
+  delete (data as { recent_visitors?: unknown }).recent_visitors;
 
   log("INFO", "War room data request", {
     endpoint: "/api/war-room/data",

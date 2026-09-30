@@ -1,9 +1,21 @@
 {
   "short_name": "gimenez.dev",
-  "name": "Luis Gimenez — Systems Architect",
+  "name": "Luis Gimenez, Software Engineer",
   "icons": [
     {
-      "src": "favicon.svg",
+      "src": "/icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
       "type": "image/svg+xml",
       "sizes": "any"
     }

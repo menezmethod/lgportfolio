@@ -1,13 +1,8 @@
 /**
- * Rate limiting for Cloud Run free-tier budget protection.
+ * Rate limiting for free-tier budget protection.
  *
- * Cloud Run free tier (monthly):
- *   180,000 vCPU-seconds — at ~10s per chat request = ~18,000 requests
- *   360,000 GiB-seconds
- *   2,000,000 total HTTP requests
- *
- * Budget-safe targets:
- *   ~150 LLM requests/day (leaves headroom for page loads)
+ * Targets:
+ *   ~150 LLM requests/day
  *   2 RPM per IP (prevents single-source abuse)
  *   10 messages per session (conserves tokens)
  */
@@ -32,48 +27,18 @@ const dailyCounters = new Map<string, DailyCounter>();
 const CACHED_RESPONSES = new Map<string, string>([
   [
     "tell me about luis",
-    "Luis Gimenez is a Site Reliability Engineer on the Home Services team at The Home Depot, on a large, integration-heavy platform (Salesforce, GCP, internal services) in a ~$6B division.\n\n" +
-      "Before this role (Jan 2024 – Mar 2026) he was a Software Engineer II on Enterprise Payments, building Go authorization services on CockroachDB. He works within these platforms, not as their sole architect. His specific contributions include:\n" +
-      "- Drove a production change through CAB approval solo and made it the repeatable CI/CD governance pattern\n" +
-      "- Owned a transaction-metrics ETL app end to end\n" +
-      "- Contributed production code to Card Broker (credit/debit routing) for approximately two years\n" +
-      "- Carried on-call ('interrupt') rotation and contributed to incident response\n" +
-      "- GCP Professional Cloud Architect certified\n\n" +
-      "The strongest hiring read is Senior-level backend/platform/SRE roles.\n\n" +
+    "Luis Gimenez is a software engineer with about 5 years in enterprise payments and reliability, based in Tampa Bay, FL.\n\n" +
+      "He started on Enterprise Payments at The Home Depot (through Daugherty Business Solutions, contracting there from Apr 2022, then Software Engineer II from Jan 2024), writing Go services on CockroachDB and carrying on-call. Since Mar 2026 he is a Site Reliability Engineer on Home Services.\n\n" +
+      "On Home Services he is primary owner, with team input, of the internal telemetry applications. He built the reusable deployment path that lets non-developers ship to production through the required gates, and he helped define the SLO and Critical User Journey model. He earned the GCP Professional Cloud Architect certification in 2023.\n\n" +
       "For details, visit /about or /work.",
   ],
   [
-    "what gcp services has luis used?",
-    "Luis is GCP Professional Cloud Architect certified and works within a GKE-based payments platform.\n\n" +
-      "Services he has hands-on experience with:\n" +
-      "Compute: GKE (daily), Cloud Run (portfolio)\n" +
-      "Data: Pub/Sub (CDC changefeeds), BigQuery, Cloud SQL, CockroachDB\n" +
-      "Security: Cloud KMS (Tink encryption), Secret Manager, Sensitive Data Protection\n" +
-      "DevOps: Cloud Build, Artifact Registry, Spinnaker\n" +
-      "IaC: CDK8s, Terraform\n\n" +
-      "He pursued the certification independently and it directly informed the team's PCF-to-GCP migration.",
-  ],
-  [
-    "what's luis's tech stack?",
-    "Languages: Go (primary at Home Depot), TypeScript (portfolio), Java (legacy services)\n\n" +
-      "Observability: Prometheus/PromQL, Grafana, Loki, Tempo, Pyroscope, OpenTelemetry\n" +
-      "Cloud: GCP (Professional Architect certified)\n" +
-      "Data: CockroachDB, PostgreSQL, Redis\n" +
-      "Infrastructure: CDK8s, Terraform, Docker, Kubernetes (GKE)\n\n" +
-      "Domains: Payment Systems, Observability, Production Operations, Cloud Migration",
-  ],
-  [
     "is luis open to remote work?",
-    "Yes. Luis is based in Parrish, FL and is seeking Senior Software Engineer (Backend/Go), Senior SRE, or Senior Full-Stack roles.\n\n" +
-      "Default is remote, U.S.-based. Not open to relocation. Light hybrid (up to 2 days/week) works only for an office within commuting distance of Parrish (e.g. Bradenton, Sarasota, St. Petersburg, downtown Tampa), and only with strong comp and WLB.\n\n" +
-      "US work authorized. No sponsorship required.",
+    "Yes. Luis is in Tampa Bay, FL. Remote U.S. is preferred, and a light hybrid near Tampa is fine. He is a U.S. citizen and needs no sponsorship.",
   ],
   [
     "what certifications does luis have?",
-    "Luis holds:\n\n" +
-      "- Google Cloud Professional Cloud Architect (Active) — skipped associate, went straight for professional\n" +
-      "- ITIL Foundation\n\n" +
-      "The GCP cert was self-driven and has repeatedly opened doors at Home Depot.",
+    "Google Cloud Professional Cloud Architect (earned 2023), ITIL Foundation (2020), and a B.S. in Software Development from Western Governors University (2021).",
   ],
 ]);
 

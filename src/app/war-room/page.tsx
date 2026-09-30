@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Activity, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { WarRoomDashboard, type WarRoomData } from '@/components/war-room/WarRoomDashboard';
 
 export default function WarRoom() {
@@ -52,9 +52,9 @@ export default function WarRoom() {
 
   if (loading && !data) {
     return (
-      <div className="min-h-screen bg-[#0d1117] flex items-center justify-center pt-16">
-        <div className="flex items-center gap-3 text-muted-foreground font-mono">
-          <Loader2 className="size-5 animate-spin" />
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="flex items-center gap-3 font-mono text-ink-soft">
+          <Loader2 className="size-5 animate-spin motion-reduce:animate-none" aria-hidden />
           <span>Initializing telemetry...</span>
         </div>
       </div>
@@ -62,50 +62,46 @@ export default function WarRoom() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-gray-200 pt-16 pb-12">
-      <div className="max-w-7xl mx-auto px-4 md:px-6">
-        <header className="py-6 md:py-8 border-b border-white/5 mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Activity className="size-5 text-emerald-400" />
-            <h1 className="text-xl md:text-2xl font-bold font-mono tracking-tight">
-              Live Infrastructure Telemetry
-            </h1>
-            <span className="text-xs bg-emerald-400/10 text-emerald-400 px-2 py-0.5 rounded font-mono border border-emerald-400/20">LIVE</span>
-          </div>
-          <p className="text-sm text-gray-500 max-w-2xl">
-            Live metrics from this portfolio on Coolify — aggregated via Prometheus on the homelab,
-            with the same observability patterns used for enterprise payment systems.
+    <div className="pb-16">
+      <div className="mx-auto max-w-[1440px] px-4 sm:px-8">
+        <header className="mb-8 border-b border-hairline py-10 sm:py-14">
+          <p className="eyebrow">War room / Live</p>
+          <h1 className="mt-5 text-[clamp(40px,7vw,88px)] font-medium leading-[1.02] tracking-[-0.045em]">
+            Telemetry from this site.
+          </h1>
+          <p className="mt-5 max-w-2xl text-[17px] leading-relaxed text-ink-soft">
+            Live metrics from this site, deployed with Coolify on a free-tier cloud VM. The numbers come from in-app telemetry, or from Prometheus when one is configured, and the source badge below says which. In-memory counters reset when the app restarts.
           </p>
         </header>
 
         <WarRoomDashboard data={data} loading={loading} error={error} lastFetch={lastFetch} />
 
         <section className="mt-12">
-          <h3 className="text-xs font-mono text-gray-500 uppercase mb-4">Observability Stack</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <h2 className="eyebrow mb-4">Observability stack</h2>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
             {[
-              { name: 'Coolify', desc: 'Deploy & container runtime', href: 'https://coolify.io/docs', tag: 'Platform' },
-              { name: 'Prometheus', desc: 'Metrics scrape target', href: process.env.NEXT_PUBLIC_PROMETHEUS_URL || 'https://prometheus.io/docs/introduction/overview/', tag: '/api/metrics' },
-              { name: 'Grafana', desc: 'Dashboards & alerts', href: process.env.NEXT_PUBLIC_GRAFANA_URL || 'https://grafana.com/docs/', tag: 'Panels' },
+              { name: 'Coolify', desc: 'Deploy and container runtime', href: 'https://coolify.io/docs', tag: 'Platform' },
+              { name: 'Prometheus', desc: 'Text exposition endpoint', href: 'https://prometheus.io/docs/instrumenting/exposition_formats/', tag: '/api/metrics' },
+              { name: 'Vectorize', desc: 'RAG retrieval index', href: 'https://developers.cloudflare.com/vectorize/', tag: 'Cloudflare' },
               { name: 'Health API', desc: 'Synthetic probe target', href: '/api/health', tag: 'Live' },
-              { name: 'Structured Logs', desc: 'JSON stdout', href: 'https://coolify.io/docs/knowledge-base/docker/logs', tag: 'stdout' },
-              { name: 'Inferencia', desc: 'LLM gateway', href: 'https://llm.menezmethod.com/docs', tag: 'Chat' },
+              { name: 'Structured logs', desc: 'JSON stdout', href: 'https://coolify.io/docs/knowledge-base/docker/logs', tag: 'stdout' },
+              { name: 'Workers AI', desc: 'Chat generation', href: 'https://developers.cloudflare.com/workers-ai/', tag: 'Cloudflare' },
             ].map((p) => (
               <a
                 key={p.name}
                 href={p.href}
                 target={p.href.startsWith('/') ? undefined : '_blank'}
                 rel={p.href.startsWith('/') ? undefined : 'noopener noreferrer'}
-                className="p-3 rounded-lg border border-white/5 bg-[#0d1117] hover:border-blue-500/30 transition-colors group"
+                className="group min-h-11 rounded-md border border-hairline bg-card p-3 transition-colors hover:border-foreground"
               >
-                <div className="text-xs font-mono text-blue-400 group-hover:text-blue-300 mb-1">{p.name}</div>
-                <div className="text-[10px] text-gray-600">{p.desc}</div>
-                <div className="text-[10px] text-emerald-400/60 mt-1">{p.tag}</div>
+                <div className="mb-1 font-mono text-xs text-brand-text">{p.name}</div>
+                <div className="text-xs text-ink-soft">{p.desc}</div>
+                <div className="mt-1 font-mono text-xs text-ink-soft">{p.tag}</div>
               </a>
             ))}
           </div>
-          <p className="text-center text-[10px] text-gray-700 font-mono mt-4">
-            War Room reads counters from Prometheus; events and errors are in-memory on the serving container.
+          <p className="mt-4 text-center font-mono text-xs text-ink-soft">
+            Events and errors are in memory on the serving container.
           </p>
         </section>
       </div>

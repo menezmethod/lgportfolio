@@ -94,7 +94,7 @@ describe("rag", () => {
     it("returns a smaller greeting context for low-signal queries", async () => {
       const { KNOWLEDGE_BASE } = await import("@/lib/knowledge");
       const greeting = retrieveFileContext("hi there", 3);
-      const broad = retrieveFileContext("payments observability grafana card broker", 3);
+      const broad = retrieveFileContext("payments observability grafana broker", 3);
       expect(greeting.length).toBeGreaterThan(500);
       expect(greeting.length).toBeLessThan(KNOWLEDGE_BASE.length);
       expect(greeting.length).toBeLessThan(broad.length);

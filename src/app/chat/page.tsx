@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Terminal, Loader2, ExternalLink, Mail } from 'lucide-react';
+import { Send, Bot, User, Loader2, ExternalLink, Mail } from 'lucide-react';
 import { incrementSessionMessageCount, isSessionLimitReached, getSessionMessageCount } from '@/lib/rate-limit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,12 +15,13 @@ interface Message {
   content: string;
 }
 
+const MAX_MESSAGES = parseInt(process.env.NEXT_PUBLIC_CHAT_MAX_MESSAGES || '30', 10);
+
 const SUGGESTED_PROMPTS = [
-  "What's Luis's experience with high-scale payment systems?",
+  "What did Luis work on in Enterprise Payments?",
   "How does Luis handle production incidents and on-call?",
-  "What's his biggest technical contribution in the last year?",
-  "Why is Luis looking for a new role?",
-  "What does Luis bring to a staff or principal-track engineering team?",
+  "What did he build on Home Services?",
+  "What roles is Luis looking for?",
 ];
 
 function cleanAssistantContent(raw: string): string {
@@ -167,7 +168,7 @@ export default function Chat() {
     {
       id: '1',
       role: 'assistant',
-      content: "I'm Luis's AI assistant. Ask me about his distributed systems architecture, GCP expertise, payment systems work, or edge AI projects.",
+      content: "I'm Luis's AI assistant. Ask me about his payments work, Home Services reliability, GCP, or the projects on the work page.",
     },
   ]);
   const [input, setInput] = useState('');
@@ -180,6 +181,9 @@ export default function Chat() {
 
   useEffect(() => {
     if (isSessionLimitReached()) setShowLimitMessage(true);
+    // /chat?q=... prefills the input. The visitor presses send, so nothing spends the rate limit unasked.
+    const q = new URLSearchParams(window.location.search).get('q');
+    if (q) setInput(q.slice(0, 500));
   }, []);
 
   useEffect(() => {
@@ -187,6 +191,8 @@ export default function Chat() {
   }, [messages]);
 
   useEffect(() => {
+    // Do not scroll on first render: it clips the welcome message.
+    if (messages.length <= 1 && !isLoading) return;
     const el = messagesEndRef.current;
     if (!el) return;
     const id = requestAnimationFrame(() => {
@@ -336,20 +342,15 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-background pt-[60px] sm:pt-[64px]">
+    <div className="flex h-[calc(100dvh-4rem)] flex-col bg-background">
       <div className="mx-auto flex h-full w-full max-w-[95%] xl:max-w-[1800px] flex-col gap-4 px-2 pb-4 sm:px-4 md:px-6">
 
-        <header className="shrink-0 py-2 sm:py-4 flex flex-col items-center text-center gap-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-mono uppercase tracking-wider">
-            <Terminal className="size-3.5" />
-            <span>RAG-Powered Portfolio Agent</span>
-          </div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60">
-            Ask the AI Assistant
-          </h1>
+        <header className="shrink-0 pb-2 pt-5 sm:py-4">
+          <p className="eyebrow">Chat / Answers from CV and notes</p>
+          <h1 className="mt-2 text-2xl font-medium tracking-[-0.03em] sm:text-3xl">Ask the assistant.</h1>
         </header>
 
-        <Card className="flex flex-1 flex-col min-h-0 overflow-hidden border-border/40 bg-card/30 backdrop-blur-xl shadow-2xl relative w-full">
+        <Card className="flex flex-1 flex-col min-h-0 overflow-hidden border-hairline bg-card shadow-none relative w-full">
           <div
             className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain"
             style={{ maxHeight: 'min(calc(100vh - 20rem), 100%)' }}
@@ -385,10 +386,10 @@ export default function Chat() {
 
                   <div
                     className={cn(
-                      'rounded-2xl px-5 py-3.5 sm:px-6 sm:py-4 shadow-sm text-sm sm:text-base leading-relaxed max-w-full overflow-x-auto',
+                      'rounded-lg px-5 py-3.5 sm:px-6 sm:py-4 shadow-sm text-sm sm:text-base leading-relaxed max-w-full overflow-x-auto',
                       message.role === 'user'
-                        ? 'bg-primary text-primary-foreground rounded-tr-sm'
-                        : 'bg-muted/50 border border-border/50 backdrop-blur-sm text-foreground rounded-tl-sm w-full'
+                        ? 'bg-primary text-primary-foreground '
+                        : 'bg-muted/50 border border-border/50 backdrop-blur-sm text-foreground  w-full'
                     )}
                   >
                     {message.role === 'assistant' ? (
@@ -405,7 +406,7 @@ export default function Chat() {
                   <div className="size-8 sm:size-10 shrink-0 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mt-1">
                     <Bot className="size-5" />
                   </div>
-                  <div className="rounded-2xl rounded-tl-sm px-6 py-4 bg-muted/40 border border-border/50 backdrop-blur-sm flex items-center gap-3">
+                  <div className="rounded-lg  px-6 py-4 bg-muted/40 border border-border/50 backdrop-blur-sm flex items-center gap-3">
                     <Loader2 className="size-4 animate-spin text-primary" />
                     <span className="text-xs text-muted-foreground font-mono uppercase tracking-wide">processing...</span>
                   </div>
@@ -416,15 +417,15 @@ export default function Chat() {
             </div>
           </div>
 
-          <div className="p-4 sm:p-5 bg-gradient-to-t from-background via-background/95 to-transparent pt-10">
+          <div className="p-4 sm:p-5 bg-gradient-to-t from-background via-background/95 to-transparent pt-3 sm:pt-10">
             {!showLimitMessage && messages.length <= 1 && (
-              <div className="flex overflow-x-auto gap-2 pb-4 scrollbar-hide justify-start sm:justify-center">
+              <div className="mx-auto mb-3 grid w-full max-w-4xl grid-cols-2 gap-2">
                 {SUGGESTED_PROMPTS.map((prompt) => (
                   <Button
                     key={prompt}
                     variant="outline"
                     size="sm"
-                    className="shrink-0 rounded-full border-border/60 bg-background/50 backdrop-blur hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-all duration-300 font-mono text-xs"
+                    className="h-auto min-h-11 justify-start whitespace-normal rounded-md border-hairline bg-background px-3 py-2 text-left text-xs font-normal hover:border-foreground hover:bg-card sm:px-4 sm:text-sm"
                     onClick={() => setInput(prompt)}
                   >
                     {prompt}
@@ -442,7 +443,7 @@ export default function Chat() {
                 data-cy="chat-input"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about architecture, systems, or projects..."
+                placeholder="Ask about Luis's work"
                 aria-label="Ask a question about Luis's experience"
                 className="flex-1 bg-transparent border-0 focus-visible:ring-2 focus-visible:ring-primary/30 px-4 py-3 h-auto text-base placeholder:text-muted-foreground/50"
                 disabled={isLoading || showLimitMessage}
@@ -463,6 +464,11 @@ export default function Chat() {
               </Button>
             </form>
 
+            <p className="mx-auto mt-3 max-w-4xl text-center text-xs leading-relaxed text-ink-soft">
+              AI assistant. AI-generated answers may be wrong. Chats may be saved so Luis can review questions, so please do not share sensitive personal information.{" "}
+              <a href="/privacy" className="link-under text-foreground">Privacy</a>
+            </p>
+
             {messages.length > 2 && !emailSent && (
               <div className="text-center mt-2">
                 {!showEmailCapture ? (
@@ -471,7 +477,7 @@ export default function Chat() {
                     onClick={() => setShowEmailCapture(true)}
                     className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-sm"
                   >
-                    <Mail className="size-3" /> Email me this conversation
+                    <Mail className="size-3" /> Leave my email for Luis
                   </button>
                 ) : (
                   <form
@@ -502,18 +508,18 @@ export default function Chat() {
                     <Button type="submit" size="sm" variant="outline" className="text-xs font-mono h-8">
                       Save
                     </Button>
-                    <p className="w-full text-[10px] text-muted-foreground/50 font-mono mt-1">
-                      Used only to send this transcript. Not stored or shared.
+                    <p className="w-full text-xs text-ink-soft font-mono mt-1">
+                      Your email is saved with this chat so Luis can follow up. To delete it, email luisgimenezdev@gmail.com.
                     </p>
                   </form>
                 )}
               </div>
             )}
 
-            {!showLimitMessage && (
+            {!showLimitMessage && sessionMessageCount > 0 && (
               <div className="text-center mt-2.5">
-                <span className="text-[10px] text-muted-foreground/40 font-mono">
-                  {sessionMessageCount}/10 queries remaining (engaged chats get more)
+                <span className="font-mono text-xs text-ink-soft">
+                  {Math.max(0, MAX_MESSAGES - sessionMessageCount)} questions left
                 </span>
               </div>
             )}

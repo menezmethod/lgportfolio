@@ -5,7 +5,9 @@
  * into in-memory telemetry (counters + recent visitors) so it shows up
  * in War Room and Prometheus metrics.
  */
-import { recordVisitor, recordRequest } from "@/lib/telemetry";
+import { recordVisitor, recordRequest, classifyVisitor } from "@/lib/telemetry";
+import { notifyVisitor } from "@/lib/notify";
+import { createHash } from "node:crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +22,17 @@ export async function POST(req: Request) {
     const referrer = req.headers.get("referer") || "";
 
     recordVisitor(path, userAgent, referrer);
+    const category = classifyVisitor(userAgent);
+    if (category === "person" || category === "recruiter") {
+      const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "";
+      notifyVisitor({
+        // Hashed and truncated: the raw IP is never kept. Used only to avoid duplicate pings.
+        key: createHash("sha256").update(`${ip}|${userAgent}`).digest("hex").slice(0, 16),
+        category,
+        path,
+        country: req.headers.get("cf-ipcountry") || undefined,
+      });
+    }
     recordRequest("/api/analytics/page-view", "POST", 200, Date.now() - start);
 
     return new Response(JSON.stringify({ ok: true }), {

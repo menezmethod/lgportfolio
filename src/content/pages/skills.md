@@ -1,50 +1,55 @@
 ---
 title: Skills
 description: >-
-  Production skills across reliability engineering, cloud infrastructure, observability, and
-  site reliability, rated by hands-on depth, not resume theater.
+  What I use at work and on my own projects, grouped the way the CV groups it.
 categories:
-  - name: programming languages
+  - name: Languages and backend
     skills:
-      - Go (Proficient)
-      - Java (Proficient)
-      - TypeScript (Working)
-      - Python (Working)
-      - SQL (Proficient)
-  - name: cloud infrastructure
+      - Go
+      - Python
+      - Java
+      - SQL
+      - REST APIs
+      - CockroachDB
+  - name: Cloud and platform
     skills:
-      - GCP (Proficient)
-      - GKE (Working)
-      - Cloud Run (Proficient)
-      - BigQuery (Working)
-      - Terraform (Working)
-      - Cloud Armor (Working)
-  - name: systems architecture
+      - GCP
+      - GKE
+      - Kubernetes
+      - Terraform
+      - Cloud Build
+      - Pivotal Cloud Foundry
+      - Linux
+  - name: Reliability and observability
     skills:
-      - Distributed Systems (Proficient)
-      - Event-Driven Design (Proficient)
-      - Microservices (Proficient)
-      - Domain Boundaries (Proficient)
-      - System Design (Proficient)
-  - name: platform engineering
+      - OpenTelemetry
+      - Prometheus
+      - Grafana
+      - SLOs and SLIs
+      - Critical User Journeys
+      - PagerDuty
+      - pprof
+  - name: Data and delivery
     skills:
-      - Kubernetes (Working)
-      - Docker (Proficient)
-      - CI/CD (Proficient)
-      - API Design (Proficient)
-  - name: observability
+      - BigQuery
+      - ETL pipelines
+      - Metrics data modeling
+      - CI/CD (Jenkins, Spinnaker)
+      - Branch protection
+      - Change management
+  - name: Integration and payments
     skills:
-      - OpenTelemetry (Proficient)
-      - Prometheus (Proficient)
-      - Grafana (Proficient)
-      - Tempo (Working)
-      - PromQL (Working)
-      - Alerting (Proficient)
-  - name: data & storage
+      - Card authorization
+      - Processor integrations
+      - Gift card systems
+      - Salesforce integration
+      - Apigee
+  - name: Practices
     skills:
-      - CockroachDB (Proficient)
-      - PostgreSQL (Working)
-      - Redis (Working)
-      - Pub/Sub (Working)
-      - BigQuery (Proficient)
+      - Design review
+      - Blameless postmortems
+      - Incident response
+      - On-call
+      - Production-readiness review
+      - Automated testing
 ---

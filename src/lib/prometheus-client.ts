@@ -54,7 +54,7 @@ function authHeaders(): HeadersInit {
 async function promFetch(path: string, params: URLSearchParams): Promise<PromVectorResponse> {
   const url = `${prometheusBaseUrl()}${path}?${params.toString()}`;
   let lastError: unknown;
-  // Retry once on timeout/network errors — Prometheus shares the Pi with Ollama, so a
+  // Retry once on timeout/network errors — Prometheus can share a host with other services, so a
   // single slow scrape must not flip the whole War Room to the in-memory fallback.
   for (let attempt = 0; attempt < QUERY_ATTEMPTS; attempt++) {
     const controller = new AbortController();

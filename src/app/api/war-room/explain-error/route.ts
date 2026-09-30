@@ -11,7 +11,7 @@ import { publishDailyBudgetGauge, recordRequest } from "@/lib/telemetry";
 export const maxDuration = 30;
 
 const SYSTEM_PROMPT = `You are a DevOps/SRE assistant. The user will paste an error message or log line from their application.
-Your job: explain what the error means in plain language and suggest 1–3 concrete fixes. Be concise (under 150 words).
+Your job: explain what the error means in plain language and suggest one to three concrete fixes. Be concise (under 150 words).
 Do not make up stack traces or code. If the error is unclear, say so and suggest how to get more context (e.g. check logs, trace_id).`;
 
 export async function POST(req: Request) {

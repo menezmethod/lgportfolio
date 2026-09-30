@@ -1,61 +1,61 @@
 ---
 title: Experience
 description: >-
-  Site reliability engineer at The Home Depot, moved from enterprise payments,
-  plus earlier freelance consulting and web development work.
+  Platform and reliability work at The Home Depot, preceded by consulting and web development.
 entries:
   - company: The Home Depot
-    role: Site Reliability Engineer · Home Services Division
-    period: Mar 2026 – Present
-    location: Remote / Tampa Bay, FL
+    role: Site Reliability Engineer
+    period: Mar 2026 to present
+    location: Home Services, remote (Atlanta, GA)
     summary: >-
-      SRE on the Home Services platform, owning reliability, observability, and
-      operational excellence across scheduling, dispatch, and fulfillment services.
+      Production reliability, observability, and deployment for a large, integration-heavy
+      Home Services platform (Salesforce, Apigee, Copado, GCP).
     highlights:
-      - OpenTelemetry distributed tracing across Home Services multi-service stack
-      - SLO-driven reliability practices and incident response for critical workflows
-      - Platform observability tooling that reduced mean-time-to-incident
-      - Cross-team operational standards and production on-call practices
+      - "Built the reusable deployment path that lets non-developers ship to production through the gates: security scanning, static analysis, hardened base images, production readiness, branch protection, and rollback planning"
+      - Took the first Home Services application through that path and made it the repeatable pattern
+      - Presented a production change to the change-approval board on my own, with measured load-test evidence
+      - "Primary owner, with team input, of the internal telemetry apps: Python and Go on GCP (BigQuery, GKE, Cloud Run), ingesting Salesforce data into BigQuery for Grafana"
+      - Shipped a metrics ETL with a clean multi-hour backfill
+      - Helped define SLOs, health checks, and Critical User Journeys, with traffic-weighted roll-ups
+      - Replaced time-based alert muting with volume-aware thresholds
+      - 2x Bravo awards
   - company: The Home Depot
-    role: Software Engineer II · Enterprise Payments Platform
-    period: Jan 2024 – Mar 2026
-    location: Remote / Tampa Bay, FL
+    role: Software Engineer II
+    period: Jan 2024 to Mar 2026
+    location: Enterprise Payments, remote (Atlanta, GA)
     summary: >-
-      Full-time IC building Go authorization services (credit/debit auth, reversal, refund)
-      on CockroachDB, deployed across a 2,300+ store rollout.
+      Go authorization services for credit, debit, and gift card traffic on CockroachDB.
     highlights:
-      - Go authorization services on CockroachDB, deployed to GKE and Pivotal Cloud Foundry, for Card Broker routing
-      - Gift Card Tender from initial design onward: design, implementation, production-readiness review, alerting, on-call
-      - Contributed to modernization off legacy NonStop and PCI-scope reduction via proxy layers
-      - Carried the on-call rotation and contributed to production incident response
+      - Built and maintained Go services on the payments authorization platform (authorization, reversal, refund)
+      - "Worked a card-authorization broker service: request validation, duplicate detection, and format conversion between upstream clients and downstream processors"
+      - Worked a gift-card tender API from initial design, through production-readiness review, alerting, and on-call
+      - Contributed to modernization off legacy systems
+      - Carried the on-call rotation and contributed to incident response and blameless postmortems
   - company: Daugherty Business Solutions
-    role: Contractor · Enterprise Payments Platform
-    period: Apr 2022 – Jan 2024
-    location: Remote
+    role: Software Engineer
+    period: Apr 2022 to Jan 2024
+    location: Enterprise Payments consulting engagement, client The Home Depot
     summary: >-
-      Contracted to Home Depot's payments team during Card Broker development. Hired
-      full-time by The Home Depot in Jan 2024.
+      Joined a card-authorization service before it deployed to any stores.
     highlights:
-      - Joined before Card Broker deployed to any stores; contributed Go code, tests, and rollout support
-      - Earned GCP Professional Cloud Architect certification (self-driven)
-      - Bridged contractor and full-time engineering during platform scale-up
+      - Contributed Go code, tests (Ginkgo and Gomega), and rollout support as the service reached production
+      - Built card-authorization routing and processor-integration logic with duplicate-check and validation guarantees
+      - Built automated testing and continuous-delivery controls for financial transaction systems
   - company: Menez Enterprises
     role: Independent Software Consultant
-    period: Sep 2018 – Apr 2022
-    location: Greater Orlando / Tampa Bay, FL
+    period: Sep 2018 to Apr 2022
+    location: Greater Orlando and Tampa, FL
     summary: >-
-      Independent freelance consultancy shipping custom web applications for small-business
-      clients: ownership instincts, client communication, and revenue-aware engineering decisions.
+      Freelance web applications, APIs, and cloud-hosted solutions for small businesses.
     highlights:
-      - End-to-end delivery for small-business clients across web and backend systems
-      - Direct ownership of architecture, deployment, and client relationships
+      - "Handled projects end to end: architecture, build, deployment, and client communication"
   - company: G World Properties
     role: Web Developer
-    period: Sep 2015 – Sep 2018
+    period: Sep 2015 to Sep 2018
     location: Orlando, FL
     summary: >-
-      Built and maintained websites, internal tools, and APIs for a real-estate company.
+      Websites, internal tools, and APIs for a real-estate company.
     highlights:
-      - Primarily WordPress, MySQL, and Python
-      - Contributed React/Node and Spring components to web applications and services
+      - Worked mainly in WordPress, MySQL, and Python
+      - Contributed React, Node, and Spring components
 ---

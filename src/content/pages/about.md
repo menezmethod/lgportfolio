@@ -1,44 +1,45 @@
 ---
 title: About
-headline: Site Reliability Engineer.
-headlineAccent: Home Services Infrastructure.
+headline: Software engineer.
+headlineAccent: Go backend to platform and reliability.
 buildItems:
-  - title: Instrument Critical Paths
+  - title: Run the telemetry apps
     icon: eye
     description: >-
-      I build the telemetry that turns vague production pain into measurable facts.
-      Traces, dashboards, alert rules, and canonical logs are architecture, not afterthoughts.
-  - title: Move Risky Systems Safely
+      The Home Services internal telemetry apps are Python and Go services on GCP that ingest
+      Salesforce data into BigQuery for Grafana.
+  - title: Put change on a safe path
     icon: shield
     description: >-
-      Zero-downtime migrations, rollback gates, traffic shadowing, and tight change
-      discipline are the difference between architecture theater and operating systems
-      that survive contact with reality.
-  - title: Build Platform Abstractions
+      I built the deployment path that lets non-developers ship to production through the gates:
+      security scanning, static analysis, hardened base images, production readiness, branch
+      protection, and rollback planning. The first application went through it and it became the pattern.
+  - title: Write the code that does it
     icon: git-branch
     description: >-
-      I create the internal developer platform tooling that lets service teams
-      deploy, observe, and debug without tickets. Infrastructure as product,
-      not as bottleneck.
+      Go authorization services on CockroachDB for The Home Depot's payments platform, and a
+      metrics ETL, from design through production readiness.
 principles:
-  - title: Measure before opinion
+  - title: Check the query before the schema
     description: >-
-      If a system is important, it deserves traces, metrics, and an incident timeline.
-      Guesswork is not an operating model.
-  - title: Design for failure, not the demo
+      I cut a star schema after the real Grafana and alerting queries showed the normalization
+      had no payoff.
+  - title: Tie every alert to a user impact
     description: >-
-      Rollback paths, cache expiry, replay protection, and error budgets matter more
-      than pretty architecture diagrams.
-  - title: Platforms reduce cognitive load
+      Each alert maps to a Critical User Journey step and a runbook. Volume-aware thresholds
+      replaced time-based muting, and a peer cross-checked them.
+  - title: Bring in the on-call engineer
     description: >-
-      Every platform abstraction should either speed up delivery or reduce incident
-      response time. If it does neither, it is infrastructure theater.
+      When other teams ask me to pull logs and scope impact, I bring in the formal on-call
+      engineer. I stay a helper on the incident.
 ---
 
-I work inside one of the hardest engineering environments to fake: enterprise-scale home services. At **The Home Depot**, I work on reliability, observability, and deployment governance for the Home Services platform: scheduling, dispatch, and fulfillment workflows.
+I started as a Go backend engineer on Enterprise Payments at **The Home Depot**: through Daugherty Business Solutions, contracting at The Home Depot from April 2022, then a Software Engineer II at The Home Depot from January 2024. I wrote authorization services on CockroachDB and carried the on-call rotation.
 
-My focus is not generic full-stack work. I instrument critical paths, reduce operational ambiguity, and help move risky systems without customer impact. As an SRE at a Fortune 50 retailer, that means distributed tracing across multi-service stacks, SLO-driven reliability practices, and being the person other teams call to pull the right logs and scope an incident fast. Before this role, I spent about two years on the Enterprise Payments team building Go authorization services on CockroachDB: Card Broker routing, Gift Card Tender from initial design onward, and modernization off legacy NonStop to reduce PCI scope.
+In March 2026 I moved to Home Services as a Site Reliability Engineer. The work includes the telemetry apps, SLO and alerting tooling, and the deployment path for non-developers. I helped define the SLO and Critical User Journey model.
 
-Based in the **Tampa Bay area**, I am open to remote and hybrid (≤2 days/week) roles in site reliability engineering, platform infrastructure, and systems architecture.
+I hold 2x Bravo awards from The Home Depot.
 
-The next frontier is platform-as-product: internal developer platforms that abstract infrastructure complexity, self-service deployment pipelines, and observability-driven operations that let teams ship fast without sacrificing reliability.
+Before Home Depot I freelanced for small businesses (Menez Enterprises, 2018 to 2022) and built web applications at a real-estate company (2015 to 2018).
+
+I'm based in Tampa Bay, FL, and I'm a U.S. citizen. Remote U.S. is preferred. A light hybrid arrangement near Tampa works too.

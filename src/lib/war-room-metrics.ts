@@ -178,6 +178,10 @@ export async function getWarRoomDataAsync(): Promise<WarRoomDataWithSource> {
       platform,
       service_status: {
         ...base.service_status,
+        checks: {
+          ...base.service_status.checks,
+          prometheus: { status: "not_configured" },
+        },
         region: resolveRegion(base.service_status.region),
       },
     };
@@ -203,7 +207,15 @@ export async function getWarRoomDataAsync(): Promise<WarRoomDataWithSource> {
   try {
     const promSlice = await fetchPrometheusWarRoomSlice(budgetMax);
     if (!promSlice?.request_metrics) {
-      return { ...base, metrics_source: "memory", platform };
+      return {
+        ...base,
+        metrics_source: "memory",
+        platform,
+        service_status: {
+          ...base.service_status,
+          checks: { ...base.service_status.checks, prometheus: { status: "degraded" } },
+        },
+      };
     }
 
     return {

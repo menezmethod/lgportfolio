@@ -1,38 +1,27 @@
-import Link from 'next/link';
-import { Terminal } from 'lucide-react';
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Not found", robots: { index: false } };
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-6">
-      <div className="max-w-md text-center space-y-6">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-card/60 border border-border/50 font-mono text-sm text-muted-foreground">
-          <span className="text-red-400">$</span>
-          <span>404: not found</span>
-        </div>
-
-        <h1 className="text-5xl md:text-7xl font-bold text-foreground">
-          4<span className="text-primary">0</span>4
-        </h1>
-
-        <p className="text-lg text-muted-foreground leading-relaxed">
-          This page doesn&apos;t exist. Maybe it was moved, maybe it never was.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-all"
-          >
-            Go Home
-          </Link>
-          <Link
-            href="/chat"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-border/50 text-foreground rounded-lg hover:bg-card/60 transition-all font-mono text-sm"
-          >
-            <Terminal className="size-4 text-primary" />
-            Ask the AI
-          </Link>
-        </div>
+    <div className="mx-auto flex max-w-[1440px] flex-col px-4 py-20 sm:px-8 sm:py-28">
+      <p className="eyebrow">404</p>
+      <h1 className="mt-5 text-[clamp(56px,12vw,160px)] font-medium leading-[1] tracking-[-0.055em]">
+        Not found<span className="text-brand">.</span>
+      </h1>
+      <p className="mt-6 max-w-md text-[17px] leading-relaxed text-ink-soft">
+        This page does not exist, or it moved. The work, about, and chat pages are a click away.
+      </p>
+      <div className="mt-9 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <Link href="/" className="btn-pill">
+          Back home <ArrowRight className="size-4" aria-hidden />
+        </Link>
+        <Link href="/work" className="btn-ghost">
+          See the work <ArrowRight className="size-4" aria-hidden />
+        </Link>
       </div>
     </div>
   );

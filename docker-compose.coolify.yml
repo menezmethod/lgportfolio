@@ -1,11 +1,7 @@
-# Coolify / homelab deploy for gimenez.dev (Pi 5 @ 192.168.0.207)
-# Same Docker network as inferencia + prometheus — LAN metrics and LLM calls.
+# Compose definition for the lgportfolio service. Kept for reference: production deploys
+# through GitHub Actions and the Coolify API (see docs/DEPLOY-COOLIFY.md).
 #
-# Usage:
-#   cp .env.coolify.example .env.coolify   # fill secrets
-#   docker compose -f docker-compose.coolify.yml up -d --build
-#
-# Traefik route: /data/coolify/proxy/dynamic/gimenez.yaml (see scripts/deploy-coolify.sh)
+# Variables come from .env.coolify (copy .env.coolify.example and fill the values).
 
 name: lgportfolio
 

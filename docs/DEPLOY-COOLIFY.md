@@ -1,142 +1,60 @@
-# Deploy on Coolify (primary — gimenez.dev)
+# Deploy on Coolify (gimenez.dev)
 
-Production hosting for **gimenez.dev** runs on the homelab Pi 5 (`192.168.0.207`) under **Coolify**, on the same Docker network as **Inferencia** (`inferencia:8080`) and **Prometheus** (`prometheus-prometheus-1:9090`). Metrics and LLM calls stay on the LAN.
+Production runs as a Dockerfile application under **Coolify** on a free-tier cloud VM, with Cloudflare DNS and proxy in front. Chat retrieval and generation run on Cloudflare: Vectorize for retrieval and Workers AI for generation, through the `lgportfolio-rag` worker in `workers/rag/`.
 
-**Coolify UI:** [https://cp.menezmethod.com](https://cp.menezmethod.com)
+Earlier self-hosted setups are retired and their deploy scripts were removed. `docker-compose.coolify.yml` is kept for reference only.
 
-## Architecture
+## Coolify application
 
-```
-Internet → Cloudflare DNS (gimenez.dev zone)
-        → Cloudflare Tunnel (coolify-tunnel on Pi)
-        → lgportfolio:3000 (Next.js standalone)
-        ↔ inferencia:8080 (chat, same Docker network)
-        ↔ prometheus-prometheus-1:9090 (War Room aggregates)
-```
+- **Build pack:** Dockerfile. **Port:** `3000`.
+- **Domains:** `gimenez.dev` and `www.gimenez.dev`.
+- **Environment variables:** see `.env.coolify.example`. Set `COOLIFY=1`.
+- **Deploy trigger:** GitHub Actions. Coolify's own "deploy on every commit" stays off.
 
-Traefik on the Pi (`coolify-proxy`) is also configured for direct access; production traffic uses the **tunnel** so you do not need port forwarding.
+## CI and deploy
 
-## One-time setup
-
-### 1. DNS (Cloudflare — gimenez.dev zone)
-
-Nameservers should be Cloudflare (`henrik.ns.cloudflare.com`, `jule.ns.cloudflare.com`). In **Cloudflare → gimenez.dev → DNS**:
-
-| Type | Name | Target | Proxy |
-|------|------|--------|-------|
-| **CNAME** | `@` | `19bf9243-3d61-4db1-bd9a-60665e2b675d.cfargotunnel.com` | Proxied |
-| **CNAME** | `www` | `19bf9243-3d61-4db1-bd9a-60665e2b675d.cfargotunnel.com` | Proxied |
-
-**Delete** any stale A/CNAME records from prior hosting providers so only Cloudflare tunnel records remain.
-
-Tunnel ingress for `gimenez.dev` is in `/data/cloudflared/config.yml` on the Pi (routes to `http://lgportfolio:3000`). Redeploy with `./scripts/deploy-coolify.sh` to refresh it.
-
-### 2. Secrets on the Pi
-
-```bash
-ssh pico-infra
-mkdir -p /home/menez/apps/lgportfolio
-cd /home/menez/apps/lgportfolio
-# copy .env.coolify.example → .env.coolify and fill ADMIN_SECRET, INFERENCIA_API_KEY, etc.
-```
-
-Use the same `INFERENCIA_API_KEY` as the inferencia container (`docker exec inferencia env | grep API_KEYS`).
-
-### 3. Deploy from your Mac
-
-```bash
-chmod +x scripts/deploy-coolify.sh
-./scripts/deploy-coolify.sh
-```
-
-This syncs the repo, installs the Traefik route (`/data/coolify/proxy/dynamic/gimenez.yaml`), updates the Prometheus scrape target to `lgportfolio:3000`, builds the image on the Pi (aarch64), and starts the container.
-
-## Coolify UI + GitHub auto-deploy (recommended)
-
-1. **cp.menezmethod.com** → **+** new project **`gimenez.dev`** → **+ Add Resource** → **Application**
-2. **GitHub App:** `coolify-menez` → repo `menezmethod/lgportfolio`, branch `main`
-3. **Build pack:** Dockerfile · **Port:** `3000`
-4. **Domains:** `gimenez.dev`, `www.gimenez.dev`
-5. **Environment variables** (same as `.env.coolify.example`); set `COOLIFY=1`
-6. **Disable** Coolify “deploy on every commit” — GitHub Actions deploys after CI passes (see below)
-7. Stop the manual container if still running: `docker compose -f docker-compose.coolify.yml down` on the Pi
-8. Update **cloudflared** ingress to point at the Coolify-managed container name (or route via Traefik labels Coolify adds)
-
-### GitHub Actions deploy (after CI)
-
-On merge to `main`, `.github/workflows/ci.yml` runs lint → build → unit tests → Cypress, then calls the Coolify API to deploy the exact commit that passed CI.
-
-Add repo secrets (**Settings → Secrets → Actions**):
+On merge to `main`, `.github/workflows/ci.yml` runs lint, build, unit tests, and Cypress, then calls the Coolify API to deploy the commit that passed CI. The repository needs these Actions secrets:
 
 | Secret | Value |
 |--------|--------|
-| `COOLIFY_URL` | `https://cp.menezmethod.com` |
+| `COOLIFY_URL` | Base URL of the Coolify instance |
 | `COOLIFY_API_TOKEN` | From Coolify **Keys & Tokens** |
-| `COOLIFY_APP_UUID` | Application UUID from Coolify app settings |
-
-Enable **API** in Coolify if disabled: **Settings** → enable API access for tokens.
+| `COOLIFY_APP_UUID` | UUID of the lgportfolio application in Coolify |
 
 ## Environment variables
 
-| Variable | Coolify value |
-|----------|----------------|
-| `INFERENCIA_BASE_URL` | `http://inferencia:8080/v1` |
-| `PROMETHEUS_URL` | `http://prometheus-prometheus-1:9090` |
-| `INFERENCIA_API_KEY` | Same key as inferencia service |
-| `INFERENCIA_CHAT_MODEL` | `gemma4:12b` (pinned in `docker-compose.coolify.yml`; do not use `gemma4:e4b`) |
-| `ADMIN_SECRET` | Your admin secret |
+| Variable | Purpose |
+|----------|---------|
+| `CLOUDFLARE_RAG_WORKER_URL` | URL of the `lgportfolio-rag` worker |
+| `CLOUDFLARE_RAG_KEY` | Shared key for the worker. Its presence enables retrieval and Workers AI generation. |
+| `ADMIN_SECRET` | Protects the admin APIs and `/api/metrics` |
 | `NEXT_PUBLIC_SITE_URL` | `https://gimenez.dev` |
 | `COOLIFY` | `1` |
+| `PROMETHEUS_URL` | Optional. When set and reachable, the War Room reads Prometheus. Otherwise it reads in-app telemetry. |
+| `INFERENCIA_*`, `OPENROUTER_API_KEY` | Optional legacy and fallback providers. `src/lib/chat-providers.ts` tries whichever are set, in that order, before Workers AI. |
 
 ## Verify
 
 ```bash
-# On Pi — full RCA (auth, model, network, chat POST)
-chmod +x scripts/verify-coolify-chat.sh
-./scripts/verify-coolify-chat.sh
-
-curl -s https://gimenez.dev/api/health | python3 -m json.tool
-curl -s https://gimenez.dev/api/war-room/data | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['metrics_source'], d.get('service_status',{}).get('checks',{}).get('prometheus'))"
+curl -s https://gimenez.dev/api/health/live
+curl -s https://gimenez.dev/api/war-room/data | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['metrics_source'])"
 ```
 
-War Room should show `metrics_source: prometheus` and Prometheus **UP**.
+`metrics_source` is `memory` when no Prometheus server is configured.
 
-## Healthcheck (Alpine IPv6 gotcha)
+## Healthcheck
 
-Coolify and the Dockerfile healthcheck must probe **`127.0.0.1:3000`**, not `localhost`. On Alpine, `localhost` resolves to IPv6 `::1` while Next.js listens on IPv4 — the container stays **unhealthy** even when the site works. Use `/api/health/live` (no Inferencia probe). CI deploy pins `health_check_host: 127.0.0.1` and `health_check_path: /api/health/live` on each release.
+Probe `127.0.0.1:3000`, not `localhost`. On Alpine, `localhost` can resolve to IPv6 while Next.js listens on IPv4, which leaves the container unhealthy even when the site works. Use `/api/health/live`, which only checks that the process is up.
 
-## Hermes & automations (do not break Inferencia)
+## Refreshing the chat knowledge index
 
-After each `git pull` on the Pi:
+The chat retrieves from a Vectorize index seeded from `src/lib/knowledge.ts`. After you change the knowledge base, refresh the index from your own machine (this calls Cloudflare, so run it only when you mean to):
 
 ```bash
-./scripts/hermes/cleanup-hermes.sh --apply   # archive legacy scripts that override env
-./scripts/hermes/install-watchdogs.sh        # sync safe watchdogs to ~/.hermes
-./scripts/hermes/audit-automations.sh        # fail if unsafe crons/scripts remain
+cd workers/rag && npx wrangler deploy      # once, so the worker has the /prune route
+cd ../..
+npx tsx scripts/seed-rag-cloudflare.ts --dry-run   # prints what would be upserted and deleted, calls nothing
+npx tsx scripts/seed-rag-cloudflare.ts             # upserts current chunks, then deletes stale chunk ids
 ```
 
-**Source of truth for chat env:** Coolify UI + `docker-compose.coolify.yml` + `.env.coolify`. Hermes must **never** write `INFERENCIA_API_KEY`, `INFERENCIA_BASE_URL`, or `INFERENCIA_CHAT_MODEL`.
-
-**Safe (report-only):**
-
-| Automation | What it does |
-|------------|----------------|
-| `inferencia-watchdog.py` | GET Inferencia `/health` + shallow `/api/health` |
-| `portfolio-chat-watchdog.sh` | Same; never POST `/api/chat` |
-| `lgportfolio-health-watchdog.sh` | GET `/api/health/live`, `/`, shallow `/api/health` — report-only, every 45 min |
-| `cleanup-hermes.sh` | Archives legacy recovery/override scripts from `~/.hermes` |
-| GitHub Actions `deploy` job | Redeploys **lgportfolio** Coolify app only (after CI) |
-
-**Never automate (caused outages):**
-
-- POST `https://gimenez.dev/api/chat` on a cron
-- `docker restart` / Coolify redeploy on **inferencia** or **ollama**
-- `sed` / `echo` to `.env.coolify` or `INFERENCIA_*` (overrides Coolify)
-- Hermes auto-recovery (`WATCHDOG_ENABLE_RECOVERY`) — permanently disabled in v2 scripts
-- Vercel `vercel --prod` from crons
-
-Policy reference: `scripts/hermes/policy.json`. Example crons: every **15 min**, `no_agent: true`.
-
-## Rollback to Cloud Run
-
-Re-enable the Cloud Build trigger and point DNS at the GCP load balancer. See [DEPLOY-CLOUDRUN.md](./DEPLOY-CLOUDRUN.md).
+Chunk ids are stable and sequential (`kb-001`, `kb-002`, ...). The seed step replaces chunks with the same id. The prune step deletes the ids past the last current chunk, so text removed from the knowledge base stops being retrieved. It needs `CLOUDFLARE_RAG_WORKER_URL` and `CLOUDFLARE_RAG_KEY` in `.env.local`.

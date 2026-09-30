@@ -18,6 +18,7 @@ import {
   getPrometheusText,
   incrementAdminMetric,
   getUptimeSeconds,
+  getChatSpans,
 } from "@/lib/telemetry";
 
 beforeEach(() => {
@@ -507,6 +508,19 @@ describe("telemetry", () => {
   describe("getUptimeSeconds", () => {
     it("returns a non-negative number", () => {
       expect(getUptimeSeconds()).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe("getChatSpans", () => {
+    it("counts real model calls only and reports p50 per span", () => {
+      const before = getChatSpans().samples;
+      recordChatMetrics({ durationMs: 900, ragDurationMs: 100, cacheHit: false, rateLimited: false });
+      recordChatMetrics({ durationMs: 5, ragDurationMs: 0, cacheHit: true, rateLimited: false });
+      recordChatMetrics({ durationMs: 0, ragDurationMs: 0, cacheHit: false, rateLimited: true });
+      const spans = getChatSpans();
+      expect(spans.samples).toBe(before + 1);
+      expect(spans.inference_p50_ms).toBeGreaterThan(0);
+      expect(getWarRoomData().chat_spans.samples).toBe(spans.samples);
     });
   });
 });
