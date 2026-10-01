@@ -74,7 +74,7 @@ The payments platform is a large team effort. Luis worked within it.
 
 ## Enterprise Payments (Jan 2024 to Mar 2026)
 - Card-authorization broker service: worked request validation, duplicate detection, and format conversion between upstream clients and downstream processors. He was a contributor on the team that built and ran it.
-- Gift-card tender API: worked on it from initial design. It is a centralized API for balance inquiry, authorization and reversal, activation, and balance adjustment, replacing per-channel implementations. His part: design and implementation, production-readiness review, alerting, and on-call support.
+- Gift-card API: worked on it from initial design. It is a centralized API for balance inquiry, authorization and reversal, activation, and balance adjustment, replacing per-channel implementations. His part: design and implementation, production-readiness review, alerting, and on-call support.
 - Contributed to modernization off legacy systems.
 - On-call and incidents: carried the interrupt rotation and contributed to production incident response (fast log retrieval, hypothesis generation, and cross-team coordination) and to the resulting blameless postmortems.
 
@@ -121,7 +121,7 @@ Personal projects are built on personal equipment.
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ### Did Luis build the payments platform or the Home Services platform?
-No. Both are team platforms. On payments he contributed Go services and worked on a gift-card tender API from initial design. On Home Services he is primary owner, with team input, of the internal telemetry applications, and he built the deployment path for non-developers.
+No. Both are team platforms. On payments he contributed Go services and worked on a gift-card API from initial design. On Home Services he is primary owner, with team input, of the internal telemetry applications, and he built the deployment path for non-developers.
 
 ### What has he actually built himself?
 The Home Services internal telemetry applications (as primary owner, with team input), the deployment path for non-developers, and his own projects: SaucerJam (a live browser multiplayer game, private repo), inferencia (a Go LLM gateway), openclaw-cursor (a Go proxy), PetFeederESP and CrawFeed (ESP32 firmware and a Flutter app), and this site.

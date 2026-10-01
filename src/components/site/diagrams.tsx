@@ -89,7 +89,7 @@ export function TelemetryDiagram() {
 export function PaymentsDiagram() {
   const id = "arr-pay";
   return (
-    <svg viewBox={`0 0 ${W} 210`} className="h-auto w-full" role="img" aria-label="Payments: upstream clients to a card-authorization broker service, which validates, detects duplicates, and converts formats before sending to downstream processors; CockroachDB and a gift-card tender API sit alongside">
+    <svg viewBox={`0 0 ${W} 210`} className="h-auto w-full" role="img" aria-label="Payments: upstream clients to a card-authorization broker service, which validates, detects duplicates, and converts formats before sending to downstream processors; CockroachDB and a gift-card API sit alongside">
       <Defs id={id} />
       <Caption x={0} y={12}>AUTHORIZATION PATH (SIMPLIFIED)</Caption>
       <rect x={96} y={24} width={164} height={108} rx={6} fill="none" stroke="var(--ink-soft)" strokeDasharray="4 3" />
@@ -100,7 +100,7 @@ export function PaymentsDiagram() {
       <Arrow id={id} d="M74 78 H106" />
       <Arrow id={id} d="M248 78 H288" />
       <Box x={108} y={146} w={140} h={40} lines={["CockroachDB", "distributed SQL"]} />
-      <Box x={290} y={146} w={110} h={40} lines={["Gift-card", "tender API"]} />
+      <Box x={290} y={146} w={110} h={40} lines={["Gift-card", "API"]} />
       <path d="M178 126 V146" stroke="var(--ink)" strokeWidth={1} />
     </svg>
   );
