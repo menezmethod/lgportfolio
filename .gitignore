@@ -40,7 +40,7 @@ yarn-error.log*
 *.key
 .env.secret
 
-# Local deploy / CLI config (e.g. .vercel if ever used)
+# Local CLI config from a previous host (harmless to keep ignored)
 .vercel
 
 # TypeScript
