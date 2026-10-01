@@ -105,7 +105,7 @@ export default function TraceWaterfall() {
     {
       key: "app", name: "Next.js app", sub: "Coolify, free-tier cloud VM", Icon: Layers,
       ms: appMs,
-      note: appMs !== null && rm ? `median of ${rm.total_24h.toLocaleString("en-US")} server requests, since restart` : "not available yet",
+      note: appMs !== null && rm ? `median of ${rm.total_24h.toLocaleString("en-US")} server ${rm.total_24h === 1 ? "request" : "requests"}, since restart` : "not available yet",
     },
     { key: "rag", name: "RAG retrieval", sub: "RAG worker, Vectorize", Icon: Search, ms: rag.ms, note: rag.note },
     { key: "inf", name: "Chat inference", sub: `RAG worker, ${providerLabel}, to first token`, Icon: Sparkles, ms: inf.ms, note: inf.note },
