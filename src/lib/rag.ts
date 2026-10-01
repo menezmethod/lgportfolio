@@ -193,6 +193,11 @@ function cacheKey(query: string, topK: number): string {
   return `${topK}|${query.toLowerCase().trim().replace(/\s+/g, " ")}`;
 }
 
+function remember(key: string, context: string): void {
+  retrievalCache.set(key, { at: Date.now(), context });
+  if (retrievalCache.size > CACHE_MAX) retrievalCache.delete(retrievalCache.keys().next().value as string);
+}
+
 /** Test hook. */
 export function resetRetrievalCache(): void {
   retrievalCache.clear();
@@ -220,7 +225,11 @@ export async function retrieveContext(query: string, topK = 5): Promise<string> 
     );
 
     if (matches.length === 0) {
-      return retrieveFileContext(query, topK);
+      // The worker answered; nothing usable came back (for example only stale chunks). That is a result, not a
+      // failure, so cache the file context and skip the round trip next time.
+      const fileContext = retrieveFileContext(query, topK);
+      remember(key, fileContext);
+      return fileContext;
     }
 
     // Always include the AI behavior rules alongside vector matches (the file
@@ -232,8 +241,7 @@ export async function retrieveContext(query: string, topK = 5): Promise<string> 
     if (behaviorSection) chunks.push(`[Source: knowledge] ${behaviorSection}`);
 
     const context = deduplicateContext(chunks.join("\n\n---\n\n"));
-    retrievalCache.set(key, { at: Date.now(), context });
-    if (retrievalCache.size > CACHE_MAX) retrievalCache.delete(retrievalCache.keys().next().value as string);
+    remember(key, context);
     return context;
   } catch {
     return retrieveFileContext(query, topK);

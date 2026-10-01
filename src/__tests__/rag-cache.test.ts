@@ -53,6 +53,15 @@ describe("retrieval cache", () => {
     expect(global.fetch).toHaveBeenCalledTimes(2);
   });
 
+  it("an answered-but-empty lookup (only stale or low-score chunks) is cached too, since the worker did answer", async () => {
+    vi.mocked(global.fetch).mockResolvedValue(
+      ({ ok: true, status: 200, json: async () => ({ matches: [{ score: 0.9, source: "old", content: "text that is no longer in the knowledge base" }] }) }) as unknown as Response
+    );
+    await retrieveContext("How does Luis handle alert quality?");
+    await retrieveContext("How does Luis handle alert quality?");
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
   it("holds about 200 entries, evicting the oldest", async () => {
     for (let i = 0; i < 201; i++) await retrieveContext(`Distinct question number ${i} about payments`);
     expect(global.fetch).toHaveBeenCalledTimes(201);
