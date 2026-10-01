@@ -137,12 +137,23 @@ describe("chat-providers", () => {
       system: "sys",
       messages: [{ role: "user", content: "hi" }],
     });
-    await vi.advanceTimersByTimeAsync(18_000);
+    await vi.advanceTimersByTimeAsync(6_000);
     const result = await promise;
 
     expect(mockStreamText).toHaveBeenCalledTimes(2);
     expect(result.provider).toBe("openrouter");
+    // The failed primary attempt is reported as delay, not as first-token time of the winner.
+    expect(result.fallbackDelayMs).toBeGreaterThanOrEqual(6_000);
+    expect(result.attemptMs).toBeLessThan(1_000);
     vi.useRealTimers();
+  });
+
+  it("primary fast-fail window defaults to 6 s and is env-overridable", () => {
+    expect(buildChatProviderChain()[0].timeoutMs).toBe(6_000);
+    vi.stubEnv("INFERENCIA_FAST_FAIL_MS", "2500");
+    expect(buildChatProviderChain()[0].timeoutMs).toBe(2_500);
+    vi.stubEnv("INFERENCIA_FAST_FAIL_MS", "junk");
+    expect(buildChatProviderChain()[0].timeoutMs).toBe(6_000);
   });
 
   it("uses full budget timeout for streamText, not short abort on first-token window", async () => {

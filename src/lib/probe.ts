@@ -74,14 +74,14 @@ async function runInferenceProbe(): Promise<void> {
   try {
     incrementDailyCount();
     const start = Date.now();
-    const { result } = await streamChatWithFallbacks({
+    const { result, attemptMs } = await streamChatWithFallbacks({
       system: "Reply with one short word.",
       messages: [{ role: "user", content: "Say ok." }],
       maxOutputTokens: 8,
       temperature: 0,
     });
-    // Same definition as the chat span: time until the first token arrives.
-    infSample = { at: Date.now(), ms: Date.now() - start };
+    // Same definition as the chat span: first token of the succeeding provider attempt (failed attempts excluded).
+    infSample = { at: Date.now(), ms: attemptMs ?? Date.now() - start };
     // Drain the tiny response so the request completes cleanly.
     await Promise.race([
       result.toTextStreamResponse().text(),

@@ -289,7 +289,7 @@ CONTEXT FROM KNOWLEDGE BASE:
 ${context}`;
 
     const inferenceStart = Date.now();
-    const { result, provider, model } = await streamChatWithFallbacks(
+    const { result, provider, model, attemptMs, fallbackDelayMs } = await streamChatWithFallbacks(
       {
         system: systemPrompt,
         messages: messagesForModel,
@@ -324,8 +324,9 @@ ${context}`;
     const inferenceDuration = Date.now() - inferenceStart;
 
     recordRequest("/api/chat", "POST", 200, totalDuration);
+    // Span = first token of the provider attempt that succeeded; time lost to failed attempts is logged separately.
     recordChatMetrics({
-      durationMs: inferenceDuration,
+      durationMs: attemptMs ?? inferenceDuration,
       ragDurationMs,
       cacheHit: false,
       rateLimited: false,
@@ -337,6 +338,8 @@ ${context}`;
       latency_ms: totalDuration,
       rag_duration_ms: ragDurationMs,
       inference_duration_ms: inferenceDuration,
+      attempt_ms: attemptMs,
+      fallback_delay_ms: fallbackDelayMs,
       cache_hit: false,
       provider,
       model,
