@@ -178,6 +178,8 @@ export default function Chat() {
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [emailError, setEmailError] = useState('');
+  // null until the server says whether chats are saved; no storage claim is shown while unknown.
+  const [storage, setStorage] = useState<boolean | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -185,6 +187,10 @@ export default function Chat() {
     // /chat?q=... prefills the input. The visitor presses send, so nothing spends the rate limit unasked.
     const q = new URLSearchParams(window.location.search).get('q');
     if (q) setInput(q.slice(0, 500));
+    fetch('/api/chat/storage')
+      .then((r) => r.json())
+      .then((d) => setStorage(Boolean(d?.storage)))
+      .catch(() => setStorage(false));
   }, []);
 
   useEffect(() => {
@@ -466,12 +472,15 @@ export default function Chat() {
             </form>
 
             <p className="mx-auto mt-3 max-w-4xl text-center text-xs leading-relaxed text-ink-soft">
-              AI assistant. AI-generated answers may be wrong. Chats may be saved so Luis can review questions, so please do not share sensitive personal information.{" "}
+              AI assistant. AI-generated answers may be wrong.{" "}
+              {storage === true && "Chats are saved so Luis can review questions and follow up; email him to have one deleted. "}
+              {storage === false && "Chats are not saved. "}
+              Please do not share sensitive personal information.{" "}
               <a href="/privacy" className="link-under text-foreground">Privacy</a>
             </p>
 
             {emailSent && <p className="mt-2 text-center font-mono text-xs text-ink-soft">Saved. Luis can follow up by email.</p>}
-            {messages.length > 2 && !emailSent && (
+            {storage === true && messages.length > 2 && !emailSent && (
               <div className="text-center mt-2">
                 {!showEmailCapture ? (
                   <button

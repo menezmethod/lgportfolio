@@ -13,7 +13,7 @@ const SECTIONS: { h: string; items: string[] }[] = [
     items: [
       "Page views. On each page navigation your browser sends the page path to the site. The server records the path, the first 200 characters of your user-agent and referrer, and a coarse category (recruiter, person, crawler, bot, or unknown) guessed from the user-agent. These are kept in server memory and counters, which reset when the app restarts. The server also writes a structured log line per page request with the coarse category, the path, a referrer truncated to 200 characters, and a short user-agent summary. API routes log a trace ID, status, and timing.",
       "Chat messages. What you type in the chat is sent to the server and to the AI services that answer it. When storage is enabled, the last 20 messages of a chat, a random session ID from your browser's session storage, and session statistics (message count, timing, and status) are saved. The code sets no automatic expiry on saved chats.",
-      "Your email, only if you choose to leave it in the chat. It is saved on the chat session so Luis can follow up.",
+      "Your email, only if you choose to leave it in the chat, and only when storage is enabled. It is saved on the chat session so Luis can follow up. When storage is not enabled the email box is hidden and nothing is saved.",
       "IP addresses. The app reads your IP address in memory to limit requests per minute, to compare it with Luis's own addresses, and as a hashed, truncated key held for about 30 minutes to avoid duplicate visit pings. The app does not write your IP to its logs or to saved chats. For likely-human visitors the IP is sent in the visit message described below.",
       "Analytics scripts. The pages do not load Google Analytics or any advertising script. The repository has an optional Google Analytics component that only loads when a measurement ID is configured and your browser is not sending Do Not Track or Global Privacy Control.",
     ],
@@ -23,7 +23,7 @@ const SECTIONS: { h: string; items: string[] }[] = [
     items: [
       "The site is deployed with Coolify on a cloud VM, behind Cloudflare DNS and proxy, so Cloudflare sees site traffic.",
       "Chat retrieval runs on Cloudflare Vectorize and chat generation runs on Cloudflare Workers AI. Other model providers are optional; if one is enabled, your chat text is sent to it too.",
-      "Saved chats and emails are stored in Google Firestore when it is configured for the site.",
+      "When storage is enabled, saved chats and emails are stored in Google Firestore. When it is not enabled, chats and emails are not saved at all. The chat page states which applies.",
       "Visit messages. When a visitor is classified as a person or recruiter (bots and crawlers are not), the site sends one signed message to a webhook that only Luis controls, at most once per visitor per 30 minutes. Visits from Luis's own IP addresses never send one. The message contains your IP address, the referrer (truncated to 200 characters), a short browser or app summary, the country code from the CDN when present, the page path, a coarse category (person or recruiter), and a timestamp.",
     ],
   },
