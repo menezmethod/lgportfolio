@@ -79,7 +79,7 @@ Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`
 ### Security architecture
 
 - **Prompt injection defense**: `src/lib/security.ts` — 30+ regex patterns (OWASP LLM01/LLM07).
-- **Rate limiting**: `src/lib/rate-limit.ts` — 6 RPM per IP, 30 msgs/session, 150 LLM reqs/day.
+- **Rate limiting**: `src/lib/rate-limit.ts` — defaults 6 RPM per IP, 30 msgs/session, 150 LLM reqs/day, configurable with `CHAT_MAX_RPM_PER_IP`, `CHAT_MAX_MESSAGES_PER_SESSION`, `CHAT_DAILY_BUDGET` (`getChatLimits()`; the chat page reads the effective values from `GET /api/chat/storage`).
 - **Security headers**: CSP, HSTS, X-Frame-Options in `next.config.ts`.
 - **Cloud Armor WAF**: Edge-level rate limiting, scanner blocking, path traversal blocking, adaptive DDoS.
 - **Ingress mode**: In low-cost mode Cloud Run uses public ingress (`INGRESS_TRAFFIC_ALL`). In edge mode it is restricted to the ALB (`INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER`).
@@ -158,7 +158,7 @@ Ensure **`GOOGLE_CLOUD_PROJECT`** is set in production so the logs API can call 
 
 ### Rate limits (aligned with free tier)
 
-- **App** (`src/lib/rate-limit.ts`): 6 RPM per IP, 30 msgs/session, 150 LLM reqs/day. Keeps chat within free-tier usage.
+- **App** (`src/lib/rate-limit.ts`): defaults 6 RPM per IP, 30 msgs/session, 150 LLM reqs/day, configurable with `CHAT_MAX_RPM_PER_IP`, `CHAT_MAX_MESSAGES_PER_SESSION`, `CHAT_DAILY_BUDGET` (`getChatLimits()`; the chat page reads the effective values from `GET /api/chat/storage`). Keeps chat within free-tier usage.
 - **Cloud Armor** (`terraform/security.tf`): active only in edge mode. Low-cost mode relies on app-level rate limits. **Admin** requests to `/api/admin/*` with header `X-Admin-Secret` are still protected by the app. See **`docs/TRAFFIC-AND-COST.md`** for full rate-limit and caching audit (traffic-spike readiness).
 
 ### Budget kill switch ($20)
