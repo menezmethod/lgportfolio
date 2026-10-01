@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+import { KNOWLEDGE_BASE } from "@/lib/knowledge";
+import { isCurrentChunk } from "@/lib/rag";
+
+/** A real sentence from the current knowledge base. */
+const CURRENT = KNOWLEDGE_BASE.split("\n").find((l) => l.startsWith("- Alert quality:"))!.trim();
+
 const originalFetch = global.fetch;
 
 function workerResponse(matches: unknown[]) {
@@ -39,14 +45,14 @@ describe("rag", () => {
     it("returns worker matches (plus behavior rules) when configured", async () => {
       vi.mocked(global.fetch).mockResolvedValue(
         workerResponse([
-          { score: 0.62, source: "knowledge", content: "Luis works on Home Services reliability." },
+          { score: 0.62, source: "knowledge", content: CURRENT },
           { score: 0.3, source: "knowledge", content: "below-threshold chunk" },
         ])
       );
 
       const result = await retrieveContext("What does Luis do at Home Depot?");
 
-      expect(result).toContain("Home Services reliability");
+      expect(result).toContain(CURRENT);
       expect(result).toContain("SECTION 9");
       expect(result).not.toContain("below-threshold");
       expect(global.fetch).toHaveBeenCalledWith(
@@ -101,6 +107,23 @@ describe("rag", () => {
       expect(greeting).toMatch(/SECTION 1/i);
       expect(greeting).toMatch(/SECTION 9/i);
       expect(greeting).toMatch(/Who Is Luis Gimenez/i);
+    });
+  });
+
+  describe("stale vector chunks", () => {
+    it("treats text still in the knowledge base as current and old text as stale", () => {
+      expect(isCurrentChunk(CURRENT)).toBe(true);
+      expect(isCurrentChunk("  " + CURRENT.replace(/ /g, "  ") + "\n")).toBe(true);
+      expect(isCurrentChunk("A sentence that was removed from the knowledge base long ago.")).toBe(false);
+    });
+
+    it("falls back to file retrieval when every vector match is stale", async () => {
+      vi.mocked(global.fetch).mockResolvedValue(
+        workerResponse([{ score: 0.9, source: "knowledge", content: "Old removed claim about something else entirely." }])
+      );
+      const result = await retrieveContext("What does Luis do at Home Depot?");
+      expect(result).not.toContain("Old removed claim");
+      expect(result).toContain("SECTION");
     });
   });
 });

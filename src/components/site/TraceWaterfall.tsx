@@ -138,7 +138,7 @@ export default function TraceWaterfall() {
       note: appMs !== null && rm ? `p50 of server request durations, ${rm.total_24h} requests counted` : "not available yet",
     },
     { key: "rag", name: "RAG retrieval", sub: "RAG worker, Vectorize", Icon: Search, ms: rag.ms, note: rag.note },
-    { key: "inf", name: "Chat inference", sub: "RAG worker, Workers AI", Icon: Sparkles, ms: inf.ms, note: inf.note },
+    { key: "inf", name: "Chat inference", sub: "RAG worker, Workers AI, to first token", Icon: Sparkles, ms: inf.ms, note: inf.note },
   ];
   const max = Math.max(1, ...rows.map((r) => r.ms ?? 0));
 
@@ -181,7 +181,7 @@ export default function TraceWaterfall() {
                   )}
                 </span>
                 <span className={`whitespace-nowrap text-right font-mono text-xs ${isActive && r.ms !== null ? "text-brand-text" : "text-ink-soft"}`}>
-                  {r.ms !== null ? `${r.ms} ms` : "n/a"}
+                  {r.ms === null ? "n/a" : r.ms === 0 ? "<1 ms" : `${r.ms} ms`}
                 </span>
               </button>
               {isActive && <p className="-mt-1 pb-2 pl-7 font-mono text-xs leading-snug text-ink-soft">{r.note}</p>}

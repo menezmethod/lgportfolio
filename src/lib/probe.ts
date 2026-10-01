@@ -4,7 +4,7 @@
  * Triggered lazily from /api/war-room/data. Fire and forget: the response never waits on a probe,
  * every probe fails silently, and an in-flight lock plus per-probe attempt times prevent loops.
  *  - Retrieval probe: one fixed query to the RAG worker, when no sample is newer than 15 minutes.
- *  - Inference probe: one tiny generation through the same provider chain as chat, at most once
+ *  - Inference probe (timed to the first token, like chat): one tiny generation through the same provider chain as chat, at most once
  *    per 6 hours, counted against the daily chat budget, skipped when the budget is low or no
  *    provider is configured.
  * Samples are real measurements of the real path. Nothing is invented: with no sample the row
@@ -80,11 +80,13 @@ async function runInferenceProbe(): Promise<void> {
       maxOutputTokens: 8,
       temperature: 0,
     });
+    // Same definition as the chat span: time until the first token arrives.
+    infSample = { at: Date.now(), ms: Date.now() - start };
+    // Drain the tiny response so the request completes cleanly.
     await Promise.race([
       result.toTextStreamResponse().text(),
       new Promise((_, rej) => setTimeout(() => rej(new Error("probe timeout")), 20_000)),
     ]);
-    infSample = { at: Date.now(), ms: Date.now() - start };
     lastInfFailed = false;
   } catch {
     lastInfFailed = true;

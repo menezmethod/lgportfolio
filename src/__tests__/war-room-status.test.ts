@@ -43,4 +43,13 @@ describe("war room truth", () => {
     vi.stubEnv("PROMETHEUS_URL", "http://prometheus.invalid:9090");
     expect(getHealthData().checks.prometheus.status).toBe("up");
   });
+
+  it("counts Cloudflare Workers AI as a working chat provider (no inferencia, no OpenRouter)", () => {
+    vi.stubEnv("INFERENCIA_API_KEY", "");
+    vi.stubEnv("OPENROUTER_API_KEY", "");
+    vi.stubEnv("CLOUDFLARE_RAG_KEY", "k");
+    expect(getHealthData().checks.inference_api.status).toBe("up");
+    vi.stubEnv("CLOUDFLARE_RAG_KEY", "");
+    expect(getHealthData().checks.inference_api.status).toBe("degraded");
+  });
 });

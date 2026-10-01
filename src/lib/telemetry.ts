@@ -449,7 +449,9 @@ export function getHealthData(
 ): HealthData {
   const shallow = options?.shallow === true;
   const hasInferencia = Boolean(process.env.INFERENCIA_API_KEY?.trim());
-  const hasOpenRouter = Boolean(process.env.OPENROUTER_API_KEY?.trim());
+  // Any provider that can serve chat counts: OpenRouter, or Cloudflare Workers AI through the RAG worker.
+  const hasOpenRouter =
+    Boolean(process.env.OPENROUTER_API_KEY?.trim()) || Boolean(process.env.CLOUDFLARE_RAG_KEY?.trim());
   const { remaining: budgetRemaining } = getDailyBudgetStats();
 
   let inferenceStatus: string;
