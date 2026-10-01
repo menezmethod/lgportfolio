@@ -3,7 +3,7 @@
 // It answers /api/v1/query and /api/v1/query_range for the exact queries src/lib/war-room-metrics.ts makes,
 // starts the app against it, and checks /api/war-room/data in three modes:
 //   1. PROMETHEUS_URL unset       -> metrics_source "memory", prometheus check "not_configured"
-//   2. PROMETHEUS_URL unreachable -> metrics_source "memory", prometheus check "down"
+//   2. PROMETHEUS_URL unreachable -> metrics_source "memory", prometheus check "unreachable"
 //   3. PROMETHEUS_URL = fake      -> metrics_source "prometheus", values match what the fake returned
 // Usage: node scripts/verify-warroom.mjs
 import http from "node:http";
@@ -103,7 +103,7 @@ await withApp({}, async (base) => {
 await withApp({ PROMETHEUS_URL: "http://127.0.0.1:9" }, async (base) => {
   const d = await get(base);
   check("unreachable: falls back to memory", d.metrics_source === "memory", d.metrics_source);
-  check("unreachable: prometheus tile is down", d.service_status.checks.prometheus.status === "down");
+  check("unreachable: prometheus tile is unreachable (neutral, not down)", d.service_status.checks.prometheus.status === "unreachable");
 });
 
 await withApp({ PROMETHEUS_URL: `http://127.0.0.1:${fakePort}` }, async (base) => {

@@ -14,6 +14,8 @@ const TONES: Record<string, Tone> = {
 /** Display state for one check tile. A check that is not configured is neutral, never green. */
 export function checkDisplay(status: string): { label: string; tone: Tone } {
   if (status === "not_configured") return { label: "NOT CONFIGURED", tone: "neutral" };
+  // Configured but not answering: the page still shows in-memory numbers, so this is information, not an alarm.
+  if (status === "unreachable") return { label: "CONFIGURED, UNREACHABLE", tone: "neutral" };
   return { label: status.toUpperCase(), tone: TONES[status] ?? "neutral" };
 }
 

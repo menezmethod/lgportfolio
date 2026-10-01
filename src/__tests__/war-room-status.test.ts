@@ -18,6 +18,7 @@ describe("war room truth", () => {
     expect(checkDisplay("not_configured")).toEqual({ label: "NOT CONFIGURED", tone: "neutral" });
     expect(checkDisplay("up").tone).toBe("ok");
     expect(checkDisplay("down").tone).toBe("bad");
+    expect(checkDisplay("unreachable")).toEqual({ label: "CONFIGURED, UNREACHABLE", tone: "neutral" });
   });
 
   it("says warming up instead of HEALTHY under 50 requests", () => {
