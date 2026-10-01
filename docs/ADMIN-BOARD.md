@@ -27,7 +27,7 @@ No additional collections or GCP services beyond what the app already uses.
 | `/api/admin/sessions/[id]` | GET | `X-Admin-Secret` | Full conversation for a session |
 | `/api/admin/logs` | GET | `X-Admin-Secret` | Cloud Run structured logs |
 | `/api/admin/board/stats` | GET | `X-Admin-Secret` | Aggregates (7d sessions, email count) |
-| `/api/admin/board/view` | POST | `X-Admin-Secret` | Records board view (analytics) |
+| `/api/admin/board/view` | GET | `X-Admin-Secret` | Records board view (analytics) |
 | `/api/metrics` | GET | `X-Admin-Secret` | Prometheus text exposition format |
 
 ## Auth

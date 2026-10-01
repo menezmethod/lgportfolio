@@ -13,7 +13,7 @@ Run a single Cloud Run instance (max-instances=1) behind a Global External Appli
 
 Rate limiting is applied at two layers:
 - **Cloud Armor (edge):** 60/min global, 10/min for `/api/chat`
-- **Application:** 2 RPM per IP, 10 msgs/session, 150 LLM requests/day
+- **Application:** 6 RPM per IP, 30 msgs/session, 150 LLM requests/day
 
 ## Consequences
 
