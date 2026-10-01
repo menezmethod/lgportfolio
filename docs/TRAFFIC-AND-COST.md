@@ -36,9 +36,9 @@ This document describes **rate limits**, **caching**, and **cost controls** so t
 
 | Layer        | Where            | Limit        | Purpose |
 |-------------|------------------|--------------|---------|
-| Chat per IP | `src/lib/rate-limit.ts` | 6 RPM (config: `CHAT_MAX_RPM_PER_IP`) | Prevents one IP from burning LLM budget. |
+| Chat per IP | `src/lib/rate-limit.ts` | default 6 RPM (config: `CHAT_MAX_RPM_PER_IP`) | Prevents one IP from burning LLM budget. |
 | Daily LLM   | Same             | 150/day (config: `CHAT_DAILY_BUDGET`) | Keeps chat within free-tier usage. |
-| Session     | Same             | 30 messages/session (config: `NEXT_PUBLIC_CHAT_MAX_MESSAGES`) | Caps tokens per conversation. |
+| Session     | Same             | default 30 messages/session (config: `CHAT_MAX_MESSAGES_PER_SESSION`; the chat page reads the effective value from the server) | Caps tokens per conversation. |
 
 **Override:** `RATE_LIMITS_DISABLED=true` disables app limits (dev only; do not use in prod).
 

@@ -4,6 +4,7 @@ import {
   incrementDailyCount,
   getCachedResponse,
   isDailyBudgetExhausted,
+  getChatLimits,
 } from "@/lib/rate-limit";
 import { retrieveContext } from "@/lib/rag";
 import {
@@ -156,7 +157,7 @@ export async function POST(req: Request) {
       return jsonError(400, "Bad request", validation.reason || "Invalid messages.", traceId);
     }
 
-    const defaultSessionLimit = parseInt(process.env.CHAT_MAX_MESSAGES_PER_SESSION || "30", 10);
+    const defaultSessionLimit = getChatLimits().maxMessagesPerSession;
     const engagedSessionLimit = parseInt(process.env.CHAT_ENGAGED_SESSION_LIMIT || "50", 10);
     const engagementThreshold = parseInt(process.env.CHAT_ENGAGEMENT_THRESHOLD || "5", 10);
 

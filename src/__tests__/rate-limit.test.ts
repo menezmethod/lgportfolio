@@ -70,8 +70,8 @@ describe("rate-limit", () => {
 
   describe("isSessionLimitReached", () => {
     it("returns boolean", () => {
-      const r = isSessionLimitReached();
-      expect(typeof r).toBe("boolean");
+      expect(typeof isSessionLimitReached(20)).toBe("boolean");
+      expect(isSessionLimitReached(null)).toBe(false); // limit unknown until the server says
     });
   });
 });

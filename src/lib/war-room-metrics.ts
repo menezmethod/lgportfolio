@@ -4,7 +4,7 @@ import {
   queryInstantBatch,
   queryRange,
 } from "./prometheus-client";
-import { getDailyBudgetStats } from "./rate-limit";
+import { getChatLimits, getDailyBudgetStats } from "./rate-limit";
 import { type SLODefinition, type WarRoomData, getWarRoomData } from "./telemetry";
 
 export type MetricsSource = "prometheus" | "memory" | "hybrid";
@@ -169,7 +169,7 @@ async function fetchPrometheusWarRoomSlice(budgetMax: number): Promise<Partial<W
 export async function getWarRoomDataAsync(): Promise<WarRoomDataWithSource> {
   const base = getWarRoomData();
   const platform = detectPlatform();
-  const budgetMax = parseInt(process.env.CHAT_DAILY_BUDGET || "150", 10);
+  const budgetMax = getChatLimits().dailyBudget;
 
   if (!isPrometheusConfigured()) {
     return {
@@ -197,7 +197,7 @@ export async function getWarRoomDataAsync(): Promise<WarRoomDataWithSource> {
         ...base.service_status,
         checks: {
           ...base.service_status.checks,
-          prometheus: { status: "down" },
+          prometheus: { status: "unreachable" },
         },
         region: resolveRegion(base.service_status.region),
       },

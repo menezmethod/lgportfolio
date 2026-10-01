@@ -1,13 +1,30 @@
 /**
  * Rate limiting for free-tier budget protection.
  *
- * Targets:
- *   ~150 LLM requests/day
- *   2 RPM per IP (prevents single-source abuse)
- *   10 messages per session (conserves tokens)
+ * Limits come from env (see getChatLimits): CHAT_DAILY_BUDGET (default 150), CHAT_MAX_RPM_PER_IP (6),
+ * CHAT_MAX_MESSAGES_PER_SESSION (30). getChatLimits is the single source the server, the War Room and the
+ * chat page (through /api/chat/storage) all use.
  */
 
 const RATE_LIMITS_DISABLED = false;
+
+function envInt(value: string | undefined, fallback: number): number {
+  const n = parseInt(value ?? "", 10);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+/** Effective chat limits, env-aware, with defaults. No secrets. Server-side only. */
+export function getChatLimits(): { maxMessagesPerSession: number; maxRpmPerIp: number; dailyBudget: number } {
+  return {
+    // NEXT_PUBLIC_CHAT_MAX_MESSAGES is only a legacy fallback; the server value wins.
+    maxMessagesPerSession: envInt(
+      process.env.CHAT_MAX_MESSAGES_PER_SESSION,
+      envInt(process.env.NEXT_PUBLIC_CHAT_MAX_MESSAGES, 30)
+    ),
+    maxRpmPerIp: envInt(process.env.CHAT_MAX_RPM_PER_IP, 6),
+    dailyBudget: envInt(process.env.CHAT_DAILY_BUDGET, 150),
+  };
+}
 
 interface RateLimitResult {
   allowed: boolean;
@@ -49,7 +66,7 @@ export function checkRateLimit(ip: string): RateLimitResult {
 
   const now = Date.now();
   const windowMs = 60 * 1000;
-  const maxRequests = parseInt(process.env.CHAT_MAX_RPM_PER_IP || "6");
+  const maxRequests = getChatLimits().maxRpmPerIp;
 
   const existing = ipRateLimits.get(ip);
 
@@ -71,7 +88,7 @@ export function checkRateLimit(ip: string): RateLimitResult {
       remaining: 0,
       resetAt: existing.resetAt,
       message:
-        "Rate limit reached. Please wait a moment or contact Luis directly at luisgimenezdev@gmail.com",
+        `Rate limit reached (${maxRequests} questions per minute). Please wait a moment or contact Luis directly at luisgimenezdev@gmail.com`,
     };
   }
 
@@ -101,7 +118,7 @@ export function incrementDailyCount(): void {
 
 /** Calendar-day LLM usage (same counter that enforces CHAT_DAILY_BUDGET). */
 export function getDailyBudgetStats(): { used: number; remaining: number; max: number } {
-  const max = parseInt(process.env.CHAT_DAILY_BUDGET || "150", 10);
+  const max = getChatLimits().dailyBudget;
   if (RATE_LIMITS_DISABLED) {
     return { used: 0, remaining: max, max };
   }
@@ -110,11 +127,11 @@ export function getDailyBudgetStats(): { used: number; remaining: number; max: n
   return { used, remaining: Math.max(0, max - used), max };
 }
 
-/** Resets every calendar day (midnight); 150 LLM requests per day by default. */
+/** Resets every calendar day (midnight); CHAT_DAILY_BUDGET LLM requests per day (default 150). */
 export function isDailyBudgetExhausted(): boolean {
   if (RATE_LIMITS_DISABLED) return false;
   const today = new Date().toDateString();
-  const budget = parseInt(process.env.CHAT_DAILY_BUDGET || "150");
+  const budget = getChatLimits().dailyBudget;
   const existing = dailyCounters.get(today);
   if (!existing) return false;
   return existing.count >= budget;
@@ -160,10 +177,8 @@ export function incrementSessionMessageCount(): number {
   }
 }
 
-export function isSessionLimitReached(): boolean {
-  if (RATE_LIMITS_DISABLED) return false;
-  const maxMessages = parseInt(
-    process.env.NEXT_PUBLIC_CHAT_MAX_MESSAGES || "30"
-  );
+/** Client helper: the limit comes from the server (GET /api/chat/storage), never from a build-time constant. */
+export function isSessionLimitReached(maxMessages: number | null): boolean {
+  if (RATE_LIMITS_DISABLED || maxMessages === null) return false;
   return getSessionMessageCount() >= maxMessages;
 }

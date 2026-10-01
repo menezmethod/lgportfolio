@@ -15,7 +15,6 @@ interface Message {
   content: string;
 }
 
-const MAX_MESSAGES = parseInt(process.env.NEXT_PUBLIC_CHAT_MAX_MESSAGES || '30', 10);
 
 const SUGGESTED_PROMPTS = [
   "What did Luis work on in Enterprise Payments?",
@@ -183,18 +182,23 @@ export default function Chat() {
   // null until the server says whether chats are saved; no storage claim is shown while unknown.
   const [storage, setStorage] = useState<boolean | null>(null);
   const [providers, setProviders] = useState<string[] | null>(null);
+  // Limits come from the server so the counter matches what it enforces; null until known.
+  const [maxMessages, setMaxMessages] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isSessionLimitReached()) setShowLimitMessage(true);
     // /chat?q=... prefills the input. The visitor presses send, so nothing spends the rate limit unasked.
     const q = new URLSearchParams(window.location.search).get('q');
     if (q) setInput(q.slice(0, 500));
     fetch('/api/chat/storage')
       .then((r) => r.json())
-      .then((d) => { setStorage(Boolean(d?.storage)); setProviders(Array.isArray(d?.providers) ? d.providers : null); })
+      .then((d) => { setStorage(Boolean(d?.storage)); setProviders(Array.isArray(d?.providers) ? d.providers : null); setMaxMessages(Number.isFinite(d?.maxMessagesPerSession) ? d.maxMessagesPerSession : null); })
       .catch(() => setStorage(false));
   }, []);
+
+  useEffect(() => {
+    if (isSessionLimitReached(maxMessages)) setShowLimitMessage(true);
+  }, [maxMessages]);
 
   useEffect(() => {
     setSessionMessageCount(getSessionMessageCount());
@@ -338,7 +342,7 @@ export default function Chat() {
       }
 
       incrementSessionMessageCount();
-      if (isSessionLimitReached()) setShowLimitMessage(true);
+      if (isSessionLimitReached(maxMessages)) setShowLimitMessage(true);
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : 'Service unavailable. Try again later.';
       setMessages((prev) => {
@@ -539,10 +543,10 @@ export default function Chat() {
               </div>
             )}
 
-            {!showLimitMessage && sessionMessageCount > 0 && (
+            {!showLimitMessage && maxMessages !== null && sessionMessageCount > 0 && (
               <div className="text-center mt-2.5">
                 <span className="font-mono text-xs text-ink-soft">
-                  {Math.max(0, MAX_MESSAGES - sessionMessageCount)} questions left
+                  {Math.max(0, (maxMessages ?? 0) - sessionMessageCount)} questions left
                 </span>
               </div>
             )}
