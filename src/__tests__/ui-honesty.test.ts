@@ -40,4 +40,17 @@ describe("labels say what they measure", () => {
     expect(wr).toContain("'bg-muted text-ink-soft border-hairline'");
     expect(wr).not.toMatch(/rate_limit_hits_24h > 0 \?/);
   });
+
+  it("chat page renders the text stream incrementally, not via response.text()", () => {
+    const chat = read("src/app/chat/page.tsx");
+    expect(chat).toContain("readTextStream(response.body");
+    expect(chat).not.toMatch(/await response\.text\(\)/);
+  });
+
+  it("case study eyebrow does not repeat kind and status; chat heading has top spacing; counter shows at load", () => {
+    expect(read("src/app/work/[slug]/page.tsx")).toContain("function eyebrow(kind: string, status: string)");
+    const chat = read("src/app/chat/page.tsx");
+    expect(chat).toContain("pt-8 sm:pb-4 sm:pt-10");
+    expect(chat).not.toMatch(/maxMessages !== null && sessionMessageCount > 0/);
+  });
 });

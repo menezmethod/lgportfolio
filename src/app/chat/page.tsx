@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, ExternalLink, Mail } from 'lucide-react';
+import { readTextStream } from '@/lib/chat-stream';
 import { incrementSessionMessageCount, isSessionLimitReached, getSessionMessageCount } from '@/lib/rate-limit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -204,16 +205,19 @@ export default function Chat() {
     setSessionMessageCount(getSessionMessageCount());
   }, [messages]);
 
+  // Keep the newest tokens in view while an answer streams in.
+  const streamedLength = messages[messages.length - 1]?.content.length ?? 0;
+
   useEffect(() => {
     // Do not scroll on first render: it clips the welcome message.
     if (messages.length <= 1 && !isLoading) return;
     const el = messagesEndRef.current;
     if (!el) return;
     const id = requestAnimationFrame(() => {
-      el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      el.scrollIntoView({ behavior: isLoading ? 'auto' : 'smooth', block: 'end' });
     });
     return () => cancelAnimationFrame(id);
-  }, [messages.length, isLoading]);
+  }, [messages.length, isLoading, streamedLength]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -253,9 +257,19 @@ export default function Chat() {
 
       const contentType = response.headers.get('content-type');
       if (contentType?.includes('text/plain')) {
-        const text = await response.text();
-        const cleaned = dedupeRepeatedResponse(normalizeAssistantContent(cleanAssistantContent(text) || text));
-        setMessages((prev) => [...prev, { id: Date.now().toString(), role: 'assistant', content: cleaned }]);
+        // The server streams plain text (toTextStreamResponse). Render it as it arrives, not after it ends.
+        if (!response.body) throw new Error('No response body');
+        const show = (text: string) =>
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (last?.role === 'assistant' && last.id === assistantId) return [...prev.slice(0, -1), { ...last, content: text }];
+            return [...prev, { id: assistantId, role: 'assistant', content: text }];
+          });
+        const assistantId = `a-${Date.now()}`;
+        const full = await readTextStream(response.body, (acc) => show(cleanAssistantContent(acc) || acc));
+        const cleaned = dedupeRepeatedResponse(normalizeAssistantContent(cleanAssistantContent(full) || full));
+        if (!cleaned.trim()) show('The model returned an empty response. Please retry in a few seconds.');
+        else show(cleaned);
       } else {
         const reader = response.body?.getReader();
         if (!reader) throw new Error('No response body');
@@ -359,7 +373,7 @@ export default function Chat() {
     <div className="flex h-[calc(100dvh-4rem)] flex-col bg-background">
       <div className="mx-auto flex h-full w-full max-w-[95%] xl:max-w-[1800px] flex-col gap-4 px-2 pb-4 sm:px-4 md:px-6">
 
-        <header className="shrink-0 pb-2 pt-5 sm:py-4">
+        <header className="shrink-0 pb-2 pt-8 sm:pb-4 sm:pt-10">
           <p className="eyebrow">Chat / Answers from CV and notes</p>
           <h1 className="mt-2 text-2xl font-medium tracking-[-0.03em] sm:text-3xl">Ask the assistant.</h1>
         </header>
@@ -415,7 +429,7 @@ export default function Chat() {
                 </div>
               ))}
 
-              {isLoading && (
+              {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
                 <div className="flex gap-4 max-w-5xl" role="status" aria-label="Generating response">
                   <div className="size-8 sm:size-10 shrink-0 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mt-1">
                     <Bot className="size-5" />
@@ -543,7 +557,7 @@ export default function Chat() {
               </div>
             )}
 
-            {!showLimitMessage && maxMessages !== null && sessionMessageCount > 0 && (
+            {!showLimitMessage && maxMessages !== null && (
               <div className="text-center mt-2.5">
                 <span className="font-mono text-xs text-ink-soft">
                   {Math.max(0, (maxMessages ?? 0) - sessionMessageCount)} questions left
