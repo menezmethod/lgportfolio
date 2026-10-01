@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { createHmac } from "node:crypto";
 
 import { POST } from "@/app/api/analytics/page-view/route";
 import { clearVisitorNotifyCache } from "@/lib/notify";
@@ -8,6 +9,7 @@ const CHROME_UA =
 const CURL_UA = "curl/8.5.0";
 const GOOGLEBOT_UA =
   "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
+const WEBHOOK_URL = "https://hermes.example.com/webhooks/visitor-pings";
 
 function makeRequest(ua: string, ip?: string): Request {
   const headers: Record<string, string> = {
@@ -29,9 +31,8 @@ beforeEach(() => {
   fetchMock = vi.fn().mockResolvedValue({ ok: true });
   vi.stubGlobal("fetch", fetchMock);
   clearVisitorNotifyCache();
-  vi.stubEnv("TELEGRAM_BOT_TOKEN", "test-token");
-  vi.stubEnv("TELEGRAM_CHAT_ID", "12345");
-  delete process.env.VISITOR_WEBHOOK_URL;
+  vi.stubEnv("VISITOR_WEBHOOK_URL", WEBHOOK_URL);
+  vi.stubEnv("VISITOR_WEBHOOK_SECRET", "test-secret");
   delete process.env.OWNER_IPS;
 });
 
@@ -43,13 +44,23 @@ afterEach(() => {
 });
 
 describe("/api/analytics/page-view visitor pings", () => {
-  it("person UA → one Telegram call; same visitor again → zero calls (dedupe)", async () => {
+  it("person UA → one signed webhook call; same visitor again → zero calls (dedupe)", async () => {
     const res1 = await POST(makeRequest(CHROME_UA, "9.9.9.9"));
     expect(res1.status).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    const url = String(fetchMock.mock.calls[0][0]);
-    expect(url).toContain("api.telegram.org");
-    expect(url).toContain("/sendMessage");
+    expect(fetchMock.mock.calls[0][0]).toBe(WEBHOOK_URL);
+
+    const opts = fetchMock.mock.calls[0][1] as {
+      headers: Record<string, string>;
+      body: string;
+    };
+    const sig = opts.headers["X-Hub-Signature-256"];
+    expect(sig).toBe(
+      "sha256=" + createHmac("sha256", "test-secret").update(opts.body).digest("hex")
+    );
+    const payload = JSON.parse(opts.body) as Record<string, string>;
+    expect(payload.event_type).toBe("visitor-pageview");
+    expect(payload.category).toBe("person");
 
     const res2 = await POST(makeRequest(CHROME_UA, "9.9.9.9"));
     expect(res2.status).toBe(200);
@@ -75,8 +86,7 @@ describe("/api/analytics/page-view visitor pings", () => {
   });
 
   it("no env set → zero calls, no throw", async () => {
-    delete process.env.TELEGRAM_BOT_TOKEN;
-    delete process.env.TELEGRAM_CHAT_ID;
+    delete process.env.VISITOR_WEBHOOK_URL;
     const res = await POST(makeRequest(CHROME_UA, "9.9.9.9"));
     expect(res.status).toBe(200);
     expect(fetchMock).not.toHaveBeenCalled();
