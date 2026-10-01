@@ -515,14 +515,18 @@ export interface SLODefinition {
 
 function computeSLOs(): SLODefinition[] {
   const totalReqs = getCounter("http_requests_total");
-  const totalErrors = getCounter("errors_total");
-  const errorRate = totalReqs > 0 ? (totalErrors / totalReqs) * 100 : 0;
+  // Server errors (5xx) only, same counter as the "Server errors" tile and the Prometheus path.
+  // 4xx are client behavior and must never move an SLO.
+  const serverErrors = getCounter(`errors_total{type="server"}`);
+  const errorRate = totalReqs > 0 ? (serverErrors / totalReqs) * 100 : 0;
+  // Measured availability: share of requests that did not fail with a 5xx. 100 with no traffic (UI shows NO DATA below 50 requests).
+  const availability = totalReqs > 0 ? (1 - serverErrors / totalReqs) * 100 : 100;
   const p95 = Math.round(percentile("http_request_duration_seconds", 95, 3600000));
   const { used: budgetUsed, max: budgetMax } = getDailyBudgetStats();
   const budgetPct = budgetMax > 0 ? ((budgetMax - budgetUsed) / budgetMax) * 100 : 100;
 
   return [
-    { name: "Availability", target: 99.5, unit: "%", current: 99.5, met: true },
+    { name: "Availability", target: 99.5, unit: "%", current: parseFloat(availability.toFixed(2)), met: availability >= 99.5 },
     { name: "P95 Latency", target: 500, unit: "ms", current: p95, met: p95 <= 500 || p95 === 0 },
     { name: "Server Error Rate", target: 5, unit: "% max", current: parseFloat(errorRate.toFixed(2)), met: errorRate <= 5 },
     { name: "Budget Headroom", target: 10, unit: "% min", current: parseFloat(budgetPct.toFixed(1)), met: budgetPct >= 10 },
