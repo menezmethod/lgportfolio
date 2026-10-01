@@ -183,12 +183,36 @@ export function isCurrentChunk(content: string): boolean {
   return kbNormalized.includes(normalizeWs(content));
 }
 
+// Small in-memory LRU for the RETRIEVAL result only (never the generated answer), so repeated questions and the
+// suggested chips skip the embed + Vectorize round trip. Failures and fallbacks are never cached.
+const CACHE_MAX = 200;
+const CACHE_TTL_MS = 10 * 60 * 1000;
+const retrievalCache = new Map<string, { at: number; context: string }>();
+
+function cacheKey(query: string, topK: number): string {
+  return `${topK}|${query.toLowerCase().trim().replace(/\s+/g, " ")}`;
+}
+
+/** Test hook. */
+export function resetRetrievalCache(): void {
+  retrievalCache.clear();
+}
+
 export async function retrieveContext(query: string, topK = 5): Promise<string> {
   // Low-signal queries (greetings, one-liners) keep the curated file context —
   // it always includes the identity and behavior-rule sections.
   if (!isCloudflareRagConfigured() || isLowSignalQuery(query, tokenize(query))) {
     return retrieveFileContext(query, topK);
   }
+
+  const key = cacheKey(query, topK);
+  const hit = retrievalCache.get(key);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS) {
+    retrievalCache.delete(key); // refresh recency
+    retrievalCache.set(key, hit);
+    return hit.context;
+  }
+  if (hit) retrievalCache.delete(key);
 
   try {
     const matches = (await retrieveWorkerMatches(query, topK)).filter(
@@ -207,7 +231,10 @@ export async function retrieveContext(query: string, topK = 5): Promise<string> 
     const chunks = matches.map((match) => `[Source: ${match.source}] ${match.content}`);
     if (behaviorSection) chunks.push(`[Source: knowledge] ${behaviorSection}`);
 
-    return deduplicateContext(chunks.join("\n\n---\n\n"));
+    const context = deduplicateContext(chunks.join("\n\n---\n\n"));
+    retrievalCache.set(key, { at: Date.now(), context });
+    if (retrievalCache.size > CACHE_MAX) retrievalCache.delete(retrievalCache.keys().next().value as string);
+    return context;
   } catch {
     return retrieveFileContext(query, topK);
   }

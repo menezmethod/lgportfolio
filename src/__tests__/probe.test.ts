@@ -34,6 +34,14 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe("trace probes", () => {
+  it("neither probe runs when the daily budget is low", async () => {
+    getDailyBudgetStats.mockReturnValue({ used: 140, remaining: 10, max: 150 });
+    maybeRunProbes();
+    await tick();
+    expect(probeWorkerRetrieval).not.toHaveBeenCalled();
+    expect(streamChatWithFallbacks).not.toHaveBeenCalled();
+  });
+
   it("runs one retrieval probe and one inference probe, records real samples, counts the budget", async () => {
     maybeRunProbes();
     await tick();

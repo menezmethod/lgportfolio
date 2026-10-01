@@ -104,7 +104,8 @@ export function maybeRunProbes(): void {
     const now = Date.now();
     const chat = getChatSpans();
 
-    if (!ragLock && isCloudflareRagConfigured()) {
+    // Keeps the retrieval path warm while idle; skipped when the daily budget is low, like the inference probe.
+    if (!ragLock && isCloudflareRagConfigured() && getDailyBudgetStats().remaining >= MIN_BUDGET_LEFT) {
       const newest = Math.max(chat.last?.at ?? 0, ragSample?.at ?? 0, lastRagAttempt);
       if (now - newest > RAG_STALE_MS) {
         ragLock = true;
