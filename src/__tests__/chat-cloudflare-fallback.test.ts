@@ -38,22 +38,22 @@ afterEach(() => {
 });
 
 describe("Workers AI ordered models with a first-token deadline", () => {
-  it("default list is 70B then 8B; 70B gets 6 s, the last model gets 20 s", () => {
+  it("default list is 70B then 8B; 70B gets 3.5 s, the last model gets 20 s", () => {
     const chain = buildChatProviderChain();
     expect(chain.map((c) => c.model)).toEqual([M70, M8]);
-    expect(chain.map((c) => c.timeoutMs)).toEqual([6_000, 20_000]);
+    expect(chain.map((c) => c.timeoutMs)).toEqual([3_500, 20_000]);
   });
 
-  it("a stalled 70B is abandoned at 6 s and the 8B answers, total under 7 s, upstream aborted", async () => {
+  it("a stalled 70B is abandoned at 3.5 s and the 8B answers, total under 4.5 s, upstream aborted", async () => {
     vi.useFakeTimers();
     mockStreamText.mockReturnValueOnce(stalled()).mockReturnValueOnce(fast("from 8b"));
     const t0 = Date.now();
     const p = streamChatWithFallbacks(params);
-    await vi.advanceTimersByTimeAsync(6_000);
+    await vi.advanceTimersByTimeAsync(3_500);
     const r = await p;
-    expect(Date.now() - t0).toBeLessThan(7_000);
+    expect(Date.now() - t0).toBeLessThan(4_500);
     expect(r.model).toBe(M8);
-    expect(r.fallbackDelayMs).toBeGreaterThanOrEqual(6_000);
+    expect(r.fallbackDelayMs).toBeGreaterThanOrEqual(3_500);
     expect(r.attemptMs).toBeLessThan(1_000);
     expect(mockStreamText.mock.calls[0][0].abortSignal.aborted).toBe(true); // cancels the stalled upstream request
     expect(mockStreamText.mock.calls[1][0].abortSignal.aborted).toBe(false); // the answering stream stays alive

@@ -36,7 +36,7 @@ const CLOUDFLARE_DEFAULT_MODELS = [
 /** First-token deadline for every Workers AI model except the last. Override with CLOUDFLARE_FAST_FAIL_MS. */
 function cloudflareFastFailMs(): number {
   const n = Number(process.env.CLOUDFLARE_FAST_FAIL_MS);
-  return Number.isFinite(n) && n >= 500 ? n : 6_000;
+  return Number.isFinite(n) && n >= 500 ? n : 3_500;
 }
 
 /** Ordered Workers AI models: CLOUDFLARE_CHAT_MODELS (comma list), with legacy CLOUDFLARE_CHAT_MODEL as the first entry. */
