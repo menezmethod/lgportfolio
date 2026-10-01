@@ -26,6 +26,7 @@ interface PromVectorResponse {
 
 const QUERY_TIMEOUT_MS = 15_000;
 const QUERY_ATTEMPTS = 2;
+const REACHABLE_TIMEOUT_MS = 1_500;
 
 export function isPrometheusConfigured(): boolean {
   return Boolean(process.env.PROMETHEUS_URL?.trim());
@@ -54,7 +55,7 @@ function authHeaders(): HeadersInit {
 async function promFetch(path: string, params: URLSearchParams): Promise<PromVectorResponse> {
   const url = `${prometheusBaseUrl()}${path}?${params.toString()}`;
   let lastError: unknown;
-  // Retry once on timeout/network errors — Prometheus shares the Pi with Ollama, so a
+  // Retry once on timeout/network errors — Prometheus can share a host with other services, so a
   // single slow scrape must not flip the whole War Room to the in-memory fallback.
   for (let attempt = 0; attempt < QUERY_ATTEMPTS; attempt++) {
     const controller = new AbortController();
@@ -146,11 +147,14 @@ export async function queryInstantBatch(
   return Object.fromEntries(entries.map(([key], i) => [key, results[i]]));
 }
 
+/** Quick reachability probe: one attempt, short timeout, so an unresolvable or dead host never stalls the page. */
 export async function checkPrometheusReachable(): Promise<boolean> {
   if (!isPrometheusConfigured()) return false;
   try {
-    const ok = await queryInstant("1");
-    return ok === 1;
+    const url = `${prometheusBaseUrl()}/api/v1/query?${new URLSearchParams({ query: "1" })}`;
+    const res = await fetch(url, { headers: authHeaders(), signal: AbortSignal.timeout(REACHABLE_TIMEOUT_MS), cache: "no-store" });
+    if (!res.ok) return false;
+    return parseInstant((await res.json()) as PromVectorResponse)?.value === 1;
   } catch {
     return false;
   }

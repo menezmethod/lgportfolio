@@ -12,6 +12,7 @@
  */
 
 import { getDailyBudgetStats } from "./rate-limit";
+import { activeChatProviderIds } from "./chat-provider-env";
 import { APP_VERSION } from "./version";
 
 type Severity = "INFO" | "WARNING" | "ERROR" | "CRITICAL";
@@ -40,6 +41,9 @@ export interface VisitorRecord {
 export function classifyVisitor(userAgent: string): VisitorCategory {
   if (!userAgent || userAgent.length < 10) return "unknown";
   const ua = userAgent.toLowerCase();
+
+  // Link-preview crawlers are not people.
+  if (ua.includes("linkedinbot")) return "crawler";
 
   // Recruiter / ATS tools
   const recruiterSignals = [
@@ -298,7 +302,8 @@ export function recordRequest(endpoint: string, method: string, statusCode: numb
   observe("http_request_duration_seconds", durationMs);
   // Exclude 401 from error rate so auth failures on protected routes don't inflate the dashboard
   const isError = statusCode >= 400 && statusCode !== 401;
-  recordRequestTimeSeries(durationMs, isError);
+  // The War Room error rate and SLO count server errors only; 4xx (bad requests, rate limits) are client behavior.
+  recordRequestTimeSeries(durationMs, statusCode >= 500);
   if (isError) increment("errors_total");
   if (statusCode >= 500) increment(`errors_total{type="server"}`);
   else if (isError) increment(`errors_total{type="client"}`);
@@ -309,6 +314,9 @@ export function publishDailyBudgetGauge(): void {
   setGauge("chat_daily_budget_used", getDailyBudgetStats().used);
 }
 
+/** Most recent real chat request, kept in memory so the home page can show it with its age. */
+let lastChatSample: { at: number; rag_ms: number; inference_ms: number } | null = null;
+
 export function recordChatMetrics(fields: {
   durationMs: number;
   ragDurationMs: number;
@@ -318,6 +326,12 @@ export function recordChatMetrics(fields: {
 }): void {
   observe("chat_inference_duration_seconds", fields.durationMs);
   observe("chat_rag_retrieval_duration_seconds", fields.ragDurationMs);
+  // Span timings for real model calls only (cache hits and rate-limited requests have no spans).
+  if (!fields.cacheHit && !fields.rateLimited) {
+    observe("chat_span_rag_ms", fields.ragDurationMs);
+    observe("chat_span_inference_ms", fields.durationMs);
+    lastChatSample = { at: Date.now(), rag_ms: fields.ragDurationMs, inference_ms: fields.durationMs };
+  }
   if (fields.cacheHit) increment("chat_cache_hits_total");
   if (fields.rateLimited) {
     increment("chat_rate_limit_hits_total");
@@ -400,10 +414,12 @@ export function getPrometheusText(): string {
       const toSeconds = (v: number) => (durationMsToSeconds(name + labels) ? v / 1000 : v);
       const q50 = values[Math.floor(0.5 * count)] ?? 0;
       const q90 = values[Math.floor(0.9 * count)] ?? 0;
+      const q95 = values[Math.floor(0.95 * count)] ?? 0;
       const q99 = values[Math.floor(0.99 * count)] ?? 0;
       const labelPart = labels || "";
       lines.push(`${name}${summaryQuantileLabels(labelPart, "0.5")} ${toSeconds(q50)}`);
       lines.push(`${name}${summaryQuantileLabels(labelPart, "0.9")} ${toSeconds(q90)}`);
+      lines.push(`${name}${summaryQuantileLabels(labelPart, "0.95")} ${toSeconds(q95)}`);
       lines.push(`${name}${summaryQuantileLabels(labelPart, "0.99")} ${toSeconds(q99)}`);
       lines.push(`${name}_sum${labelPart} ${toSeconds(sum)}`);
       lines.push(`${name}_count${labelPart} ${count}`);
@@ -426,6 +442,8 @@ export interface HealthData {
   checks: Record<string, { status: string; latency_ms?: number; budget_remaining?: number }>;
   version: string;
   region: string;
+  /** Chat providers actually in the chain, in order (e.g. ["cloudflare"]). */
+  chat_providers: string[];
 }
 
 export function getHealthData(
@@ -436,8 +454,10 @@ export function getHealthData(
   options?: { shallow?: boolean }
 ): HealthData {
   const shallow = options?.shallow === true;
-  const hasInferencia = Boolean(process.env.INFERENCIA_API_KEY?.trim());
-  const hasOpenRouter = Boolean(process.env.OPENROUTER_API_KEY?.trim());
+  // Follows the real chat chain (CHAT_PROVIDERS allowlist applied): a provider that is not in the chain is not counted.
+  const providers = activeChatProviderIds();
+  const hasInferencia = providers.includes("inferencia");
+  const hasOpenRouter = providers.some((p) => p !== "inferencia");
   const { remaining: budgetRemaining } = getDailyBudgetStats();
 
   let inferenceStatus: string;
@@ -469,7 +489,8 @@ export function getHealthData(
     },
     rate_limiter: { status: "up", budget_remaining: budgetRemaining },
     structured_logging: { status: "up" },
-    prometheus: { status: "up" },
+    // Only claim Prometheus when a server is configured. The War Room overrides this after probing it.
+    prometheus: { status: process.env.PROMETHEUS_URL?.trim() ? "up" : "not_configured" },
   };
 
   const anyDown = Object.values(checks).some((c) => c.status === "down");
@@ -481,7 +502,8 @@ export function getHealthData(
     uptime_seconds: getUptimeSeconds(),
     checks,
     version: APP_VERSION,
-    region: process.env.DEPLOY_REGION || "homelab",
+    region: process.env.DEPLOY_REGION || "n/a",
+    chat_providers: providers,
   };
 }
 
@@ -497,21 +519,43 @@ export interface SLODefinition {
 
 function computeSLOs(): SLODefinition[] {
   const totalReqs = getCounter("http_requests_total");
-  const totalErrors = getCounter("errors_total");
-  const errorRate = totalReqs > 0 ? (totalErrors / totalReqs) * 100 : 0;
+  // Server errors (5xx) only, same counter as the "Server errors" tile and the Prometheus path.
+  // 4xx are client behavior and must never move an SLO.
+  const serverErrors = getCounter(`errors_total{type="server"}`);
+  const errorRate = totalReqs > 0 ? (serverErrors / totalReqs) * 100 : 0;
+  // Measured availability: share of requests that did not fail with a 5xx. 100 with no traffic (UI shows NO DATA below 50 requests).
+  const availability = totalReqs > 0 ? (1 - serverErrors / totalReqs) * 100 : 100;
   const p95 = Math.round(percentile("http_request_duration_seconds", 95, 3600000));
   const { used: budgetUsed, max: budgetMax } = getDailyBudgetStats();
   const budgetPct = budgetMax > 0 ? ((budgetMax - budgetUsed) / budgetMax) * 100 : 100;
 
   return [
-    { name: "Availability", target: 99.5, unit: "%", current: 99.5, met: true },
+    { name: "Availability", target: 99.5, unit: "%", current: parseFloat(availability.toFixed(2)), met: availability >= 99.5 },
     { name: "P95 Latency", target: 500, unit: "ms", current: p95, met: p95 <= 500 || p95 === 0 },
-    { name: "Error Rate", target: 5, unit: "% max", current: parseFloat(errorRate.toFixed(2)), met: errorRate <= 5 },
+    { name: "Server Error Rate", target: 5, unit: "% max", current: parseFloat(errorRate.toFixed(2)), met: errorRate <= 5 },
     { name: "Budget Headroom", target: 10, unit: "% min", current: parseFloat(budgetPct.toFixed(1)), met: budgetPct >= 10 },
   ];
 }
 
+/** p50 of the real chat request spans since the last restart, for the home page trace. */
+export interface ChatSpans {
+  samples: number;
+  rag_p50_ms: number;
+  inference_p50_ms: number;
+  last: { at: number; rag_ms: number; inference_ms: number } | null;
+}
+
+export function getChatSpans(): ChatSpans {
+  return {
+    last: lastChatSample,
+    samples: histogramCount("chat_span_inference_ms"),
+    rag_p50_ms: Math.round(percentile("chat_span_rag_ms", 50)),
+    inference_p50_ms: Math.round(percentile("chat_span_inference_ms", 50)),
+  };
+}
+
 export interface WarRoomData {
+  chat_spans: ChatSpans;
   service_status: HealthData;
   request_metrics: {
     total_24h: number;
@@ -561,6 +605,7 @@ export function getWarRoomData(): WarRoomData {
     .reduce((sum, b) => sum + b.errors, 0);
 
   return {
+    chat_spans: getChatSpans(),
     service_status: getHealthData(),
     request_metrics: {
       total_24h: totalReqs,

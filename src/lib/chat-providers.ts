@@ -1,5 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { streamText } from "ai";
+import { activeChatProviderIds, type ChatProviderId } from "@/lib/chat-provider-env";
 import {
   getInferenciaApiKey,
   getInferenciaBaseUrl,
@@ -19,11 +20,15 @@ export const OPENROUTER_FREE_FALLBACK_MODELS = [
 ] as const;
 
 const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
-const INFERENCIA_FAST_FAIL_MS = 18_000;
+/** How long the primary provider gets to produce a first token before we fall back. Override with INFERENCIA_FAST_FAIL_MS. */
+function inferenciaFastFailMs(): number {
+  const n = Number(process.env.INFERENCIA_FAST_FAIL_MS);
+  return Number.isFinite(n) && n >= 500 ? n : 6_000;
+}
 const OPENROUTER_PER_MODEL_MS = 35_000;
 const TOTAL_INFERENCE_BUDGET_MS = 52_000;
 
-export type ChatProviderId = "inferencia" | "openrouter" | "cloudflare";
+export type { ChatProviderId };
 
 export interface ChatProviderSpec {
   id: ChatProviderId;
@@ -45,6 +50,10 @@ export interface StreamChatResult {
   result: { toTextStreamResponse: () => Response };
   provider: ChatProviderId;
   model: string;
+  /** Time to first token of the attempt that succeeded (excludes earlier failed attempts). */
+  attemptMs?: number;
+  /** Time spent on failed attempts before the successful one started. */
+  fallbackDelayMs?: number;
 }
 
 function parseOpenRouterModels(): string[] {
@@ -69,22 +78,23 @@ export function isCloudflareConfigured(): boolean {
   return Boolean(process.env.CLOUDFLARE_RAG_KEY?.trim());
 }
 
+/** True when at least one provider in the active chain (CHAT_PROVIDERS allowlist applied) can serve chat. */
 export function isChatConfigured(): boolean {
-  return isInferenciaConfigured() || isOpenRouterConfigured() || isCloudflareConfigured();
+  return activeChatProviderIds().length > 0;
 }
 
-export function buildChatProviderChain(): ChatProviderSpec[] {
-  const chain: ChatProviderSpec[] = [];
+function buildSpecs(): Record<ChatProviderId, ChatProviderSpec[]> {
+  const specs: Record<ChatProviderId, ChatProviderSpec[]> = { inferencia: [], openrouter: [], cloudflare: [] };
 
   if (isInferenciaConfigured()) {
     const baseURL = getInferenciaBaseUrl()!;
     const apiKey = getInferenciaApiKey()!;
     const model = getInferenciaChatModel();
-    chain.push({
+    specs.inferencia.push({
       id: "inferencia",
       label: "Inferencia",
       model,
-      timeoutMs: INFERENCIA_FAST_FAIL_MS,
+      timeoutMs: inferenciaFastFailMs(),
       createClient: () =>
         createOpenAI({
           baseURL,
@@ -107,7 +117,7 @@ export function buildChatProviderChain(): ChatProviderSpec[] {
       });
 
     for (const model of parseOpenRouterModels()) {
-      chain.push({
+      specs.openrouter.push({
         id: "openrouter",
         label: `OpenRouter (${model})`,
         model,
@@ -122,7 +132,7 @@ export function buildChatProviderChain(): ChatProviderSpec[] {
       process.env.CLOUDFLARE_RAG_WORKER_URL?.trim() ||
       "https://lgportfolio-rag.luisgimenezdev.workers.dev"
     ).replace(/\/$/, "");
-    chain.push({
+    specs.cloudflare.push({
       id: "cloudflare",
       label: "Workers AI (llama-3.3-70b)",
       model:
@@ -137,7 +147,14 @@ export function buildChatProviderChain(): ChatProviderSpec[] {
     });
   }
 
-  return chain;
+  return specs;
+}
+
+/** Providers in effective order: CHAT_PROVIDERS allowlist when set, else inferencia, openrouter, cloudflare. */
+export function buildChatProviderChain(): ChatProviderSpec[] {
+  const specs = buildSpecs();
+  return activeChatProviderIds().flatMap((id) => specs[id]);
+
 }
 
 function remainingBudgetMs(startedAt: number): number {
@@ -198,6 +215,7 @@ export async function streamChatWithFallbacks(
     const timeoutMs = Math.min(provider.timeoutMs, budget);
     options?.onAttempt?.(provider);
 
+    const attemptStart = Date.now();
     try {
       const client = provider.createClient();
       // First-token gate uses provider.timeoutMs; full stream uses remaining budget.
@@ -213,7 +231,13 @@ export async function streamChatWithFallbacks(
         timeout: budget,
       });
       await awaitFirstTextDelta(result, timeoutMs);
-      return { result, provider: provider.id, model: provider.model };
+      return {
+        result,
+        provider: provider.id,
+        model: provider.model,
+        attemptMs: Date.now() - attemptStart,
+        fallbackDelayMs: attemptStart - startedAt,
+      };
     } catch (error) {
       lastError = formatProviderError(error);
       options?.onFallback?.(provider, lastError);

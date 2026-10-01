@@ -8,9 +8,9 @@
 
 ### Overview
 
-This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature and live War Room observability dashboard. **Production deploy:** merge to `main` → CI passes → Coolify API deploy on Pi (see `docs/DEPLOY-COOLIFY.md`). Manual fallback: `./scripts/deploy-coolify.sh`.
+This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature and live War Room observability dashboard. **Production deploy:** merge to `main` → CI passes → Coolify API deploy (see `docs/DEPLOY-COOLIFY.md`).
 
-**Primary production hosting:** **Coolify** on homelab Pi 5 (`192.168.0.207`) — see **`docs/DEPLOY-COOLIFY.md`**. Same Docker network as Inferencia + Prometheus.
+**Primary production hosting:** **Coolify** on a free-tier cloud VM, behind Cloudflare DNS and proxy. Chat retrieval and generation run on Cloudflare (Vectorize, Workers AI). `docs/DEPLOY-COOLIFY.md` describes the current setup.
 
 **GCP path (preserved, optional rollback):** `terraform/`, `cloudbuild.yaml`, and `Dockerfile` are kept. You can still deploy to **Cloud Run** behind a Global External ALB with Cloud CDN and Cloud Armor, or use low-cost direct Cloud Run ingress. Nothing in this migration deletes that stack.
 
@@ -18,9 +18,8 @@ This is a **Next.js 16 portfolio site** (`gimenez.dev`) with an AI chat feature 
 
 **Coolify (production)**
 
-1. Merge to `main` → CI passes → Coolify deploy on Pi (see **`docs/DEPLOY-COOLIFY.md`**).
-2. Manual fallback: `./scripts/deploy-coolify.sh`.
-3. Configure environment variables in Coolify (Inferencia, admin, `PROMETHEUS_URL`, etc.) — see **`docs/DEPLOY-COOLIFY.md`** and `.env.example`.
+1. Merge to `main` → CI passes → Coolify deploy (see **`docs/DEPLOY-COOLIFY.md`**).
+2. Configure environment variables in Coolify (Inferencia, admin, `PROMETHEUS_URL`, etc.) — see **`docs/DEPLOY-COOLIFY.md`** and `.env.example`.
 
 **GCP / Cloud Run (optional rollback)**
 
@@ -65,22 +64,22 @@ Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`
 | `/api/admin/sessions` | Dynamic | Admin API: list sessions (header `X-Admin-Secret`) |
 | `/api/admin/sessions/[id]` | Dynamic | Admin API: session + messages (header `X-Admin-Secret`) |
 | `/api/admin/logs` | Dynamic | Admin API: recent Cloud Run logs (header `X-Admin-Secret`) |
-| `/api/admin/board/view` | Dynamic | Admin API: record board view, increment `admin_board_views_total` (header `X-Admin-Secret`) |
+| `/api/admin/board/view` | Dynamic | Admin API: GET records a board view and increments `admin_board_views_total` (header `X-Admin-Secret`) |
 | `/api/admin/board/stats` | Dynamic | Admin API: 7d session count, sessions with email (header `X-Admin-Secret`) |
 
 ### Environment variables
 
 - Copy `.env.example` to `.env.local`. All portfolio pages work without API keys.
-- `INFERENCIA_API_KEY` + `INFERENCIA_BASE_URL` are needed for the AI chat. Without them, chat returns 503 but all pages work.
+- **Chat providers:** at least one of `CLOUDFLARE_RAG_KEY` (Workers AI), `OPENROUTER_API_KEY`, or `INFERENCIA_API_KEY` + `INFERENCIA_BASE_URL` is needed for the AI chat; with none, chat returns 503 but all pages work. `CHAT_PROVIDERS` (comma list of `inferencia`, `openrouter`, `cloudflare`) restricts chat to exactly those providers in that order and skips unconfigured ones; unset keeps the legacy order. Production sets `CHAT_PROVIDERS=cloudflare`. The chain, `/api/health`, the War Room inference tile, probes and explain-error all follow it.
 - **RAG:** Cloudflare Vectorize + Workers AI embeddings (`@cf/baai/bge-m3`, 1024 dims) via the `lgportfolio-rag` worker in `workers/rag/` (deploy: `npx wrangler deploy`, secret `RAG_KEY`). App env: `CLOUDFLARE_RAG_KEY` (+ optional `CLOUDFLARE_RAG_WORKER_URL`). Index `lgportfolio-kb` (cosine). Seed/refresh: `npx tsx scripts/seed-rag-cloudflare.ts`. Without the key, file-based KB retrieval is used. Workers AI is also the last-resort chat fallback provider.
-- In production on **Coolify**, set secrets in the Coolify app env (or `.env` on the Pi). On **GCP Cloud Run**, Inferencia values come from **Secret Manager** via `cloudbuild.yaml` `--set-secrets`.
+- In production on **Coolify**, set secrets in the Coolify app env . On **GCP Cloud Run**, Inferencia values come from **Secret Manager** via `cloudbuild.yaml` `--set-secrets`.
 - Optional: `NEXT_PUBLIC_GA_MEASUREMENT_ID` for Google Analytics 4.
 - **`GOOGLE_CLOUD_PROJECT`** — Set in Terraform for Cloud Run so logs include `logging.googleapis.com/trace` and appear in **Trace** and Logs Explorer. Required for Observability → Trace to show requests.
 
 ### Security architecture
 
 - **Prompt injection defense**: `src/lib/security.ts` — 30+ regex patterns (OWASP LLM01/LLM07).
-- **Rate limiting**: `src/lib/rate-limit.ts` — 2 RPM per IP, 10 msgs/session, 150 LLM reqs/day.
+- **Rate limiting**: `src/lib/rate-limit.ts` — defaults 6 RPM per IP, 30 msgs/session, 150 LLM reqs/day, configurable with `CHAT_MAX_RPM_PER_IP`, `CHAT_MAX_MESSAGES_PER_SESSION`, `CHAT_DAILY_BUDGET` (`getChatLimits()`; the chat page reads the effective values from `GET /api/chat/storage`).
 - **Security headers**: CSP, HSTS, X-Frame-Options in `next.config.ts`.
 - **Cloud Armor WAF**: Edge-level rate limiting, scanner blocking, path traversal blocking, adaptive DDoS.
 - **Ingress mode**: In low-cost mode Cloud Run uses public ingress (`INGRESS_TRAFFIC_ALL`). In edge mode it is restricted to the ALB (`INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER`).
@@ -159,7 +158,7 @@ Ensure **`GOOGLE_CLOUD_PROJECT`** is set in production so the logs API can call 
 
 ### Rate limits (aligned with free tier)
 
-- **App** (`src/lib/rate-limit.ts`): 2 RPM per IP, 10 msgs/session, 150 LLM reqs/day. Keeps chat within free-tier usage.
+- **App** (`src/lib/rate-limit.ts`): defaults 6 RPM per IP, 30 msgs/session, 150 LLM reqs/day, configurable with `CHAT_MAX_RPM_PER_IP`, `CHAT_MAX_MESSAGES_PER_SESSION`, `CHAT_DAILY_BUDGET` (`getChatLimits()`; the chat page reads the effective values from `GET /api/chat/storage`). Keeps chat within free-tier usage.
 - **Cloud Armor** (`terraform/security.tf`): active only in edge mode. Low-cost mode relies on app-level rate limits. **Admin** requests to `/api/admin/*` with header `X-Admin-Secret` are still protected by the app. See **`docs/TRAFFIC-AND-COST.md`** for full rate-limit and caching audit (traffic-spike readiness).
 
 ### Budget kill switch ($20)
@@ -425,7 +424,7 @@ gcloud compute ssl-certificates describe portfolio-ssl-cert --global
 | `https://gimenez.dev/war-room` | GET | Public | 180/min | CDN 1hr | Live dashboard |
 | `https://gimenez.dev/api/health` | GET | Public | 180/min | None | Health check for uptime monitoring |
 | `https://gimenez.dev/api/war-room/data` | GET | Public | 120/min | 60s server | Dashboard metrics JSON |
-| `https://gimenez.dev/api/chat` | POST | Public | 10/min (Cloud Armor) + 2/min (app) | None | LLM chat inference |
+| `https://gimenez.dev/api/chat` | POST | Public | 10/min (Cloud Armor) + 6/min (app) | None | LLM chat inference |
 | `https://gimenez.dev/api/rag` | POST | Public | 180/min | None | RAG context retrieval |
 | `https://gimenez.dev/api/metrics` | GET | Admin (`X-Admin-Secret`) | — | None | Prometheus text exposition format |
 | `https://gimenez.dev/admin/board` | GET | Admin (secret in UI) | — | None | Administration Board (System, Recruiters, Logs, Metrics) |
@@ -510,7 +509,7 @@ WebSearch
 
 **Cloud Build trigger not firing**: Verify the trigger is connected to the right branch (`^main$`). Check Cloud Build history at https://console.cloud.google.com/cloud-build/builds.
 
-**Rate limit hitting too fast**: Cloud Armor applies at edge (180/min global, 10/min for `/api/chat`). The app has additional limits (2/min per IP for chat). Both layers are intentional.
+**Rate limit hitting too fast**: Cloud Armor applies at edge (180/min global, 10/min for `/api/chat`). The app has additional limits (6/min per IP for chat). Both layers are intentional.
 
 **Metrics reset to zero**: Expected. In-memory metrics reset on Cloud Run cold start (scale-to-zero). The War Room dashboard shows this honestly.
 

@@ -112,6 +112,23 @@ describe("/api/chat — provider configuration", () => {
     expect(body.error).toContain("unavailable");
   });
 
+  it("records the first-token span from the succeeding attempt, not the failed primary", async () => {
+    mockStreamChatWithFallbacks.mockResolvedValueOnce({
+      result: { toTextStreamResponse: mockToTextStreamResponse },
+      provider: "cloudflare",
+      model: "m",
+      attemptMs: 412,
+      fallbackDelayMs: 6000,
+    });
+    const spy = vi.spyOn(console, "log");
+    await POST(makeChatRequest(validBody));
+    const logged = spy.mock.calls.map((c) => String(c[0])).find((l) => l.includes("Chat response (inference)"));
+    expect(logged).toContain('"attempt_ms":412');
+    expect(logged).toContain('"fallback_delay_ms":6000');
+    const { getChatSpans } = await import("@/lib/telemetry");
+    expect(getChatSpans().last?.inference_ms).toBe(412);
+  });
+
   it("calls streamChatWithFallbacks with temperature 0.5", async () => {
     await POST(makeChatRequest(validBody));
     expect(mockStreamChatWithFallbacks).toHaveBeenCalledWith(

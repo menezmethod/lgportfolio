@@ -1,13 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { Cpu, Zap, Shield, Database, Radio, Clock, AlertTriangle, BarChart3, Wifi, Bot, ChevronDown, ChevronUp, Users } from 'lucide-react';
+import { Cpu, Zap, Shield, Database, Radio, Clock, AlertTriangle, BarChart3, Wifi, Bot, ChevronDown, ChevronUp } from 'lucide-react';
+import { checkDisplay, overallDisplay, MIN_REQUESTS, type Tone } from './status';
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from 'recharts';
 
 export interface WarRoomData {
+  chat_spans?: {
+    samples: number;
+    rag_p50_ms: number;
+    inference_p50_ms: number;
+    last: { at: number; rag_ms: number; inference_ms: number } | null;
+    probe?: {
+      rag: { at: number; ms: number } | null;
+      inference: { at: number; ms: number } | null;
+      rag_configured: boolean;
+      inference_configured: boolean;
+    };
+  };
   service_status: {
     status: string;
     timestamp: string;
@@ -15,6 +28,7 @@ export interface WarRoomData {
     checks: Record<string, { status: string; latency_ms?: number; budget_remaining?: number }>;
     version: string;
     region: string;
+    chat_providers?: string[];
   };
   request_metrics: {
     total_24h: number;
@@ -50,21 +64,27 @@ export interface WarRoomData {
   platform?: 'coolify' | 'local';
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  up: 'text-emerald-400', healthy: 'text-emerald-400', degraded: 'text-amber-400', down: 'text-red-400', unhealthy: 'text-red-400',
+const TONE_TEXT: Record<Tone, string> = {
+  ok: 'text-emerald-700 dark:text-emerald-400',
+  warn: 'text-amber-700 dark:text-amber-400',
+  bad: 'text-red-700 dark:text-red-400',
+  neutral: 'text-ink-soft',
 };
-const STATUS_BG: Record<string, string> = {
-  up: 'bg-emerald-400/10 border-emerald-400/30', healthy: 'bg-emerald-400/10 border-emerald-400/30', degraded: 'bg-amber-400/10 border-amber-400/30', down: 'bg-red-400/10 border-red-400/30', unhealthy: 'bg-red-400/10 border-red-400/30',
-};
-const EVENT_ICONS: Record<string, string> = {
-  deploy: '🚀', error: '❌', scale: '📈', rate_limit: '🛑', cold_start: '❄️', health: '✅', cache_hit: '⚡',
+const TONE_BG: Record<Tone, string> = {
+  ok: 'bg-emerald-400/10 border-emerald-400/30',
+  warn: 'bg-amber-400/10 border-amber-400/30',
+  bad: 'bg-red-400/10 border-red-400/30',
+  neutral: 'bg-card border-hairline',
 };
 
-function StatusDot({ status }: { status: string }) {
-  const color = status === 'up' || status === 'healthy' ? 'bg-emerald-400' : status === 'degraded' ? 'bg-amber-400' : 'bg-red-400';
+const PROVIDER_LABELS: Record<string, string> = { cloudflare: "Workers AI", openrouter: "OpenRouter", inferencia: "Inferencia" };
+
+function StatusDot({ tone }: { tone: Tone }) {
+  if (tone === 'neutral') return <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-ink-soft/50" />;
+  const color = tone === 'ok' ? 'bg-emerald-400' : tone === 'warn' ? 'bg-amber-400' : 'bg-red-400';
   return (
     <span className="relative flex h-2.5 w-2.5">
-      <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${color} opacity-75`} />
+      <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${color} opacity-75 motion-reduce:animate-none`} />
       <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${color}`} />
     </span>
   );
@@ -108,16 +128,16 @@ function RecentErrorRow({ error }: { error: { timestamp: string; endpoint: strin
   };
 
   return (
-    <div className="px-4 py-3 hover:bg-white/[0.02] transition-colors">
+    <div className="px-4 py-3 hover:bg-muted/50 transition-colors">
       <div className="flex flex-wrap items-start gap-2">
-        <span className="text-xs font-mono text-gray-600 min-w-[80px]">{new Date(error.timestamp).toLocaleTimeString()}</span>
-        <span className="text-xs font-mono text-red-400">{error.endpoint}</span>
-        <span className="text-xs font-mono text-amber-400">{error.status_code}</span>
-        <span className="text-sm text-gray-300 flex-1 min-w-0 truncate" title={error.message}>{error.message}</span>
+        <span className="text-xs font-mono text-ink-soft min-w-[80px]">{new Date(error.timestamp).toLocaleTimeString()}</span>
+        <span className="text-xs font-mono text-red-700 dark:text-red-400">{error.endpoint}</span>
+        <span className="text-xs font-mono text-amber-700 dark:text-amber-400">{error.status_code}</span>
+        <span className="text-sm text-foreground flex-1 min-w-0 truncate" title={error.message}>{error.message}</span>
         <button
           type="button"
           onClick={() => { setExpanded(!expanded); if (!expanded && !explanation && !loading) handleExplain(); }}
-          className="flex items-center gap-1.5 text-xs font-mono text-blue-400 hover:text-blue-300 shrink-0"
+          className="flex items-center gap-1.5 text-xs font-mono text-brand-text hover:text-brand-text shrink-0"
         >
           <Bot className="size-3.5" />
           {loading ? 'Asking AI...' : explanation ? (expanded ? 'Hide' : 'Show') + ' explanation' : 'Explain with AI'}
@@ -125,8 +145,8 @@ function RecentErrorRow({ error }: { error: { timestamp: string; endpoint: strin
         </button>
       </div>
       {expanded && (explanation || loading) && (
-        <div className="mt-3 pl-0 md:pl-20 border-l-2 border-blue-500/30 bg-black/20 rounded-r p-3 text-sm text-gray-300 whitespace-pre-wrap">
-          {loading ? <span className="text-gray-500">Calling Inferencia...</span> : explanation}
+        <div className="mt-3 pl-0 md:pl-20 border-l-2 border-brand/40 bg-muted rounded-r p-3 text-sm text-foreground whitespace-pre-wrap">
+          {loading ? <span className="text-ink-soft">Asking the model...</span> : explanation}
         </div>
       )}
     </div>
@@ -144,7 +164,7 @@ export interface WarRoomDashboardProps {
 export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact = false }: WarRoomDashboardProps) {
   if (loading && !data) {
     return (
-      <div className="flex items-center justify-center py-12 text-muted-foreground font-mono">
+      <div className="flex items-center justify-center py-12 text-ink-soft font-mono">
         <span>Initializing telemetry...</span>
       </div>
     );
@@ -154,22 +174,26 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
   const d = data;
   const checks = d.service_status.checks;
   const budgetMax = d.chat_metrics.budget_used + d.chat_metrics.budget_remaining;
+  const thin = d.request_metrics.total_24h < MIN_REQUESTS;
+  // The counters cover different windows depending on where the numbers come from.
+  const fromProm = d.metrics_source === 'prometheus';
+  const win = fromProm ? 'last 24h' : 'since restart';
   const budgetPct = budgetMax > 0 ? (d.chat_metrics.budget_used / budgetMax) * 100 : 0;
 
   return (
     <div className="space-y-6">
       {!compact && (
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-muted-foreground">
-          <span>Last refresh: {lastFetch || '—'}</span>
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-ink-soft">
+          <span>Last refresh: {lastFetch || 'pending'} (refreshes every 60 s while this tab is visible)</span>
           <span className="flex flex-wrap items-center gap-2">
             {d.platform && (
-              <span className="bg-white/5 px-1.5 py-0.5 rounded border border-white/10 uppercase">{d.platform}</span>
+              <span className="bg-muted px-1.5 py-0.5 rounded border border-hairline uppercase">{d.platform}</span>
             )}
             {d.metrics_source && (
               <span className={`px-1.5 py-0.5 rounded border uppercase ${
                 d.metrics_source === 'prometheus'
-                  ? 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20'
-                  : 'bg-amber-400/10 text-amber-400 border-amber-400/20'
+                  ? 'bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 border-emerald-400/20'
+                  : 'bg-amber-400/10 text-amber-700 dark:text-amber-400 border-amber-400/20'
               }`}>
                 {d.metrics_source === 'prometheus' ? 'prometheus' : `${d.metrics_source} fallback`}
               </span>
@@ -179,54 +203,76 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
         </div>
       )}
       {error && (
-        <div className="p-2 bg-red-400/10 border border-red-400/20 rounded text-red-400 text-xs font-mono">
+        <div className="p-2 bg-red-400/10 border border-red-400/20 rounded text-red-700 dark:text-red-400 text-xs font-mono">
           Fetch error: {error}
         </div>
       )}
 
       <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className={`p-4 rounded-lg border ${STATUS_BG[d.service_status.status]} flex flex-col gap-2`}>
-          <div className="flex items-center gap-2">
-            <StatusDot status={d.service_status.status} />
-            <span className="text-xs font-mono uppercase tracking-wider text-gray-400">Overall</span>
-          </div>
-          <span className={`text-lg font-bold font-mono ${STATUS_COLORS[d.service_status.status]}`}>
-            {d.service_status.status.toUpperCase()}
-          </span>
-        </div>
-        {Object.entries(checks).map(([name, check]) => (
-          <div key={name} className={`p-4 rounded-lg border ${STATUS_BG[check.status]} flex flex-col gap-2`}>
-            <div className="flex items-center gap-2">
-              <StatusDot status={check.status} />
-              <span className="text-xs font-mono uppercase tracking-wider text-gray-400 truncate">{name.replace(/_/g, ' ')}</span>
+        {(() => {
+          const o = overallDisplay(d.service_status.status, d.request_metrics.total_24h);
+          return (
+            <div className={`p-4 rounded-md border ${TONE_BG[o.tone]} flex flex-col gap-2`}>
+              <div className="flex items-center gap-2">
+                <StatusDot tone={o.tone} />
+                <span className="text-xs font-mono uppercase tracking-wider text-ink-soft">Overall</span>
+              </div>
+              <span className={`text-lg font-bold font-mono ${TONE_TEXT[o.tone]}`}>{o.label}</span>
+              {o.detail && <span className="text-xs text-ink-soft">{o.detail}</span>}
             </div>
-            <span className={`text-sm font-mono ${STATUS_COLORS[check.status]}`}>
-              {check.status.toUpperCase()}
-              {check.latency_ms != null && check.latency_ms > 0 && <span className="text-gray-500 ml-1">{check.latency_ms}ms</span>}
-            </span>
-          </div>
-        ))}
+          );
+        })()}
+        {Object.entries(checks).map(([name, check]) => {
+          const c = checkDisplay(check.status);
+          return (
+            <div key={name} className={`p-4 rounded-md border ${TONE_BG[c.tone]} flex flex-col gap-2`}>
+              <div className="flex items-center gap-2">
+                <StatusDot tone={c.tone} />
+                <span className="text-xs font-mono uppercase tracking-wider text-ink-soft break-words">{name.replace(/_/g, ' ')}</span>
+              </div>
+              <span className={`text-sm font-mono ${TONE_TEXT[c.tone]}`}>
+                {c.label}
+                {check.latency_ms != null && check.latency_ms > 0 && <span className="text-ink-soft ml-1">{check.latency_ms}ms</span>}
+              </span>
+              {name === 'inference_api' && d.service_status.chat_providers && (
+                <span className="text-xs text-ink-soft">
+                  {d.service_status.chat_providers.length > 0
+                    ? `via ${d.service_status.chat_providers.map((p) => PROVIDER_LABELS[p] ?? p).join(' then ')}`
+                    : 'no provider configured'}
+                </span>
+              )}
+            </div>
+          );
+        })}
       </section>
 
       {d.slos && d.slos.length > 0 && (
         <section>
-          <h3 className="text-xs font-mono text-gray-500 uppercase mb-3 flex items-center gap-2">
-            <Shield className="size-3.5 text-blue-400" /> SLO Status
+          <h3 className="eyebrow mb-3 flex items-center gap-2">
+            <Shield className="size-3.5 text-brand-text" /> SLO Status
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {d.slos.map((slo) => (
-              <div key={slo.name} className={`p-3 rounded-lg border ${slo.met ? 'border-emerald-400/20 bg-emerald-400/5' : 'border-red-400/20 bg-red-400/5'}`}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-mono text-gray-400">{slo.name}</span>
-                  <span className={`text-xs font-mono font-bold ${slo.met ? 'text-emerald-400' : 'text-red-400'}`}>
+            {d.slos.map((slo) => thin ? (
+              <div key={slo.name} className="p-3 rounded-md border border-hairline bg-card">
+                <div className="flex items-center justify-between gap-2 mb-1 min-w-0">
+                  <span className="text-xs font-mono text-ink-soft min-w-0">{slo.name}</span>
+                  <span className="text-xs font-mono text-ink-soft shrink-0">NO DATA</span>
+                </div>
+                <p className="text-sm text-ink-soft">Insufficient data (&lt;{MIN_REQUESTS} requests)</p>
+              </div>
+            ) : (
+              <div key={slo.name} className={`p-3 rounded-md border ${slo.met ? 'border-emerald-400/20 bg-emerald-400/5' : 'border-red-400/20 bg-red-400/5'}`}>
+                <div className="flex items-center justify-between gap-2 mb-1 min-w-0">
+                  <span className="text-xs font-mono text-ink-soft min-w-0">{slo.name}</span>
+                  <span className={`text-xs font-mono font-bold ${slo.met ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}>
                     {slo.met ? 'MET' : 'BREACH'}
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className={`text-lg font-bold font-mono ${slo.met ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <span className={`text-lg font-bold font-mono ${slo.met ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}>
                     {slo.current}
                   </span>
-                  <span className="text-xs text-gray-600 font-mono">/ {slo.target}{slo.unit}</span>
+                  <span className="text-xs text-ink-soft font-mono">/ {slo.target}{slo.unit}</span>
                 </div>
               </div>
             ))}
@@ -242,18 +288,18 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
               ? d.infrastructure.cold_starts.toLocaleString()
               : formatUptime(d.infrastructure.uptime_seconds),
             icon: Clock,
-            color: 'text-emerald-400',
+            color: 'text-emerald-700 dark:text-emerald-400',
           },
-          { label: 'Requests', value: d.request_metrics.total_24h.toLocaleString(), icon: BarChart3, color: 'text-blue-400' },
-          { label: 'P95 Latency', value: `${d.request_metrics.latency_p95}ms`, icon: Zap, color: 'text-amber-400' },
-          { label: 'Error Rate', value: `${d.request_metrics.error_rate_1h.toFixed(1)}%`, icon: AlertTriangle, color: d.request_metrics.error_rate_1h > 5 ? 'text-red-400' : 'text-emerald-400' },
-          { label: 'Cache Hit', value: `${d.chat_metrics.cache_hit_rate}%`, icon: Cpu, color: 'text-purple-400' },
-          { label: 'Budget Left', value: d.chat_metrics.budget_remaining.toString(), icon: Shield, color: d.chat_metrics.budget_remaining < 20 ? 'text-red-400' : 'text-emerald-400' },
+          { label: `Requests (${win})`, value: d.request_metrics.total_24h.toLocaleString(), icon: BarChart3, color: 'text-brand-text' },
+          { label: 'P95 Latency (1h)', value: `${d.request_metrics.latency_p95}ms`, icon: Zap, color: 'text-amber-700 dark:text-amber-400' },
+          { label: 'Server Errors (1h)', value: `${d.request_metrics.error_rate_1h.toFixed(1)}%`, icon: AlertTriangle, color: d.request_metrics.error_rate_1h > 5 ? 'text-red-700 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400' },
+          { label: `Cache Hit (${win})`, value: `${d.chat_metrics.cache_hit_rate}%`, icon: Cpu, color: 'text-brand-text' },
+          { label: 'Budget Left', value: d.chat_metrics.budget_remaining.toString(), icon: Shield, color: d.chat_metrics.budget_remaining < 20 ? 'text-red-700 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400' },
         ].map((m) => (
-          <div key={m.label} className="p-4 rounded-lg border border-white/5 bg-[#161b22] flex flex-col">
+          <div key={m.label} className="p-4 rounded-md border border-hairline bg-card flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <m.icon className={`size-4 ${m.color}`} />
-              <span className="text-xs font-mono text-gray-500 uppercase">{m.label}</span>
+              <span className="eyebrow">{m.label}</span>
             </div>
             <span className={`text-2xl md:text-3xl font-bold font-mono ${m.color}`}>{m.value}</span>
           </div>
@@ -263,75 +309,75 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
       {!compact && (
         <>
           <section className="grid md:grid-cols-2 gap-4">
-            <div className="p-5 rounded-lg border border-white/5 bg-[#161b22]">
-              <h3 className="text-xs font-mono text-gray-500 uppercase mb-4 flex items-center gap-2">
-                <Zap className="size-3.5 text-amber-400" /> Request Latency (1h)
+            <div className="p-5 rounded-md border border-hairline bg-card">
+              <h3 className="eyebrow mb-4 flex items-center gap-2">
+                <Zap className="size-3.5 text-amber-700 dark:text-amber-400" /> Request Latency (last hour)
               </h3>
               {d.timeseries.latency_1h.length >= 1 ? (
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={d.timeseries.latency_1h}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e2633" />
-                    <XAxis dataKey="t" tickFormatter={formatTime} stroke="#4b5563" tick={{ fontSize: 10 }} />
-                    <YAxis stroke="#4b5563" tick={{ fontSize: 10 }} unit="ms" />
-                    <Tooltip contentStyle={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 8, fontSize: 12 }} labelFormatter={(l: unknown) => formatTime(Number(l))} />
-                    <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'monospace' }} />
-                    <Line type="monotone" dataKey="p50" stroke="#22c55e" strokeWidth={2} dot={true} name="P50" />
-                    <Line type="monotone" dataKey="p95" stroke="#f59e0b" strokeWidth={2} dot={true} name="P95" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--hairline)" />
+                    <XAxis dataKey="t" tickFormatter={formatTime} stroke="var(--hairline)" tick={{ fontSize: 11, fill: 'var(--ink-soft)' }} />
+                    <YAxis stroke="var(--hairline)" tick={{ fontSize: 11, fill: 'var(--ink-soft)' }} unit="ms" />
+                    <Tooltip contentStyle={{ background: 'var(--card)', border: '1px solid var(--hairline)', color: 'var(--foreground)', borderRadius: 6, fontSize: 12 }} labelFormatter={(l: unknown) => formatTime(Number(l))} />
+                    <Legend wrapperStyle={{ fontSize: 12, fontFamily: 'monospace' }} formatter={(v: string) => <span style={{ color: 'var(--ink)' }}>{v}</span>} />
+                    <Line type="monotone" dataKey="p50" stroke="var(--live)" strokeWidth={2} dot={true} name={fromProm ? 'P50' : 'Average per 10 s'} />
+                    <Line type="monotone" dataKey="p95" stroke="var(--brand-text)" strokeWidth={2} dot={true} name={fromProm ? 'P95' : 'P95 of last hour'} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-[200px] flex items-center justify-center text-gray-600 font-mono text-sm">Collecting data… (requests in last 1h will appear here)</div>
+                <div className="h-[200px] flex items-center justify-center text-ink-soft font-mono text-sm">Collecting data. (requests in last 1h will appear here)</div>
               )}
             </div>
-            <div className="p-5 rounded-lg border border-white/5 bg-[#161b22]">
-              <h3 className="text-xs font-mono text-gray-500 uppercase mb-4 flex items-center gap-2">
-                <BarChart3 className="size-3.5 text-blue-400" /> Requests per 10s (1h)
+            <div className="p-5 rounded-md border border-hairline bg-card">
+              <h3 className="eyebrow mb-4 flex items-center gap-2">
+                <BarChart3 className="size-3.5 text-brand-text" /> Requests per {fromProm ? 'minute' : '10 s'} (last hour)
               </h3>
               {d.timeseries.requests_1h.length >= 1 ? (
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={d.timeseries.requests_1h}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e2633" />
-                    <XAxis dataKey="t" tickFormatter={formatTime} stroke="#4b5563" tick={{ fontSize: 10 }} />
-                    <YAxis stroke="#4b5563" tick={{ fontSize: 10 }} />
-                    <Tooltip contentStyle={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 8, fontSize: 12 }} labelFormatter={(l: unknown) => formatTime(Number(l))} />
-                    <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'monospace' }} />
-                    <Bar dataKey="count" fill="#3b82f6" radius={[2, 2, 0, 0]} name="Requests" />
-                    <Bar dataKey="errors" fill="#ef4444" radius={[2, 2, 0, 0]} name="Errors" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--hairline)" />
+                    <XAxis dataKey="t" tickFormatter={formatTime} stroke="var(--hairline)" tick={{ fontSize: 11, fill: 'var(--ink-soft)' }} />
+                    <YAxis stroke="var(--hairline)" tick={{ fontSize: 11, fill: 'var(--ink-soft)' }} />
+                    <Tooltip contentStyle={{ background: 'var(--card)', border: '1px solid var(--hairline)', color: 'var(--foreground)', borderRadius: 6, fontSize: 12 }} labelFormatter={(l: unknown) => formatTime(Number(l))} />
+                    <Legend wrapperStyle={{ fontSize: 12, fontFamily: 'monospace' }} formatter={(v: string) => <span style={{ color: 'var(--ink)' }}>{v}</span>} />
+                    <Bar dataKey="count" fill="var(--ink-soft)" radius={[2, 2, 0, 0]} name="Requests" />
+                    <Bar dataKey="errors" fill="var(--destructive)" radius={[2, 2, 0, 0]} name="Server errors" />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-[200px] flex items-center justify-center text-gray-600 font-mono text-sm">Collecting data… (requests in last 1h will appear here)</div>
+                <div className="h-[200px] flex items-center justify-center text-ink-soft font-mono text-sm">Collecting data. (requests in last 1h will appear here)</div>
               )}
             </div>
           </section>
 
           <section className="grid md:grid-cols-3 gap-4">
-            <div className="p-5 rounded-lg border border-white/5 bg-[#161b22]">
-              <h3 className="text-xs font-mono text-gray-500 uppercase mb-4">Daily Chat Budget</h3>
-              <div className="relative h-4 bg-gray-800 rounded-full overflow-hidden mb-3">
+            <div className="p-5 rounded-md border border-hairline bg-card">
+              <h3 className="eyebrow mb-4">Daily Chat Budget</h3>
+              <div className="relative h-4 bg-muted rounded-full overflow-hidden mb-3">
                 <div className={`h-full rounded-full transition-all duration-500 ${budgetPct > 80 ? 'bg-red-400' : budgetPct > 50 ? 'bg-amber-400' : 'bg-emerald-400'}`} style={{ width: `${Math.min(100, budgetPct)}%` }} />
               </div>
               <div className="flex justify-between text-xs font-mono">
-                <span className="text-gray-500">Used: {d.chat_metrics.budget_used}</span>
-                <span className={budgetPct > 80 ? 'text-red-400' : 'text-emerald-400'}>Remaining: {d.chat_metrics.budget_remaining}</span>
+                <span className="text-ink-soft">Used: {d.chat_metrics.budget_used}</span>
+                <span className={budgetPct > 80 ? 'text-red-700 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400'}>Remaining: {d.chat_metrics.budget_remaining}</span>
               </div>
             </div>
-            <div className="p-5 rounded-lg border border-white/5 bg-[#161b22]">
-              <h3 className="text-xs font-mono text-gray-500 uppercase mb-4 flex items-center gap-2"><Wifi className="size-3.5 text-purple-400" /> Chat Metrics</h3>
+            <div className="p-5 rounded-md border border-hairline bg-card">
+              <h3 className="eyebrow mb-4 flex items-center gap-2"><Wifi className="size-3.5 text-brand-text" /> Chat Metrics</h3>
               <div className="space-y-3 text-sm font-mono">
-                <div className="flex justify-between"><span className="text-gray-500">Conversations</span><span>{d.chat_metrics.conversations_24h}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Avg Inference</span><span>{d.chat_metrics.avg_inference_ms}ms</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Cache Hit Rate</span><span className="text-purple-400">{d.chat_metrics.cache_hit_rate}%</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Rate Limits</span><span className={d.chat_metrics.rate_limit_hits_24h > 0 ? 'text-amber-400' : ''}>{d.chat_metrics.rate_limit_hits_24h}</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Conversations ({win})</span><span>{d.chat_metrics.conversations_24h}</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Inference p50, first token</span><span>{d.chat_metrics.avg_inference_ms}ms</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Cache Hit Rate ({win})</span><span className="text-brand-text">{d.chat_metrics.cache_hit_rate}%</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Rate Limits ({win})</span><span className={d.chat_metrics.rate_limit_hits_24h > 0 ? 'text-amber-700 dark:text-amber-400' : ''}>{d.chat_metrics.rate_limit_hits_24h}</span></div>
               </div>
             </div>
-            <div className="p-5 rounded-lg border border-white/5 bg-[#161b22]">
-              <h3 className="text-xs font-mono text-gray-500 uppercase mb-4 flex items-center gap-2"><Database className="size-3.5 text-blue-400" /> Infrastructure</h3>
+            <div className="p-5 rounded-md border border-hairline bg-card">
+              <h3 className="eyebrow mb-4 flex items-center gap-2"><Database className="size-3.5 text-brand-text" /> Infrastructure</h3>
               <div className="space-y-3 text-sm font-mono">
-                <div className="flex justify-between"><span className="text-gray-500">Runtime</span><span>{d.infrastructure.node_version}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Uptime</span><span>{formatUptime(d.infrastructure.uptime_seconds)}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Cold Starts</span><span>{d.infrastructure.cold_starts}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Boot</span><span className="text-xs">{new Date(d.infrastructure.boot_time).toLocaleTimeString()}</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Runtime</span><span>{d.infrastructure.node_version}</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Uptime</span><span>{formatUptime(d.infrastructure.uptime_seconds)}</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Cold Starts</span><span>{d.infrastructure.cold_starts}</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Boot</span><span className="text-xs">{new Date(d.infrastructure.boot_time).toLocaleTimeString()}</span></div>
               </div>
             </div>
           </section>
@@ -340,11 +386,11 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
 
       {(d.recent_errors ?? []).length > 0 && (
         <section>
-          <h3 className="text-xs font-mono text-gray-500 uppercase mb-4 flex items-center gap-2">
-            <AlertTriangle className="size-3.5 text-red-400" /> Recent Errors
+          <h3 className="eyebrow mb-4 flex items-center gap-2">
+            <AlertTriangle className="size-3.5 text-red-700 dark:text-red-400" /> Recent Errors
           </h3>
-          <div className="rounded-lg border border-red-400/20 bg-[#161b22] overflow-hidden">
-            <div className="divide-y divide-white/5">
+          <div className="rounded-md border border-red-400/20 bg-card overflow-hidden">
+            <div className="divide-y divide-hairline">
               {(d.recent_errors ?? []).slice(0, compact ? 5 : 10).map((err, i) => (
                 <RecentErrorRow key={i} error={err} />
               ))}
@@ -353,55 +399,20 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
         </section>
       )}
 
-      {(d.recent_visitors ?? []).length > 0 && !compact && (
-        <section>
-          <h3 className="text-xs font-mono text-gray-500 uppercase mb-4 flex items-center gap-2">
-            <Users className="size-3.5 text-blue-400" /> Recent Visitors
-          </h3>
-          <div className="rounded-lg border border-white/5 bg-[#161b22] overflow-hidden">
-            <div className="divide-y divide-white/5">
-              {(d.recent_visitors ?? []).slice(0, 10).map((v, i) => (
-                <div key={i} className="flex items-center gap-3 px-4 py-2 hover:bg-white/[0.02] transition-colors text-xs font-mono">
-                  <span className="text-[10px] text-gray-600 min-w-[70px]">{new Date(v.timestamp).toLocaleTimeString()}</span>
-                  <span className={`min-w-[20px] text-center ${
-                    v.category === 'recruiter' ? 'text-amber-400' :
-                    v.category === 'person' ? 'text-emerald-400' :
-                    v.category === 'crawler' ? 'text-purple-400' :
-                    v.category === 'bot' ? 'text-gray-500' : 'text-gray-600'
-                  }`}>
-                    {v.category === 'recruiter' ? '🎯' :
-                     v.category === 'person' ? '👤' :
-                     v.category === 'crawler' ? '🤖' :
-                     v.category === 'bot' ? '⚙️' : '❓'}
-                  </span>
-                  <span className={`font-semibold uppercase tracking-wider ${
-                    v.category === 'recruiter' ? 'text-amber-400' : 'text-gray-400'
-                  }`}>{v.category}</span>
-                  <span className="text-gray-500 min-w-[80px] truncate">{v.uaSummary}</span>
-                  <span className="text-gray-300 truncate flex-1">{v.path}</span>
-                  {v.referrer && <span className="text-gray-600 truncate max-w-[200px]" title={v.referrer}>↳ {v.referrer.replace(/https?:\/\//, '').split('/')[0]}</span>}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
       <section>
-        <h3 className="text-xs font-mono text-gray-500 uppercase mb-4 flex items-center gap-2">
-          <Radio className="size-3.5 text-emerald-400" /> Recent Events
+        <h3 className="eyebrow mb-4 flex items-center gap-2">
+          <Radio className="size-3.5 text-emerald-700 dark:text-emerald-400" /> Recent Events
         </h3>
-        <div className="rounded-lg border border-white/5 bg-[#161b22] overflow-hidden">
+        <div className="rounded-md border border-hairline bg-card overflow-hidden">
           {d.recent_events.length === 0 ? (
-            <div className="p-6 text-center text-gray-600 font-mono text-sm">No events recorded yet</div>
+            <div className="p-6 text-center text-ink-soft font-mono text-sm">No events recorded yet</div>
           ) : (
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-hairline">
               {d.recent_events.slice(0, compact ? 8 : 15).map((ev, i) => (
-                <div key={i} className="flex items-center gap-4 px-4 py-3 hover:bg-white/[0.02] transition-colors">
-                  <span className="text-xs font-mono text-gray-600 min-w-[80px]">{new Date(ev.timestamp).toLocaleTimeString()}</span>
-                  <span className="text-base min-w-[24px]">{EVENT_ICONS[ev.type] || '📋'}</span>
-                  <span className="text-xs font-mono text-gray-500 min-w-[80px] uppercase">{ev.type}</span>
-                  <span className="text-sm text-gray-300 truncate">{ev.message}</span>
+                <div key={i} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 py-3 hover:bg-muted/50 transition-colors">
+                  <span className="text-xs font-mono text-ink-soft min-w-[80px]">{new Date(ev.timestamp).toLocaleTimeString()}</span>
+                  <span className="text-xs font-mono text-ink-soft min-w-[80px] uppercase">{ev.type}</span>
+                  <span className="text-sm text-foreground min-w-0 break-words">{ev.message}</span>
                 </div>
               ))}
             </div>

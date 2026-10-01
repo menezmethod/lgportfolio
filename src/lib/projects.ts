@@ -1,52 +1,38 @@
 import rawProjects from '@/content/projects.json';
 
-export type ProjectStatus = 'production' | 'live' | 'building' | 'archived';
-export type ProjectOrigin = 'professional' | 'personal';
-
-export interface ProjectMetric {
+export interface StoryLine {
   label: string;
-  value: string;
-}
-
-export interface ProjectNarrative {
-  problem: string;
-  tradeoff: string;
-  decision: string;
-  outcome: string;
+  text: string;
 }
 
 export interface ProjectLinks {
   github?: string;
   demo?: string;
-  caseStudy?: string;
+  invite?: string;
+  secondary?: { label: string; href: string };
 }
 
 export interface Project {
   slug: string;
   title: string;
-  eyebrow: string;
-  company?: string;
+  /** Professional, Public repo, Live demo, Research. */
+  kind: string;
+  where: string;
   summary: string;
-  narrative: ProjectNarrative;
+  /** Honest statement of ownership: built alone, contributed, owned. */
+  role: string;
   stack: string[];
-  architecture: string;
-  cloud: string;
-  hardware: string;
-  status: ProjectStatus;
+  /** Stack owned by the wider team, shown separately from what I own. */
+  teamStack?: string[];
+  status: string;
   featured: boolean;
-  origin: ProjectOrigin;
+  story?: StoryLine[];
   links?: ProjectLinks;
-  metrics: ProjectMetric[];
-  archiveReason?: string;
-  nextMilestone?: string;
+  /** My scope versus team scope, from the sources only. */
+  scope?: { mine?: string; team?: string };
 }
 
 export const projects = rawProjects as Project[];
+export const featuredProjects = projects.filter((p) => p.featured);
 
-export const featuredProjects = projects.filter((project) => project.featured);
-export const supportingProjects = projects.filter(
-  (project) => !project.featured && project.status !== 'archived',
-);
-export const archivedProjects = projects.filter(
-  (project) => project.status === 'archived',
-);
+export const getProject = (slug: string) => projects.find((p) => p.slug === slug);

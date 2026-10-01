@@ -5,8 +5,9 @@
  * into in-memory telemetry (counters + recent visitors) so it shows up
  * in War Room and Prometheus metrics.
  *
- * For likely-human visitors (person/recruiter), fires one Telegram/
- * webhook ping (deduped 30 min per visitor). Bots and crawlers never ping.
+ * For likely-human visitors (person/recruiter), fires one signed webhook ping
+ * (deduped 30 min per visitor). See src/lib/notify.ts for the exact payload. Bots and
+ * crawlers never ping.
  * The ping must never break the endpoint: failures are swallowed and the
  * route always returns 200.
  */
@@ -47,7 +48,8 @@ export async function POST(req: Request) {
       await notifyVisitor({
         category,
         path,
-        referrer,
+        referrer: referrer.slice(0, 200),
+        country: req.headers.get("cf-ipcountry") || undefined,
         uaSummary: summarizeUA(userAgent),
         ip: getClientIp(req),
       }).catch(() => {});

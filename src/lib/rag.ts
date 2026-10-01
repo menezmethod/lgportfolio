@@ -32,6 +32,18 @@ export interface VectorMatch {
   content: string;
 }
 
+/** Timing probe: one fixed query straight to the RAG worker (no file fallback). Returns ms, or null on any failure. */
+export async function probeWorkerRetrieval(): Promise<number | null> {
+  if (!isCloudflareRagConfigured()) return null;
+  const start = Date.now();
+  try {
+    await retrieveWorkerMatches("What does Luis work on?", 3);
+    return Date.now() - start;
+  } catch {
+    return null;
+  }
+}
+
 async function retrieveWorkerMatches(query: string, topK: number): Promise<VectorMatch[]> {
   const key = workerKey();
   if (!key) throw new Error("Cloudflare RAG not configured");
@@ -158,6 +170,19 @@ function deduplicateContext(context: string): string {
   return out.join(chunkSeparator);
 }
 
+const normalizeWs = (t: string) => t.replace(/\s+/g, " ").trim();
+let kbNormalized: string | null = null;
+
+/**
+ * A vector chunk is current only if its text still appears in the knowledge base. This keeps stale
+ * chunks (from an index that was seeded before the knowledge base changed) out of answers until the
+ * index is re-seeded.
+ */
+export function isCurrentChunk(content: string): boolean {
+  kbNormalized ??= normalizeWs(KNOWLEDGE_BASE);
+  return kbNormalized.includes(normalizeWs(content));
+}
+
 export async function retrieveContext(query: string, topK = 5): Promise<string> {
   // Low-signal queries (greetings, one-liners) keep the curated file context —
   // it always includes the identity and behavior-rule sections.
@@ -167,7 +192,7 @@ export async function retrieveContext(query: string, topK = 5): Promise<string> 
 
   try {
     const matches = (await retrieveWorkerMatches(query, topK)).filter(
-      (match) => match.score >= MATCH_THRESHOLD
+      (match) => match.score >= MATCH_THRESHOLD && isCurrentChunk(match.content)
     );
 
     if (matches.length === 0) {

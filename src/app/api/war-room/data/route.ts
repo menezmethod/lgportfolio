@@ -1,6 +1,7 @@
 import { getTraceIdFromRequest } from "@/lib/trace-context";
-import { log, recordRequest } from "@/lib/telemetry";
+import { getChatSpans, log, recordRequest } from "@/lib/telemetry";
 import { getWarRoomDataAsync } from "@/lib/war-room-metrics";
+import { getProbeState, maybeRunProbes } from "@/lib/probe";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,11 @@ export async function GET(req: Request) {
   const now = Date.now();
   if (cachedData && now - cachedAt < CACHE_TTL) {
     recordRequest("/api/war-room/data", "GET", 200, Date.now() - start);
-    return new Response(cachedData, {
+    // The cached payload is up to 60 s old, but the trace spans and probe samples are cheap and stay live.
+    maybeRunProbes();
+    const live = JSON.parse(cachedData) as Record<string, unknown>;
+    live.chat_spans = { ...getChatSpans(), probe: getProbeState() };
+    return new Response(JSON.stringify(live), {
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "public, max-age=60",
@@ -25,7 +30,13 @@ export async function GET(req: Request) {
     });
   }
 
+  // Visitor paths and user agents stay out of the public payload (privacy).
   const data = await getWarRoomDataAsync();
+  delete (data as { recent_visitors?: unknown }).recent_visitors;
+
+  // Start any due timing probes in the background and report what exists now. Never waits.
+  maybeRunProbes();
+  (data as { chat_spans: unknown }).chat_spans = { ...data.chat_spans, probe: getProbeState() };
 
   log("INFO", "War room data request", {
     endpoint: "/api/war-room/data",

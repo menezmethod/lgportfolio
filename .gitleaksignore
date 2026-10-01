@@ -1,0 +1,2 @@
+# Test fixture value in the admin-auth unit test, not a real secret.
+src/__tests__/api-admin.test.ts:generic-api-key:138

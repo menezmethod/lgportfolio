@@ -18,6 +18,7 @@ import {
   getPrometheusText,
   incrementAdminMetric,
   getUptimeSeconds,
+  getChatSpans,
 } from "@/lib/telemetry";
 
 beforeEach(() => {
@@ -371,6 +372,7 @@ describe("telemetry", () => {
 
     it("returns 'healthy' when INFERENCIA_API_KEY is set", () => {
       vi.stubEnv("INFERENCIA_API_KEY", "test-key");
+      vi.stubEnv("INFERENCIA_BASE_URL", "https://inf.test/v1");
       const data = getHealthData();
       expect(data.status).toBe("healthy");
       expect(data.checks.inference_api.status).toBe("up");
@@ -378,6 +380,7 @@ describe("telemetry", () => {
 
     it("returns unhealthy when Inferencia probe reports down", () => {
       vi.stubEnv("INFERENCIA_API_KEY", "test-key");
+      vi.stubEnv("INFERENCIA_BASE_URL", "https://inf.test/v1");
       const data = getHealthData({ status: "down", latency_ms: 5000 });
       expect(data.status).toBe("unhealthy");
       expect(data.checks.inference_api.status).toBe("down");
@@ -386,6 +389,7 @@ describe("telemetry", () => {
 
     it("shallow mode skips live probe and reports configured inference as up", () => {
       vi.stubEnv("INFERENCIA_API_KEY", "test-key");
+      vi.stubEnv("INFERENCIA_BASE_URL", "https://inf.test/v1");
       const data = getHealthData(undefined, { shallow: true });
       expect(data.status).toBe("healthy");
       expect(data.checks.inference_api.status).toBe("up");
@@ -420,7 +424,7 @@ describe("telemetry", () => {
       const names = data.slos.map((s) => s.name);
       expect(names).toContain("Availability");
       expect(names).toContain("P95 Latency");
-      expect(names).toContain("Error Rate");
+      expect(names).toContain("Server Error Rate");
       expect(names).toContain("Budget Headroom");
     });
 
@@ -507,6 +511,19 @@ describe("telemetry", () => {
   describe("getUptimeSeconds", () => {
     it("returns a non-negative number", () => {
       expect(getUptimeSeconds()).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe("getChatSpans", () => {
+    it("counts real model calls only and reports p50 per span", () => {
+      const before = getChatSpans().samples;
+      recordChatMetrics({ durationMs: 900, ragDurationMs: 100, cacheHit: false, rateLimited: false });
+      recordChatMetrics({ durationMs: 5, ragDurationMs: 0, cacheHit: true, rateLimited: false });
+      recordChatMetrics({ durationMs: 0, ragDurationMs: 0, cacheHit: false, rateLimited: true });
+      const spans = getChatSpans();
+      expect(spans.samples).toBe(before + 1);
+      expect(spans.inference_p50_ms).toBeGreaterThan(0);
+      expect(getWarRoomData().chat_spans.samples).toBe(spans.samples);
     });
   });
 });

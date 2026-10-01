@@ -40,7 +40,7 @@ yarn-error.log*
 *.key
 .env.secret
 
-# Local deploy / CLI config (e.g. .vercel if ever used)
+# Local CLI config from a previous host (harmless to keep ignored)
 .vercel
 
 # TypeScript
@@ -79,3 +79,6 @@ terraform/.terraform.lock.hcl
 /src/index.js
 /src/index.css
 .env*
+
+# Private files that must never be committed (redaction rules, forbidden-term lists)
+.private/

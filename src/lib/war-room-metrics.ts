@@ -4,7 +4,7 @@ import {
   queryInstantBatch,
   queryRange,
 } from "./prometheus-client";
-import { getDailyBudgetStats } from "./rate-limit";
+import { getChatLimits, getDailyBudgetStats } from "./rate-limit";
 import { type SLODefinition, type WarRoomData, getWarRoomData } from "./telemetry";
 
 export type MetricsSource = "prometheus" | "memory" | "hybrid";
@@ -60,7 +60,7 @@ function buildSLOsFromPrometheus(values: {
       met: p95 <= 500 || p95 === 0,
     },
     {
-      name: "Error Rate",
+      name: "Server Error Rate",
       target: 5,
       unit: "% max",
       current: roundPct(errorRate),
@@ -80,10 +80,10 @@ async function fetchPrometheusWarRoomSlice(budgetMax: number): Promise<Partial<W
   const instant = await queryInstantBatch({
     total24h: "sum(increase(http_requests_total[24h]))",
     rpm: "sum(rate(http_requests_total[1m])) * 60",
-    errors1h: "sum(increase(errors_total[1h]))",
+    errors1h: 'sum(increase(errors_total{type="server"}[1h]))',
     reqs1h: "sum(increase(http_requests_total[1h]))",
     p50: 'max(http_request_duration_seconds{quantile="0.5"})',
-    p90: 'max(http_request_duration_seconds{quantile="0.9"})',
+    p95: 'max(http_request_duration_seconds{quantile="0.95"})',
     p99: 'max(http_request_duration_seconds{quantile="0.99"})',
     chat24h: "sum(increase(chat_conversations_total[24h]))",
     chatDailyUsed: "max(chat_daily_budget_used)",
@@ -92,16 +92,16 @@ async function fetchPrometheusWarRoomSlice(budgetMax: number): Promise<Partial<W
     chatInferenceP50: 'avg(chat_inference_duration_seconds{quantile="0.5"})',
     coldStarts24h: "sum(increase(app_cold_starts_total[24h]))",
     availability24h:
-      "100 * (1 - sum(increase(errors_total[24h])) / clamp_min(sum(increase(http_requests_total[24h])), 1))",
+      '100 * (1 - sum(increase(errors_total{type="server"}[24h])) / clamp_min(sum(increase(http_requests_total[24h])), 1))',
   });
 
   const now = Date.now();
   const oneHourAgo = now - 3_600_000;
-  const [latencyP50Series, latencyP90Series, requestSeries, errorSeries] = await Promise.all([
+  const [latencyP50Series, latencyP95Series, requestSeries, errorSeries] = await Promise.all([
     queryRange('max(http_request_duration_seconds{quantile="0.5"})', oneHourAgo, now, 60).catch(() => []),
-    queryRange('max(http_request_duration_seconds{quantile="0.9"})', oneHourAgo, now, 60).catch(() => []),
+    queryRange('max(http_request_duration_seconds{quantile="0.95"})', oneHourAgo, now, 60).catch(() => []),
     queryRange("sum(increase(http_requests_total[1m]))", oneHourAgo, now, 60).catch(() => []),
-    queryRange("sum(increase(errors_total[1m]))", oneHourAgo, now, 60).catch(() => []),
+    queryRange('sum(increase(errors_total{type="server"}[1m]))', oneHourAgo, now, 60).catch(() => []),
   ]);
 
   const reqs1h = instant.reqs1h ?? 0;
@@ -121,11 +121,11 @@ async function fetchPrometheusWarRoomSlice(budgetMax: number): Promise<Partial<W
     errors: Math.round(errorByTime.get(p.t) ?? 0),
   }));
 
-  const p90ByTime = new Map(latencyP90Series.map((p) => [p.t, p.value]));
+  const p95ByTime = new Map(latencyP95Series.map((p) => [p.t, p.value]));
   const latency_1h = latencyP50Series.map((p) => ({
     t: p.t,
     p50: roundMs(p.value),
-    p95: roundMs(p90ByTime.get(p.t) ?? instant.p90),
+    p95: roundMs(p95ByTime.get(p.t) ?? instant.p95),
   }));
 
   return {
@@ -134,7 +134,7 @@ async function fetchPrometheusWarRoomSlice(budgetMax: number): Promise<Partial<W
       rpm_current: Math.round(instant.rpm ?? 0),
       error_rate_1h: reqs1h > 0 ? (errors1h / reqs1h) * 100 : 0,
       latency_p50: roundMs(instant.p50),
-      latency_p95: roundMs(instant.p90),
+      latency_p95: roundMs(instant.p95),
       latency_p99: roundMs(instant.p99),
     },
     chat_metrics: {
@@ -153,7 +153,7 @@ async function fetchPrometheusWarRoomSlice(budgetMax: number): Promise<Partial<W
     },
     slos: buildSLOsFromPrometheus({
       availability: instant.availability24h,
-      p95Ms: roundMs(instant.p90),
+      p95Ms: roundMs(instant.p95),
       errorRate: reqs1h > 0 ? (errors1h / reqs1h) * 100 : 0,
       budgetHeadroom,
     }),
@@ -169,7 +169,7 @@ async function fetchPrometheusWarRoomSlice(budgetMax: number): Promise<Partial<W
 export async function getWarRoomDataAsync(): Promise<WarRoomDataWithSource> {
   const base = getWarRoomData();
   const platform = detectPlatform();
-  const budgetMax = parseInt(process.env.CHAT_DAILY_BUDGET || "150", 10);
+  const budgetMax = getChatLimits().dailyBudget;
 
   if (!isPrometheusConfigured()) {
     return {
@@ -178,6 +178,10 @@ export async function getWarRoomDataAsync(): Promise<WarRoomDataWithSource> {
       platform,
       service_status: {
         ...base.service_status,
+        checks: {
+          ...base.service_status.checks,
+          prometheus: { status: "not_configured" },
+        },
         region: resolveRegion(base.service_status.region),
       },
     };
@@ -193,7 +197,7 @@ export async function getWarRoomDataAsync(): Promise<WarRoomDataWithSource> {
         ...base.service_status,
         checks: {
           ...base.service_status.checks,
-          prometheus: { status: "down" },
+          prometheus: { status: "unreachable" },
         },
         region: resolveRegion(base.service_status.region),
       },
@@ -203,7 +207,15 @@ export async function getWarRoomDataAsync(): Promise<WarRoomDataWithSource> {
   try {
     const promSlice = await fetchPrometheusWarRoomSlice(budgetMax);
     if (!promSlice?.request_metrics) {
-      return { ...base, metrics_source: "memory", platform };
+      return {
+        ...base,
+        metrics_source: "memory",
+        platform,
+        service_status: {
+          ...base.service_status,
+          checks: { ...base.service_status.checks, prometheus: { status: "degraded" } },
+        },
+      };
     }
 
     return {

@@ -1,19 +1,21 @@
 /**
- * Visitor-presence pings via the Hermes webhook.
+ * Visitor-presence pings to an owner-controlled webhook.
  *
  * Called from /api/analytics/page-view for likely-human visitors only
- * (category "person" | "recruiter" — bots/crawlers never reach here).
- * Deduped: one ping per visitor per 30 minutes.
+ * (category "person" | "recruiter"; bots and crawlers never reach here).
+ * Deduped: one ping per visitor per 30 minutes. Visits from OWNER_IPS never ping.
  *
- * The site POSTs a signed JSON payload to the Hermes webhook
- * (VISITOR_WEBHOOK_URL + VISITOR_WEBHOOK_SECRET); the Hermes agent
- * formats the reply and delivers it to Telegram. The site never talks
- * to Telegram directly, so each visit yields exactly one message.
+ * The site POSTs a signed JSON payload (HMAC-SHA256 in X-Hub-Signature-256, key
+ * VISITOR_WEBHOOK_SECRET) to VISITOR_WEBHOOK_URL. The body is:
+ *   { event_type: "visitor-pageview", category, path, referrer, uaSummary, ip,
+ *     country (when the CDN header is present), timestamp }
+ * Set VISITOR_PING_OMIT_IP=1 to leave ip out of the body.
  *
- * Never throws and never logs secrets.
+ * The visitor IP is also hashed (sha256, truncated) into the in-memory dedupe key.
+ * Never throws. Never logs the IP, the payload, or any secret.
  */
 
-import { createHmac } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { log } from "./telemetry";
 
 const DEDUPE_WINDOW_MS = 30 * 60 * 1000;
@@ -40,16 +42,20 @@ export interface VisitorPing {
   referrer: string;
   uaSummary: string;
   ip: string;
+  /** Country code from the CDN header, if present. */
+  country?: string;
 }
 
 function dedupeKey(ping: VisitorPing): string {
-  return `${ping.ip}|${ping.category}|${ping.uaSummary}`;
+  return createHash("sha256")
+    .update(`${ping.ip}|${ping.category}|${ping.uaSummary}`)
+    .digest("hex")
+    .slice(0, 16);
 }
 
 /**
- * Send a visitor-presence ping to the Hermes webhook. Returns true when a
- * ping was attempted. No-op (false) when unconfigured, owner-excluded, or
- * deduped. Never throws.
+ * Send a visitor-presence ping. Returns true when a ping was attempted.
+ * No-op (false) when unconfigured, owner-excluded, or deduped. Never throws.
  */
 export async function notifyVisitor(ping: VisitorPing): Promise<boolean> {
   try {
@@ -80,9 +86,15 @@ export async function notifyVisitor(ping: VisitorPing): Promise<boolean> {
       if (oldestKey) seen.delete(oldestKey);
     }
 
+    const omitIp = process.env.VISITOR_PING_OMIT_IP === "1";
     const body = JSON.stringify({
       event_type: "visitor-pageview",
-      ...ping,
+      category: ping.category,
+      path: ping.path,
+      referrer: ping.referrer,
+      uaSummary: ping.uaSummary,
+      ...(!omitIp && { ip: ping.ip }),
+      ...(ping.country && { country: ping.country }),
       timestamp: new Date().toISOString(),
     });
     const secret = process.env.VISITOR_WEBHOOK_SECRET?.trim();

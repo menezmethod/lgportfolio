@@ -36,9 +36,9 @@ This document describes **rate limits**, **caching**, and **cost controls** so t
 
 | Layer        | Where            | Limit        | Purpose |
 |-------------|------------------|--------------|---------|
-| Chat per IP | `src/lib/rate-limit.ts` | 2 RPM (config: `CHAT_MAX_RPM_PER_IP`) | Prevents one IP from burning LLM budget. |
+| Chat per IP | `src/lib/rate-limit.ts` | default 6 RPM (config: `CHAT_MAX_RPM_PER_IP`) | Prevents one IP from burning LLM budget. |
 | Daily LLM   | Same             | 150/day (config: `CHAT_DAILY_BUDGET`) | Keeps chat within free-tier usage. |
-| Session     | Same             | 10 messages/session (config: `NEXT_PUBLIC_CHAT_MAX_MESSAGES`) | Caps tokens per conversation. |
+| Session     | Same             | default 30 messages/session (config: `CHAT_MAX_MESSAGES_PER_SESSION`; the chat page reads the effective value from the server) | Caps tokens per conversation. |
 
 **Override:** `RATE_LIMITS_DISABLED=true` disables app limits (dev only; do not use in prod).
 
@@ -84,7 +84,7 @@ This document describes **rate limits**, **caching**, and **cost controls** so t
 | **Max instances**  | Terraform + Cloud Build | `max_instance_count = 1` → at most one Cloud Run instance. |
 | **Budget kill**    | `terraform/budget.tf` + `budget-kill.tf` | $20 budget; at threshold, Pub/Sub → Cloud Function sets Cloud Run to 0 instances. |
 | **Edge rate limits** | Cloud Armor       | 180/min global; excess gets 429 at edge and does not reach Cloud Run. |
-| **Chat limits**    | App + Cloud Armor  | 2 RPM per IP, 10/min at edge, 150/day, 10 msgs/session. |
+| **Chat limits**    | App + Cloud Armor  | 6 RPM per IP, 10/min at edge, 150/day, 30 msgs/session. |
 | **Artifact cleanup** | `terraform/cloudrun.tf` | Keep the latest rollback-safe image set and auto-delete stale tagged/untagged images. |
 | **LB log sampling** | `terraform/loadbalancer.tf` | Sample only 10% of ALB request logs to reduce logging spend. |
 
@@ -94,7 +94,7 @@ This document describes **rate limits**, **caching**, and **cost controls** so t
 
 1. **Static pages** → Served from CDN (1h cache); origin gets very few HTML requests.
 2. **War room** → 60s server cache + 120/min per IP at edge; dashboard remains usable without overloading origin.
-3. **Chat** → Hard limits (2 RPM, 10/min edge, 150/day) keep LLM and Firestore usage bounded.
+3. **Chat** → Hard limits (6 RPM, 10/min edge, 150/day) keep LLM and Firestore usage bounded.
 4. **RAG** → 60s response cache absorbs duplicate questions.
 5. **Rate-limited responses** → Served at edge; excess requests do not reach Cloud Run.
 6. **Runaway cost** → Single instance cap + $20 budget kill switch stop scaling and spend.
@@ -117,7 +117,7 @@ So protection is: per-IP rate limits, no background polling for War Room, one in
 ## Checklist (all areas)
 
 - [x] Cloud Armor: global 180/min, chat 10/min, admin exempt, war-room 120/min, scanner/exploit block.
-- [x] App: 2 RPM chat, 150/day, 10 msgs/session; chat cache for common prompts.
+- [x] App: 6 RPM chat, 150/day, 30 msgs/session; chat cache for common prompts.
 - [x] CDN: enabled, static cache, negative caching for 404 (30s).
 - [x] Static pages: Cache-Control for /, /about, /work, /contact, /architecture, /war-room.
 - [x] War room API: 60s server cache; client polls every 60s when tab visible (low-traffic cost).

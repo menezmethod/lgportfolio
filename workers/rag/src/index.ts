@@ -8,6 +8,7 @@
  * Routes:
  *   POST /retrieve            { query, topK }        -> { matches: [{score, source, content}] }
  *   POST /seed                { chunks: [...] }      -> embed + upsert (idempotent by id)
+ *   POST /prune               { ids: [...] }         -> delete vectors by id (ids that do not exist are ignored)
  *   POST /v1/chat/completions OpenAI-compatible SSE  -> Workers AI chat fallback
  */
 
@@ -39,6 +40,14 @@ function authorized(request: Request, env: Env): boolean {
     request.headers.get("x-rag-key") ||
     request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   return Boolean(env.RAG_KEY) && header === env.RAG_KEY;
+}
+
+async function handlePrune(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json().catch(() => null)) as { ids?: unknown } | null;
+  const ids = Array.isArray(body?.ids) ? (body.ids as unknown[]).filter((x): x is string => typeof x === "string") : [];
+  if (ids.length === 0 || ids.length > 1000) return json({ error: "ids must be 1 to 1000 strings" }, 400);
+  const result = await env.VECTORIZE.deleteByIds(ids);
+  return json({ requested: ids.length, mutationId: result.mutationId ?? null });
 }
 
 async function embed(env: Env, texts: string[]): Promise<number[][]> {
@@ -179,6 +188,7 @@ export default {
     try {
       if (path === "/retrieve") return await handleRetrieve(request, env);
       if (path === "/seed") return await handleSeed(request, env);
+      if (path === "/prune") return await handlePrune(request, env);
       if (path === "/v1/chat/completions") return await handleChat(request, env);
       return json({ error: "not found" }, 404);
     } catch (error) {

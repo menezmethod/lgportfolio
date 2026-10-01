@@ -1,18 +1,30 @@
 /**
- * Rate limiting for Cloud Run free-tier budget protection.
+ * Rate limiting for free-tier budget protection.
  *
- * Cloud Run free tier (monthly):
- *   180,000 vCPU-seconds — at ~10s per chat request = ~18,000 requests
- *   360,000 GiB-seconds
- *   2,000,000 total HTTP requests
- *
- * Budget-safe targets:
- *   ~150 LLM requests/day (leaves headroom for page loads)
- *   2 RPM per IP (prevents single-source abuse)
- *   10 messages per session (conserves tokens)
+ * Limits come from env (see getChatLimits): CHAT_DAILY_BUDGET (default 150), CHAT_MAX_RPM_PER_IP (6),
+ * CHAT_MAX_MESSAGES_PER_SESSION (30). getChatLimits is the single source the server, the War Room and the
+ * chat page (through /api/chat/storage) all use.
  */
 
 const RATE_LIMITS_DISABLED = false;
+
+function envInt(value: string | undefined, fallback: number): number {
+  const n = parseInt(value ?? "", 10);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+/** Effective chat limits, env-aware, with defaults. No secrets. Server-side only. */
+export function getChatLimits(): { maxMessagesPerSession: number; maxRpmPerIp: number; dailyBudget: number } {
+  return {
+    // NEXT_PUBLIC_CHAT_MAX_MESSAGES is only a legacy fallback; the server value wins.
+    maxMessagesPerSession: envInt(
+      process.env.CHAT_MAX_MESSAGES_PER_SESSION,
+      envInt(process.env.NEXT_PUBLIC_CHAT_MAX_MESSAGES, 30)
+    ),
+    maxRpmPerIp: envInt(process.env.CHAT_MAX_RPM_PER_IP, 6),
+    dailyBudget: envInt(process.env.CHAT_DAILY_BUDGET, 150),
+  };
+}
 
 interface RateLimitResult {
   allowed: boolean;
@@ -32,48 +44,18 @@ const dailyCounters = new Map<string, DailyCounter>();
 const CACHED_RESPONSES = new Map<string, string>([
   [
     "tell me about luis",
-    "Luis Gimenez is a Site Reliability Engineer on the Home Services team at The Home Depot, on a large, integration-heavy platform (Salesforce, GCP, internal services) in a ~$6B division.\n\n" +
-      "Before this role (Jan 2024 – Mar 2026) he was a Software Engineer II on Enterprise Payments, building Go authorization services on CockroachDB. He works within these platforms, not as their sole architect. His specific contributions include:\n" +
-      "- Drove a production change through CAB approval solo and made it the repeatable CI/CD governance pattern\n" +
-      "- Owned a transaction-metrics ETL app end to end\n" +
-      "- Contributed production code to Card Broker (credit/debit routing) for approximately two years\n" +
-      "- Carried on-call ('interrupt') rotation and contributed to incident response\n" +
-      "- GCP Professional Cloud Architect certified\n\n" +
-      "The strongest hiring read is Senior-level backend/platform/SRE roles.\n\n" +
+    "Luis Gimenez is a software engineer with about 5 years in enterprise payments and reliability, based in Tampa Bay, FL.\n\n" +
+      "He started on Enterprise Payments at The Home Depot (through Daugherty Business Solutions, contracting there from Apr 2022, then Software Engineer II from Jan 2024), writing Go services on CockroachDB and carrying on-call. Since Mar 2026 he is a Site Reliability Engineer on Home Services.\n\n" +
+      "On Home Services he is primary owner, with team input, of the internal telemetry applications. He built the reusable deployment path that lets non-developers ship to production through the required gates, and he helped define the SLO and Critical User Journey model. He earned the GCP Professional Cloud Architect certification in 2023.\n\n" +
       "For details, visit /about or /work.",
   ],
   [
-    "what gcp services has luis used?",
-    "Luis is GCP Professional Cloud Architect certified and works within a GKE-based payments platform.\n\n" +
-      "Services he has hands-on experience with:\n" +
-      "Compute: GKE (daily), Cloud Run (portfolio)\n" +
-      "Data: Pub/Sub (CDC changefeeds), BigQuery, Cloud SQL, CockroachDB\n" +
-      "Security: Cloud KMS (Tink encryption), Secret Manager, Sensitive Data Protection\n" +
-      "DevOps: Cloud Build, Artifact Registry, Spinnaker\n" +
-      "IaC: CDK8s, Terraform\n\n" +
-      "He pursued the certification independently and it directly informed the team's PCF-to-GCP migration.",
-  ],
-  [
-    "what's luis's tech stack?",
-    "Languages: Go (primary at Home Depot), TypeScript (portfolio), Java (legacy services)\n\n" +
-      "Observability: Prometheus/PromQL, Grafana, Loki, Tempo, Pyroscope, OpenTelemetry\n" +
-      "Cloud: GCP (Professional Architect certified)\n" +
-      "Data: CockroachDB, PostgreSQL, Redis\n" +
-      "Infrastructure: CDK8s, Terraform, Docker, Kubernetes (GKE)\n\n" +
-      "Domains: Payment Systems, Observability, Production Operations, Cloud Migration",
-  ],
-  [
     "is luis open to remote work?",
-    "Yes. Luis is based in Parrish, FL and is seeking Senior Software Engineer (Backend/Go), Senior SRE, or Senior Full-Stack roles.\n\n" +
-      "Default is remote, U.S.-based. Not open to relocation. Light hybrid (up to 2 days/week) works only for an office within commuting distance of Parrish (e.g. Bradenton, Sarasota, St. Petersburg, downtown Tampa), and only with strong comp and WLB.\n\n" +
-      "US work authorized. No sponsorship required.",
+    "Yes. Luis is in Tampa Bay, FL. Remote U.S. is preferred, and a light hybrid near Tampa is fine. He is a U.S. citizen and needs no sponsorship.",
   ],
   [
     "what certifications does luis have?",
-    "Luis holds:\n\n" +
-      "- Google Cloud Professional Cloud Architect (Active) — skipped associate, went straight for professional\n" +
-      "- ITIL Foundation\n\n" +
-      "The GCP cert was self-driven and has repeatedly opened doors at Home Depot.",
+    "Google Cloud Professional Cloud Architect (earned 2023), ITIL Foundation (2020), and a B.S. in Software Development from Western Governors University (2021).",
   ],
 ]);
 
@@ -84,7 +66,7 @@ export function checkRateLimit(ip: string): RateLimitResult {
 
   const now = Date.now();
   const windowMs = 60 * 1000;
-  const maxRequests = parseInt(process.env.CHAT_MAX_RPM_PER_IP || "6");
+  const maxRequests = getChatLimits().maxRpmPerIp;
 
   const existing = ipRateLimits.get(ip);
 
@@ -106,7 +88,7 @@ export function checkRateLimit(ip: string): RateLimitResult {
       remaining: 0,
       resetAt: existing.resetAt,
       message:
-        "Rate limit reached. Please wait a moment or contact Luis directly at luisgimenezdev@gmail.com",
+        `Rate limit reached (${maxRequests} questions per minute). Please wait a moment or contact Luis directly at luisgimenezdev@gmail.com`,
     };
   }
 
@@ -136,7 +118,7 @@ export function incrementDailyCount(): void {
 
 /** Calendar-day LLM usage (same counter that enforces CHAT_DAILY_BUDGET). */
 export function getDailyBudgetStats(): { used: number; remaining: number; max: number } {
-  const max = parseInt(process.env.CHAT_DAILY_BUDGET || "150", 10);
+  const max = getChatLimits().dailyBudget;
   if (RATE_LIMITS_DISABLED) {
     return { used: 0, remaining: max, max };
   }
@@ -145,11 +127,11 @@ export function getDailyBudgetStats(): { used: number; remaining: number; max: n
   return { used, remaining: Math.max(0, max - used), max };
 }
 
-/** Resets every calendar day (midnight); 150 LLM requests per day by default. */
+/** Resets every calendar day (midnight); CHAT_DAILY_BUDGET LLM requests per day (default 150). */
 export function isDailyBudgetExhausted(): boolean {
   if (RATE_LIMITS_DISABLED) return false;
   const today = new Date().toDateString();
-  const budget = parseInt(process.env.CHAT_DAILY_BUDGET || "150");
+  const budget = getChatLimits().dailyBudget;
   const existing = dailyCounters.get(today);
   if (!existing) return false;
   return existing.count >= budget;
@@ -195,10 +177,8 @@ export function incrementSessionMessageCount(): number {
   }
 }
 
-export function isSessionLimitReached(): boolean {
-  if (RATE_LIMITS_DISABLED) return false;
-  const maxMessages = parseInt(
-    process.env.NEXT_PUBLIC_CHAT_MAX_MESSAGES || "30"
-  );
+/** Client helper: the limit comes from the server (GET /api/chat/storage), never from a build-time constant. */
+export function isSessionLimitReached(maxMessages: number | null): boolean {
+  if (RATE_LIMITS_DISABLED || maxMessages === null) return false;
   return getSessionMessageCount() >= maxMessages;
 }

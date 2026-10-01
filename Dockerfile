@@ -1,5 +1,5 @@
 # Stage 1: Install dependencies (Next.js 16 requires Node 20.9+)
-# Builds native arch by default (aarch64 on Pi/Coolify). For Cloud Run: docker build --platform=linux/amd64
+# Builds the native arch by default. For Cloud Run: docker build --platform=linux/amd64
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./

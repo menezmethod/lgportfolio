@@ -1,21 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-// Mock AI SDK
-const mockChat = vi.fn(() => "mock-model-ref");
-vi.mock("@ai-sdk/openai", () => ({
-  createOpenAI: vi.fn(() => ({
-    chat: mockChat,
-  })),
+const { buildChatProviderChain, streamChatWithFallbacks } = vi.hoisted(() => ({
+  buildChatProviderChain: vi.fn(),
+  streamChatWithFallbacks: vi.fn(),
 }));
-
-vi.mock("ai", () => ({
-  generateText: vi.fn().mockResolvedValue({ text: "Mock explanation of the error" }),
-}));
+vi.mock("@/lib/chat-providers", () => ({ buildChatProviderChain, streamChatWithFallbacks }));
 
 import { POST as explainError } from "@/app/api/war-room/explain-error/route";
 import { GET as getWarRoomData } from "@/app/api/war-room/data/route";
-import { createOpenAI } from "@ai-sdk/openai";
-import { generateText } from "ai";
 import { checkRateLimit, isDailyBudgetExhausted } from "@/lib/rate-limit";
 
 vi.mock("@/lib/rate-limit", async (importOriginal) => {
@@ -30,7 +22,12 @@ vi.mock("@/lib/rate-limit", async (importOriginal) => {
 
 beforeEach(async () => {
   vi.spyOn(console, "log").mockImplementation(() => {});
-  vi.mocked(generateText).mockResolvedValue({ text: "Mock explanation of the error" } as Awaited<ReturnType<typeof generateText>>);
+  buildChatProviderChain.mockReset().mockReturnValue([{ id: "cloudflare" }]);
+  streamChatWithFallbacks.mockReset().mockResolvedValue({
+    result: { toTextStreamResponse: () => new Response("Mock explanation of the error") },
+    provider: "cloudflare",
+    model: "m",
+  });
   const actual = await vi.importActual<typeof import("@/lib/rate-limit")>("@/lib/rate-limit");
   vi.mocked(checkRateLimit).mockReturnValue({
     allowed: true,
@@ -97,163 +94,56 @@ describe("/api/war-room/data", () => {
   });
 });
 
-// ── Explain Error (Inferencia) ──────────────────────────────────────────────
+// ── Explain Error (same provider chain as chat) ─────────────────────────────
 
 describe("/api/war-room/explain-error", () => {
-  beforeEach(() => {
-    vi.stubEnv("INFERENCIA_BASE_URL", "https://inference.example.com/v1");
+  it("returns 503 when no chat provider is configured", async () => {
+    buildChatProviderChain.mockReturnValue([]);
+    const response = await explainError(makeExplainRequest({ error_text: "Some error" }));
+    expect(response.status).toBe(503);
+    expect((await response.json()).error).toContain("not configured");
+    expect(streamChatWithFallbacks).not.toHaveBeenCalled();
   });
 
-  describe("Inferencia configuration", () => {
-    it("returns 503 when INFERENCIA_API_KEY is missing", async () => {
-      delete process.env.INFERENCIA_API_KEY;
-      const response = await explainError(
-        makeExplainRequest({ error_text: "Some error" })
-      );
-      expect(response.status).toBe(503);
-      const body = await response.json();
-      expect(body.error).toContain("not configured");
-    });
-
-    it("creates OpenAI client with correct baseURL and apiKey", async () => {
-      vi.stubEnv("INFERENCIA_API_KEY", "test-inference-key");
-      vi.stubEnv("INFERENCIA_BASE_URL", "https://inference.example.com/v1");
-
-      await explainError(makeExplainRequest({ error_text: "test error" }));
-
-      expect(createOpenAI).toHaveBeenCalledWith(
-        expect.objectContaining({
-          baseURL: "https://inference.example.com/v1",
-          apiKey: "test-inference-key",
-        })
-      );
-    });
-
-    it("calls generateText with temperature 0.3 and maxOutputTokens 300", async () => {
-      vi.stubEnv("INFERENCIA_API_KEY", "test-key");
-
-      await explainError(makeExplainRequest({ error_text: "test error" }));
-
-      expect(generateText).toHaveBeenCalledWith(
-        expect.objectContaining({
-          temperature: 0.3,
-          maxOutputTokens: 300,
-          maxRetries: 1,
-        })
-      );
-    });
-
-    it("calls generateText with system prompt containing SRE context", async () => {
-      vi.stubEnv("INFERENCIA_API_KEY", "test-key");
-
-      await explainError(makeExplainRequest({ error_text: "test error" }));
-
-      expect(generateText).toHaveBeenCalledWith(
-        expect.objectContaining({
-          system: expect.stringContaining("DevOps/SRE"),
-        })
-      );
-    });
-
-    it("uses gemma4:12b when INFERENCIA_CHAT_MODEL is unset", async () => {
-      vi.stubEnv("INFERENCIA_API_KEY", "test-key");
-      delete process.env.INFERENCIA_CHAT_MODEL;
-
-      await explainError(makeExplainRequest({ error_text: "test error" }));
-
-      expect(mockChat).toHaveBeenCalledWith("gemma4:12b");
-    });
+  it("uses the shared provider chain with the SRE system prompt, temperature 0.3, 300 tokens", async () => {
+    await explainError(makeExplainRequest({ error_text: "test error" }));
+    expect(streamChatWithFallbacks).toHaveBeenCalledWith(
+      expect.objectContaining({ system: expect.stringContaining("DevOps/SRE"), temperature: 0.3, maxOutputTokens: 300 })
+    );
   });
 
-  describe("rate limiting", () => {
-    it("returns 429 when IP rate limit is exceeded", async () => {
-      vi.stubEnv("INFERENCIA_API_KEY", "test-key");
-      vi.mocked(checkRateLimit).mockReturnValueOnce({
-        allowed: false,
-        remaining: 0,
-        resetAt: Date.now() + 60_000,
-        message: "Rate limit reached.",
-      });
-
-      const response = await explainError(
-        makeExplainRequest({ error_text: "NullPointerException at line 42" })
-      );
-      expect(response.status).toBe(429);
-      expect(generateText).not.toHaveBeenCalled();
-    });
-
-    it("returns 429 when daily LLM budget is exhausted", async () => {
-      vi.stubEnv("INFERENCIA_API_KEY", "test-key");
-      vi.mocked(checkRateLimit).mockReturnValue({
-        allowed: true,
-        remaining: 5,
-        resetAt: Date.now() + 60_000,
-      });
-      vi.mocked(isDailyBudgetExhausted).mockReturnValueOnce(true);
-
-      const response = await explainError(
-        makeExplainRequest({ error_text: "NullPointerException at line 42" })
-      );
-      expect(response.status).toBe(429);
-      expect(generateText).not.toHaveBeenCalled();
-    });
+  it("returns 429 when the IP rate limit is exceeded", async () => {
+    vi.mocked(checkRateLimit).mockReturnValueOnce({ allowed: false, remaining: 0, resetAt: Date.now() + 60_000, message: "Rate limit reached." });
+    const response = await explainError(makeExplainRequest({ error_text: "NullPointerException" }));
+    expect(response.status).toBe(429);
+    expect(streamChatWithFallbacks).not.toHaveBeenCalled();
   });
 
-  describe("input validation", () => {
-    it("returns 400 when error_text is missing", async () => {
-      vi.stubEnv("INFERENCIA_API_KEY", "test-key");
-      const response = await explainError(makeExplainRequest({}));
-      expect(response.status).toBe(400);
-      const body = await response.json();
-      expect(body.error).toContain("error_text");
-    });
-
-    it("returns 400 when error_text is empty string", async () => {
-      vi.stubEnv("INFERENCIA_API_KEY", "test-key");
-      const response = await explainError(makeExplainRequest({ error_text: "" }));
-      expect(response.status).toBe(400);
-    });
-
-    it("truncates error_text to 2000 chars before sending to model", async () => {
-      vi.stubEnv("INFERENCIA_API_KEY", "test-key");
-      const longError = "x".repeat(5000);
-
-      await explainError(makeExplainRequest({ error_text: longError }));
-
-      expect(generateText).toHaveBeenCalledWith(
-        expect.objectContaining({
-          messages: expect.arrayContaining([
-            expect.objectContaining({
-              content: expect.not.stringContaining("x".repeat(2001)),
-            }),
-          ]),
-        })
-      );
-    });
+  it("returns 429 when the daily budget is exhausted", async () => {
+    vi.mocked(isDailyBudgetExhausted).mockReturnValueOnce(true);
+    const response = await explainError(makeExplainRequest({ error_text: "NullPointerException" }));
+    expect(response.status).toBe(429);
+    expect(streamChatWithFallbacks).not.toHaveBeenCalled();
   });
 
-  describe("success and error", () => {
-    it("returns { explanation: string } on success", async () => {
-      vi.stubEnv("INFERENCIA_API_KEY", "test-key");
-      const response = await explainError(
-        makeExplainRequest({ error_text: "NullPointerException at line 42" })
-      );
-      expect(response.status).toBe(200);
-      const body = await response.json();
-      expect(body).toHaveProperty("explanation");
-      expect(typeof body.explanation).toBe("string");
-    });
+  it("returns 400 when error_text is missing or empty", async () => {
+    expect((await explainError(makeExplainRequest({}))).status).toBe(400);
+    expect((await explainError(makeExplainRequest({ error_text: "" }))).status).toBe(400);
+  });
 
-    it("returns 503 when generateText throws", async () => {
-      vi.stubEnv("INFERENCIA_API_KEY", "test-key");
-      vi.mocked(generateText).mockRejectedValueOnce(new Error("Inference timeout"));
+  it("truncates error_text to 2000 chars before sending to the model", async () => {
+    await explainError(makeExplainRequest({ error_text: "x".repeat(5000) }));
+    const arg = streamChatWithFallbacks.mock.calls[0][0] as { messages: Array<{ content: string }> };
+    expect(arg.messages[0].content).not.toContain("x".repeat(2001));
+  });
 
-      const response = await explainError(
-        makeExplainRequest({ error_text: "some error" })
-      );
-      expect(response.status).toBe(503);
-      const body = await response.json();
-      expect(body.error).toBe("Explain failed");
-    });
+  it("returns { explanation } on success and 503 when the provider chain fails", async () => {
+    const ok = await explainError(makeExplainRequest({ error_text: "NullPointerException" }));
+    expect(ok.status).toBe(200);
+    expect((await ok.json()).explanation).toBe("Mock explanation of the error");
+    streamChatWithFallbacks.mockRejectedValueOnce(new Error("All chat providers failed"));
+    const bad = await explainError(makeExplainRequest({ error_text: "some error" }));
+    expect(bad.status).toBe(503);
+    expect((await bad.json()).error).toBe("Explain failed");
   });
 });

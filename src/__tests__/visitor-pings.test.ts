@@ -9,7 +9,7 @@ const CHROME_UA =
 const CURL_UA = "curl/8.5.0";
 const GOOGLEBOT_UA =
   "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
-const WEBHOOK_URL = "https://hermes.example.com/webhooks/visitor-pings";
+const WEBHOOK_URL = "https://notify.example.com/webhooks/visitor-pings";
 
 function makeRequest(ua: string, ip?: string): Request {
   const headers: Record<string, string> = {
@@ -110,5 +110,58 @@ describe("/api/analytics/page-view visitor pings", () => {
     const res = await POST(makeRequest(CHROME_UA, "9.9.9.9"));
     expect(res.status).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("payload has the designed shape: event type, category, path, referrer, uaSummary, ip, country, timestamp", async () => {
+    const req = new Request("https://localhost:3000/api/analytics/page-view", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": CHROME_UA,
+        "X-Forwarded-For": "9.9.9.9",
+        Referer: "https://example.org/some/page?q=1",
+        "CF-IPCountry": "US",
+      },
+      body: JSON.stringify({ path: "/work" }),
+    });
+    await POST(req);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = (fetchMock.mock.calls[0][1] as { body: string }).body;
+    const payload = JSON.parse(body) as Record<string, string>;
+    expect(Object.keys(payload).sort()).toEqual(
+      ["category", "country", "event_type", "ip", "path", "referrer", "timestamp", "uaSummary"],
+    );
+    expect(payload).toMatchObject({
+      event_type: "visitor-pageview",
+      category: "person",
+      path: "/work",
+      ip: "9.9.9.9",
+      country: "US",
+      referrer: "https://example.org/some/page?q=1",
+      uaSummary: "Chrome",
+    });
+  });
+
+  it("VISITOR_PING_OMIT_IP=1 drops the ip from the body", async () => {
+    vi.stubEnv("VISITOR_PING_OMIT_IP", "1");
+    await POST(makeRequest(CHROME_UA, "9.9.9.9"));
+    const body = (fetchMock.mock.calls[0][1] as { body: string }).body;
+    expect(JSON.parse(body)).not.toHaveProperty("ip");
+    expect(body).not.toContain("9.9.9.9");
+  });
+
+  it("LinkedIn app UA is a recruiter ping; the LinkedIn link-preview crawler never pings", async () => {
+    await POST(makeRequest("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 LinkedInApp/9.30", "8.8.8.8"));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(JSON.parse((fetchMock.mock.calls[0][1] as { body: string }).body).category).toBe("recruiter");
+    fetchMock.mockClear();
+    await POST(makeRequest("LinkedInBot/1.0 (compatible; Mozilla/5.0; +http://www.linkedin.com)", "8.8.4.4"));
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("logs and prints nothing that contains the IP or the payload", async () => {
+    const logSpy = vi.mocked(console.log);
+    await POST(makeRequest(CHROME_UA, "9.9.9.9"));
+    for (const call of logSpy.mock.calls) expect(JSON.stringify(call)).not.toContain("9.9.9.9");
   });
 });

@@ -1,17 +1,12 @@
 import { getPrometheusText, recordRequest } from "@/lib/telemetry";
+import { isAdminRequest } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-function isAdmin(req: Request): boolean {
-  const secret = process.env.ADMIN_SECRET;
-  if (!secret) return false;
-  const header = req.headers.get("x-admin-secret") || req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  return header === secret;
-}
 
 export async function GET(req: Request) {
   const start = Date.now();
-  if (!isAdmin(req)) {
+  if (!isAdminRequest(req)) {
     recordRequest("/api/metrics", "GET", 401, Date.now() - start);
     return new Response("Unauthorized", { status: 401, headers: { "Content-Type": "text/plain" } });
   }

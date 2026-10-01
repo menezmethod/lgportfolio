@@ -29,6 +29,11 @@ export function getDb(): Firestore | null {
   return _db;
 }
 
+/** True when Firestore credentials are set, so saved chats and emails are actually stored. */
+export function isFirestoreConfigured(): boolean {
+  return getCredentials() !== null;
+}
+
 export const COLLECTIONS = {
   SESSIONS: "chat_sessions",
   MEMORY: "chat_memory",
