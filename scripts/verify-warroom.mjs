@@ -88,7 +88,14 @@ const check = (name, ok, detail = "") => {
 const get = async (base) => (await fetch(base + "/api/war-room/data")).json();
 
 await withApp({}, async (base) => {
+  // Memory mode: 60 good requests plus 10 client errors (400/429) must not move the server-error SLO or availability.
+  for (let i = 0; i < 60; i++) await fetch(base + "/api/health/live");
+  for (let i = 0; i < 10; i++) await fetch(base + "/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
   const d = await get(base);
+  const m = Object.fromEntries(d.slos.map((x) => [x.name, x]));
+  check("memory: 4xx do not move Server Error Rate (0, met)", m["Server Error Rate"]?.current === 0 && m["Server Error Rate"]?.met, JSON.stringify(m["Server Error Rate"]));
+  check("memory: Availability measured at 100 from 5xx, not hardcoded", m.Availability?.current === 100 && m.Availability?.met, JSON.stringify(m.Availability));
+  check("memory: server errors tile agrees (0)", d.request_metrics.error_rate_1h === 0, String(d.request_metrics.error_rate_1h));
   check("unset: metrics_source is memory", d.metrics_source === "memory", d.metrics_source);
   check("unset: prometheus tile is not_configured", d.service_status.checks.prometheus.status === "not_configured");
 });
