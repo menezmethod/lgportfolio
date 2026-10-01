@@ -1,3 +1,4 @@
+import { activeChatProviderIds } from "@/lib/chat-provider-env";
 import { probeInferenciaHealth } from "@/lib/inferencia-health";
 import { getTraceIdFromRequest } from "@/lib/trace-context";
 import { getHealthData, log, recordRequest } from "@/lib/telemetry";
@@ -14,7 +15,8 @@ export async function GET(req: Request) {
   const start = Date.now();
   const traceId = getTraceIdFromRequest(req);
   const shallow = shouldSkipInferenciaProbe(req);
-  const inferenciaProbe = shallow ? undefined : await probeInferenciaHealth();
+  // Only probe inferencia when it is actually in the chat chain.
+  const inferenciaProbe = shallow || !activeChatProviderIds().includes("inferencia") ? undefined : await probeInferenciaHealth();
   const health = getHealthData(inferenciaProbe, { shallow });
 
   log("INFO", "Health check", {

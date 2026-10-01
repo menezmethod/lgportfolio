@@ -12,6 +12,7 @@
  */
 
 import { getDailyBudgetStats } from "./rate-limit";
+import { activeChatProviderIds } from "./chat-provider-env";
 import { APP_VERSION } from "./version";
 
 type Severity = "INFO" | "WARNING" | "ERROR" | "CRITICAL";
@@ -441,6 +442,8 @@ export interface HealthData {
   checks: Record<string, { status: string; latency_ms?: number; budget_remaining?: number }>;
   version: string;
   region: string;
+  /** Chat providers actually in the chain, in order (e.g. ["cloudflare"]). */
+  chat_providers: string[];
 }
 
 export function getHealthData(
@@ -451,10 +454,10 @@ export function getHealthData(
   options?: { shallow?: boolean }
 ): HealthData {
   const shallow = options?.shallow === true;
-  const hasInferencia = Boolean(process.env.INFERENCIA_API_KEY?.trim());
-  // Any provider that can serve chat counts: OpenRouter, or Cloudflare Workers AI through the RAG worker.
-  const hasOpenRouter =
-    Boolean(process.env.OPENROUTER_API_KEY?.trim()) || Boolean(process.env.CLOUDFLARE_RAG_KEY?.trim());
+  // Follows the real chat chain (CHAT_PROVIDERS allowlist applied): a provider that is not in the chain is not counted.
+  const providers = activeChatProviderIds();
+  const hasInferencia = providers.includes("inferencia");
+  const hasOpenRouter = providers.some((p) => p !== "inferencia");
   const { remaining: budgetRemaining } = getDailyBudgetStats();
 
   let inferenceStatus: string;
@@ -500,6 +503,7 @@ export function getHealthData(
     checks,
     version: APP_VERSION,
     region: process.env.DEPLOY_REGION || "n/a",
+    chat_providers: providers,
   };
 }
 

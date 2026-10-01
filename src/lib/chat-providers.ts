@@ -1,5 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { streamText } from "ai";
+import { activeChatProviderIds, type ChatProviderId } from "@/lib/chat-provider-env";
 import {
   getInferenciaApiKey,
   getInferenciaBaseUrl,
@@ -27,7 +28,7 @@ function inferenciaFastFailMs(): number {
 const OPENROUTER_PER_MODEL_MS = 35_000;
 const TOTAL_INFERENCE_BUDGET_MS = 52_000;
 
-export type ChatProviderId = "inferencia" | "openrouter" | "cloudflare";
+export type { ChatProviderId };
 
 export interface ChatProviderSpec {
   id: ChatProviderId;
@@ -77,18 +78,19 @@ export function isCloudflareConfigured(): boolean {
   return Boolean(process.env.CLOUDFLARE_RAG_KEY?.trim());
 }
 
+/** True when at least one provider in the active chain (CHAT_PROVIDERS allowlist applied) can serve chat. */
 export function isChatConfigured(): boolean {
-  return isInferenciaConfigured() || isOpenRouterConfigured() || isCloudflareConfigured();
+  return activeChatProviderIds().length > 0;
 }
 
-export function buildChatProviderChain(): ChatProviderSpec[] {
-  const chain: ChatProviderSpec[] = [];
+function buildSpecs(): Record<ChatProviderId, ChatProviderSpec[]> {
+  const specs: Record<ChatProviderId, ChatProviderSpec[]> = { inferencia: [], openrouter: [], cloudflare: [] };
 
   if (isInferenciaConfigured()) {
     const baseURL = getInferenciaBaseUrl()!;
     const apiKey = getInferenciaApiKey()!;
     const model = getInferenciaChatModel();
-    chain.push({
+    specs.inferencia.push({
       id: "inferencia",
       label: "Inferencia",
       model,
@@ -115,7 +117,7 @@ export function buildChatProviderChain(): ChatProviderSpec[] {
       });
 
     for (const model of parseOpenRouterModels()) {
-      chain.push({
+      specs.openrouter.push({
         id: "openrouter",
         label: `OpenRouter (${model})`,
         model,
@@ -130,7 +132,7 @@ export function buildChatProviderChain(): ChatProviderSpec[] {
       process.env.CLOUDFLARE_RAG_WORKER_URL?.trim() ||
       "https://lgportfolio-rag.luisgimenezdev.workers.dev"
     ).replace(/\/$/, "");
-    chain.push({
+    specs.cloudflare.push({
       id: "cloudflare",
       label: "Workers AI (llama-3.3-70b)",
       model:
@@ -145,7 +147,14 @@ export function buildChatProviderChain(): ChatProviderSpec[] {
     });
   }
 
-  return chain;
+  return specs;
+}
+
+/** Providers in effective order: CHAT_PROVIDERS allowlist when set, else inferencia, openrouter, cloudflare. */
+export function buildChatProviderChain(): ChatProviderSpec[] {
+  const specs = buildSpecs();
+  return activeChatProviderIds().flatMap((id) => specs[id]);
+
 }
 
 function remainingBudgetMs(startedAt: number): number {

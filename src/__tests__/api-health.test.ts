@@ -39,6 +39,7 @@ describe("/api/health", () => {
 
   it("returns 'healthy' status when INFERENCIA_API_KEY is set", async () => {
     vi.stubEnv("INFERENCIA_API_KEY", "test-key");
+    vi.stubEnv("INFERENCIA_BASE_URL", "https://inf.test/v1");
     const req = new Request("https://localhost:3000/api/health");
     const response = await GET(req);
     const body = await response.json();
@@ -67,6 +68,7 @@ describe("/api/health", () => {
 
   it("skips Inferencia probe for shallow Hermes watchdog requests", async () => {
     vi.stubEnv("INFERENCIA_API_KEY", "test-key");
+    vi.stubEnv("INFERENCIA_BASE_URL", "https://inf.test/v1");
     vi.mocked(probeInferenciaHealth).mockClear();
     const req = new Request("https://localhost:3000/api/health?shallow=1", {
       headers: { "X-Hermes-Watchdog": "1" },

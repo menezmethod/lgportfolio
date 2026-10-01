@@ -372,6 +372,7 @@ describe("telemetry", () => {
 
     it("returns 'healthy' when INFERENCIA_API_KEY is set", () => {
       vi.stubEnv("INFERENCIA_API_KEY", "test-key");
+      vi.stubEnv("INFERENCIA_BASE_URL", "https://inf.test/v1");
       const data = getHealthData();
       expect(data.status).toBe("healthy");
       expect(data.checks.inference_api.status).toBe("up");
@@ -379,6 +380,7 @@ describe("telemetry", () => {
 
     it("returns unhealthy when Inferencia probe reports down", () => {
       vi.stubEnv("INFERENCIA_API_KEY", "test-key");
+      vi.stubEnv("INFERENCIA_BASE_URL", "https://inf.test/v1");
       const data = getHealthData({ status: "down", latency_ms: 5000 });
       expect(data.status).toBe("unhealthy");
       expect(data.checks.inference_api.status).toBe("down");
@@ -387,6 +389,7 @@ describe("telemetry", () => {
 
     it("shallow mode skips live probe and reports configured inference as up", () => {
       vi.stubEnv("INFERENCIA_API_KEY", "test-key");
+      vi.stubEnv("INFERENCIA_BASE_URL", "https://inf.test/v1");
       const data = getHealthData(undefined, { shallow: true });
       expect(data.status).toBe("healthy");
       expect(data.checks.inference_api.status).toBe("up");
