@@ -1,6 +1,7 @@
 import { getTraceIdFromRequest } from "@/lib/trace-context";
 import { log, recordRequest } from "@/lib/telemetry";
 import { getWarRoomDataAsync } from "@/lib/war-room-metrics";
+import { getProbeState, maybeRunProbes } from "@/lib/probe";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,10 @@ export async function GET(req: Request) {
   // Visitor paths and user agents stay out of the public payload (privacy).
   const data = await getWarRoomDataAsync();
   delete (data as { recent_visitors?: unknown }).recent_visitors;
+
+  // Start any due timing probes in the background and report what exists now. Never waits.
+  maybeRunProbes();
+  (data as { chat_spans: unknown }).chat_spans = { ...data.chat_spans, probe: getProbeState() };
 
   log("INFO", "War room data request", {
     endpoint: "/api/war-room/data",

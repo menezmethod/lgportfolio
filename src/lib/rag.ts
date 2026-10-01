@@ -32,6 +32,18 @@ export interface VectorMatch {
   content: string;
 }
 
+/** Timing probe: one fixed query straight to the RAG worker (no file fallback). Returns ms, or null on any failure. */
+export async function probeWorkerRetrieval(): Promise<number | null> {
+  if (!isCloudflareRagConfigured()) return null;
+  const start = Date.now();
+  try {
+    await retrieveWorkerMatches("What does Luis work on?", 3);
+    return Date.now() - start;
+  } catch {
+    return null;
+  }
+}
+
 async function retrieveWorkerMatches(query: string, topK: number): Promise<VectorMatch[]> {
   const key = workerKey();
   if (!key) throw new Error("Cloudflare RAG not configured");

@@ -9,7 +9,18 @@ import {
 } from 'recharts';
 
 export interface WarRoomData {
-  chat_spans?: { samples: number; rag_p50_ms: number; inference_p50_ms: number; last: { at: number; rag_ms: number; inference_ms: number } | null };
+  chat_spans?: {
+    samples: number;
+    rag_p50_ms: number;
+    inference_p50_ms: number;
+    last: { at: number; rag_ms: number; inference_ms: number } | null;
+    probe?: {
+      rag: { at: number; ms: number } | null;
+      inference: { at: number; ms: number } | null;
+      rag_configured: boolean;
+      inference_configured: boolean;
+    };
+  };
   service_status: {
     status: string;
     timestamp: string;
