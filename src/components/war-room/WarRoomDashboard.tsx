@@ -172,13 +172,16 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
   const checks = d.service_status.checks;
   const budgetMax = d.chat_metrics.budget_used + d.chat_metrics.budget_remaining;
   const thin = d.request_metrics.total_24h < MIN_REQUESTS;
+  // The counters cover different windows depending on where the numbers come from.
+  const fromProm = d.metrics_source === 'prometheus';
+  const win = fromProm ? 'last 24h' : 'since restart';
   const budgetPct = budgetMax > 0 ? (d.chat_metrics.budget_used / budgetMax) * 100 : 0;
 
   return (
     <div className="space-y-6">
       {!compact && (
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-ink-soft">
-          <span>Last refresh: {lastFetch || 'pending'}</span>
+          <span>Last refresh: {lastFetch || 'pending'} (refreshes every 60 s while this tab is visible)</span>
           <span className="flex flex-wrap items-center gap-2">
             {d.platform && (
               <span className="bg-muted px-1.5 py-0.5 rounded border border-hairline uppercase">{d.platform}</span>
@@ -277,10 +280,10 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
             icon: Clock,
             color: 'text-emerald-700 dark:text-emerald-400',
           },
-          { label: 'Requests', value: d.request_metrics.total_24h.toLocaleString(), icon: BarChart3, color: 'text-brand-text' },
-          { label: 'P95 Latency', value: `${d.request_metrics.latency_p95}ms`, icon: Zap, color: 'text-amber-700 dark:text-amber-400' },
-          { label: 'Error Rate', value: `${d.request_metrics.error_rate_1h.toFixed(1)}%`, icon: AlertTriangle, color: d.request_metrics.error_rate_1h > 5 ? 'text-red-700 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400' },
-          { label: 'Cache Hit', value: `${d.chat_metrics.cache_hit_rate}%`, icon: Cpu, color: 'text-brand-text' },
+          { label: `Requests (${win})`, value: d.request_metrics.total_24h.toLocaleString(), icon: BarChart3, color: 'text-brand-text' },
+          { label: 'P95 Latency (1h)', value: `${d.request_metrics.latency_p95}ms`, icon: Zap, color: 'text-amber-700 dark:text-amber-400' },
+          { label: 'Server Errors (1h)', value: `${d.request_metrics.error_rate_1h.toFixed(1)}%`, icon: AlertTriangle, color: d.request_metrics.error_rate_1h > 5 ? 'text-red-700 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400' },
+          { label: `Cache Hit (${win})`, value: `${d.chat_metrics.cache_hit_rate}%`, icon: Cpu, color: 'text-brand-text' },
           { label: 'Budget Left', value: d.chat_metrics.budget_remaining.toString(), icon: Shield, color: d.chat_metrics.budget_remaining < 20 ? 'text-red-700 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400' },
         ].map((m) => (
           <div key={m.label} className="p-4 rounded-md border border-hairline bg-card flex flex-col">
@@ -298,7 +301,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
           <section className="grid md:grid-cols-2 gap-4">
             <div className="p-5 rounded-md border border-hairline bg-card">
               <h3 className="eyebrow mb-4 flex items-center gap-2">
-                <Zap className="size-3.5 text-amber-700 dark:text-amber-400" /> Request Latency (1h)
+                <Zap className="size-3.5 text-amber-700 dark:text-amber-400" /> Request Latency (last hour)
               </h3>
               {d.timeseries.latency_1h.length >= 1 ? (
                 <ResponsiveContainer width="100%" height={200}>
@@ -308,8 +311,8 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
                     <YAxis stroke="var(--hairline)" tick={{ fontSize: 11, fill: 'var(--ink-soft)' }} unit="ms" />
                     <Tooltip contentStyle={{ background: 'var(--card)', border: '1px solid var(--hairline)', color: 'var(--foreground)', borderRadius: 6, fontSize: 12 }} labelFormatter={(l: unknown) => formatTime(Number(l))} />
                     <Legend wrapperStyle={{ fontSize: 12, fontFamily: 'monospace' }} formatter={(v: string) => <span style={{ color: 'var(--ink)' }}>{v}</span>} />
-                    <Line type="monotone" dataKey="p50" stroke="var(--live)" strokeWidth={2} dot={true} name="P50" />
-                    <Line type="monotone" dataKey="p95" stroke="var(--brand-text)" strokeWidth={2} dot={true} name="P95" />
+                    <Line type="monotone" dataKey="p50" stroke="var(--live)" strokeWidth={2} dot={true} name={fromProm ? 'P50' : 'Average per 10 s'} />
+                    <Line type="monotone" dataKey="p95" stroke="var(--brand-text)" strokeWidth={2} dot={true} name={fromProm ? 'P95' : 'P95 of last hour'} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
@@ -318,7 +321,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
             </div>
             <div className="p-5 rounded-md border border-hairline bg-card">
               <h3 className="eyebrow mb-4 flex items-center gap-2">
-                <BarChart3 className="size-3.5 text-brand-text" /> Requests per 10s (1h)
+                <BarChart3 className="size-3.5 text-brand-text" /> Requests per {fromProm ? 'minute' : '10 s'} (last hour)
               </h3>
               {d.timeseries.requests_1h.length >= 1 ? (
                 <ResponsiveContainer width="100%" height={200}>
@@ -329,7 +332,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
                     <Tooltip contentStyle={{ background: 'var(--card)', border: '1px solid var(--hairline)', color: 'var(--foreground)', borderRadius: 6, fontSize: 12 }} labelFormatter={(l: unknown) => formatTime(Number(l))} />
                     <Legend wrapperStyle={{ fontSize: 12, fontFamily: 'monospace' }} formatter={(v: string) => <span style={{ color: 'var(--ink)' }}>{v}</span>} />
                     <Bar dataKey="count" fill="var(--ink-soft)" radius={[2, 2, 0, 0]} name="Requests" />
-                    <Bar dataKey="errors" fill="var(--destructive)" radius={[2, 2, 0, 0]} name="Errors" />
+                    <Bar dataKey="errors" fill="var(--destructive)" radius={[2, 2, 0, 0]} name="Server errors" />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
@@ -352,10 +355,10 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
             <div className="p-5 rounded-md border border-hairline bg-card">
               <h3 className="eyebrow mb-4 flex items-center gap-2"><Wifi className="size-3.5 text-brand-text" /> Chat Metrics</h3>
               <div className="space-y-3 text-sm font-mono">
-                <div className="flex justify-between"><span className="text-ink-soft">Conversations</span><span>{d.chat_metrics.conversations_24h}</span></div>
-                <div className="flex justify-between"><span className="text-ink-soft">Avg Inference</span><span>{d.chat_metrics.avg_inference_ms}ms</span></div>
-                <div className="flex justify-between"><span className="text-ink-soft">Cache Hit Rate</span><span className="text-brand-text">{d.chat_metrics.cache_hit_rate}%</span></div>
-                <div className="flex justify-between"><span className="text-ink-soft">Rate Limits</span><span className={d.chat_metrics.rate_limit_hits_24h > 0 ? 'text-amber-700 dark:text-amber-400' : ''}>{d.chat_metrics.rate_limit_hits_24h}</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Conversations ({win})</span><span>{d.chat_metrics.conversations_24h}</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Inference p50, first token</span><span>{d.chat_metrics.avg_inference_ms}ms</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Cache Hit Rate ({win})</span><span className="text-brand-text">{d.chat_metrics.cache_hit_rate}%</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Rate Limits ({win})</span><span className={d.chat_metrics.rate_limit_hits_24h > 0 ? 'text-amber-700 dark:text-amber-400' : ''}>{d.chat_metrics.rate_limit_hits_24h}</span></div>
               </div>
             </div>
             <div className="p-5 rounded-md border border-hairline bg-card">

@@ -301,7 +301,8 @@ export function recordRequest(endpoint: string, method: string, statusCode: numb
   observe("http_request_duration_seconds", durationMs);
   // Exclude 401 from error rate so auth failures on protected routes don't inflate the dashboard
   const isError = statusCode >= 400 && statusCode !== 401;
-  recordRequestTimeSeries(durationMs, isError);
+  // The War Room error rate and SLO count server errors only; 4xx (bad requests, rate limits) are client behavior.
+  recordRequestTimeSeries(durationMs, statusCode >= 500);
   if (isError) increment("errors_total");
   if (statusCode >= 500) increment(`errors_total{type="server"}`);
   else if (isError) increment(`errors_total{type="client"}`);
@@ -412,10 +413,12 @@ export function getPrometheusText(): string {
       const toSeconds = (v: number) => (durationMsToSeconds(name + labels) ? v / 1000 : v);
       const q50 = values[Math.floor(0.5 * count)] ?? 0;
       const q90 = values[Math.floor(0.9 * count)] ?? 0;
+      const q95 = values[Math.floor(0.95 * count)] ?? 0;
       const q99 = values[Math.floor(0.99 * count)] ?? 0;
       const labelPart = labels || "";
       lines.push(`${name}${summaryQuantileLabels(labelPart, "0.5")} ${toSeconds(q50)}`);
       lines.push(`${name}${summaryQuantileLabels(labelPart, "0.9")} ${toSeconds(q90)}`);
+      lines.push(`${name}${summaryQuantileLabels(labelPart, "0.95")} ${toSeconds(q95)}`);
       lines.push(`${name}${summaryQuantileLabels(labelPart, "0.99")} ${toSeconds(q99)}`);
       lines.push(`${name}_sum${labelPart} ${toSeconds(sum)}`);
       lines.push(`${name}_count${labelPart} ${count}`);
@@ -521,7 +524,7 @@ function computeSLOs(): SLODefinition[] {
   return [
     { name: "Availability", target: 99.5, unit: "%", current: 99.5, met: true },
     { name: "P95 Latency", target: 500, unit: "ms", current: p95, met: p95 <= 500 || p95 === 0 },
-    { name: "Error Rate", target: 5, unit: "% max", current: parseFloat(errorRate.toFixed(2)), met: errorRate <= 5 },
+    { name: "Server Error Rate", target: 5, unit: "% max", current: parseFloat(errorRate.toFixed(2)), met: errorRate <= 5 },
     { name: "Budget Headroom", target: 10, unit: "% min", current: parseFloat(budgetPct.toFixed(1)), met: budgetPct >= 10 },
   ];
 }

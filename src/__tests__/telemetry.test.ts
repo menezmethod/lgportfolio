@@ -421,7 +421,7 @@ describe("telemetry", () => {
       const names = data.slos.map((s) => s.name);
       expect(names).toContain("Availability");
       expect(names).toContain("P95 Latency");
-      expect(names).toContain("Error Rate");
+      expect(names).toContain("Server Error Rate");
       expect(names).toContain("Budget Headroom");
     });
 
