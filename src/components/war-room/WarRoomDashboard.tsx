@@ -28,6 +28,7 @@ export interface WarRoomData {
     checks: Record<string, { status: string; latency_ms?: number; budget_remaining?: number }>;
     version: string;
     region: string;
+    chat_providers?: string[];
   };
   request_metrics: {
     total_24h: number;
@@ -75,6 +76,8 @@ const TONE_BG: Record<Tone, string> = {
   bad: 'bg-red-400/10 border-red-400/30',
   neutral: 'bg-card border-hairline',
 };
+
+const PROVIDER_LABELS: Record<string, string> = { cloudflare: "Workers AI", openrouter: "OpenRouter", inferencia: "Inferencia" };
 
 function StatusDot({ tone }: { tone: Tone }) {
   if (tone === 'neutral') return <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-ink-soft/50" />;
@@ -231,6 +234,13 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
                 {c.label}
                 {check.latency_ms != null && check.latency_ms > 0 && <span className="text-ink-soft ml-1">{check.latency_ms}ms</span>}
               </span>
+              {name === 'inference_api' && d.service_status.chat_providers && (
+                <span className="text-xs text-ink-soft">
+                  {d.service_status.chat_providers.length > 0
+                    ? `via ${d.service_status.chat_providers.map((p) => PROVIDER_LABELS[p] ?? p).join(' then ')}`
+                    : 'no provider configured'}
+                </span>
+              )}
             </div>
           );
         })}

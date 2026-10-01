@@ -141,7 +141,7 @@ Platform, infrastructure, and Go backend engineering: services and tooling, depl
 
 ## Tech stack
 - Next.js 16 (App Router), React 19, TypeScript, Tailwind. Deployed with Coolify on a free-tier cloud VM, with Cloudflare DNS and proxy in front. GitHub Actions runs CI. A Terraform and Cloud Run path is kept in the repo for rollback.
-- This chat: retrieval over the knowledge base you are reading, using Cloudflare Workers AI embeddings and Cloudflare Vectorize, with file-based retrieval as a fallback. Chat generation runs on Cloudflare Workers AI. Rate limiting and prompt-injection defense are in the app.
+- This chat: retrieval over the knowledge base you are reading, using Cloudflare Workers AI embeddings and Cloudflare Vectorize, with file-based retrieval as a fallback. Chat generation is built around Cloudflare Workers AI; other providers exist in code but only run if the site owner enables them. Rate limiting and prompt-injection defense are in the app.
 - Observability: in-app telemetry and structured logs feed the War Room dashboard. Prometheus is used when a server is configured. In-memory counters reset when the app restarts.
 - inferencia, Luis's Go LLM gateway, was retired from this site's chat path when he moved to Workers AI. It is kept as a public Go reference.
 

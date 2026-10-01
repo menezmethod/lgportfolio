@@ -119,6 +119,7 @@ export default function TraceWaterfall() {
   const rag = spanRow("rag", spans, now);
   const inf = spanRow("inf", spans, now);
   const rm = data?.request_metrics;
+  const providerLabel = (data?.service_status?.chat_providers ?? ["cloudflare"]).map((p: string) => ({ cloudflare: "Workers AI", openrouter: "OpenRouter", inferencia: "Inferencia" } as Record<string, string>)[p] ?? p).join(" then ") || "no provider";
   const appMs = rm && rm.total_24h > 0 ? rm.latency_p50 : null;
 
   const rows: Row[] = [
@@ -138,7 +139,7 @@ export default function TraceWaterfall() {
       note: appMs !== null && rm ? `p50 of server request durations, ${rm.total_24h} requests counted` : "not available yet",
     },
     { key: "rag", name: "RAG retrieval", sub: "RAG worker, Vectorize", Icon: Search, ms: rag.ms, note: rag.note },
-    { key: "inf", name: "Chat inference", sub: "RAG worker, Workers AI, to first token", Icon: Sparkles, ms: inf.ms, note: inf.note },
+    { key: "inf", name: "Chat inference", sub: `RAG worker, ${providerLabel}, to first token`, Icon: Sparkles, ms: inf.ms, note: inf.note },
   ];
   const max = Math.max(1, ...rows.map((r) => r.ms ?? 0));
 

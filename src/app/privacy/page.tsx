@@ -22,7 +22,7 @@ const SECTIONS: { h: string; items: string[] }[] = [
     h: "Where it goes",
     items: [
       "The site is deployed with Coolify on a cloud VM, behind Cloudflare DNS and proxy, so Cloudflare sees site traffic.",
-      "Chat retrieval runs on Cloudflare Vectorize and chat generation runs on Cloudflare Workers AI. Other model providers are optional; if one is enabled, your chat text is sent to it too.",
+      "Chat retrieval runs on Cloudflare Vectorize and chat generation is designed to run on Cloudflare Workers AI. The site owner can also enable other model providers (OpenRouter or a self-hosted gateway); if one is enabled, your chat text is sent to it too. The chat page names the providers that are active right now.",
       "When storage is enabled, saved chats and emails are stored in Google Firestore. When it is not enabled, chats and emails are not saved at all. The chat page states which applies.",
       "Visit messages. When a visitor is classified as a person or recruiter (bots and crawlers are not), the site sends one signed message to a webhook that only Luis controls, at most once per visitor per 30 minutes. Visits from Luis's own IP addresses never send one. The message contains your IP address, the referrer (truncated to 200 characters), a short browser or app summary, the country code from the CDN when present, the page path, a coarse category (person or recruiter), and a timestamp.",
     ],

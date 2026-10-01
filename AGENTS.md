@@ -70,7 +70,7 @@ Analytics: **Google Analytics 4 only** (optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`
 ### Environment variables
 
 - Copy `.env.example` to `.env.local`. All portfolio pages work without API keys.
-- `INFERENCIA_API_KEY` + `INFERENCIA_BASE_URL` are needed for the AI chat. Without them, chat returns 503 but all pages work.
+- **Chat providers:** at least one of `CLOUDFLARE_RAG_KEY` (Workers AI), `OPENROUTER_API_KEY`, or `INFERENCIA_API_KEY` + `INFERENCIA_BASE_URL` is needed for the AI chat; with none, chat returns 503 but all pages work. `CHAT_PROVIDERS` (comma list of `inferencia`, `openrouter`, `cloudflare`) restricts chat to exactly those providers in that order and skips unconfigured ones; unset keeps the legacy order. Production sets `CHAT_PROVIDERS=cloudflare`. The chain, `/api/health`, the War Room inference tile, probes and explain-error all follow it.
 - **RAG:** Cloudflare Vectorize + Workers AI embeddings (`@cf/baai/bge-m3`, 1024 dims) via the `lgportfolio-rag` worker in `workers/rag/` (deploy: `npx wrangler deploy`, secret `RAG_KEY`). App env: `CLOUDFLARE_RAG_KEY` (+ optional `CLOUDFLARE_RAG_WORKER_URL`). Index `lgportfolio-kb` (cosine). Seed/refresh: `npx tsx scripts/seed-rag-cloudflare.ts`. Without the key, file-based KB retrieval is used. Workers AI is also the last-resort chat fallback provider.
 - In production on **Coolify**, set secrets in the Coolify app env . On **GCP Cloud Run**, Inferencia values come from **Secret Manager** via `cloudbuild.yaml` `--set-secrets`.
 - Optional: `NEXT_PUBLIC_GA_MEASUREMENT_ID` for Google Analytics 4.
