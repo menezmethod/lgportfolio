@@ -74,7 +74,7 @@ export function classifyVisitor(userAgent: string): VisitorCategory {
   return "unknown";
 }
 
-function summarizeUA(userAgent: string): string {
+export function summarizeUA(userAgent: string): string {
   const ua = userAgent.toLowerCase();
   if (ua.includes("linkedin")) return "LinkedIn";
   if (ua.includes("greenhouse")) return "Greenhouse";
