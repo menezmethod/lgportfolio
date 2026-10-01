@@ -399,10 +399,10 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
           ) : (
             <div className="divide-y divide-hairline">
               {d.recent_events.slice(0, compact ? 8 : 15).map((ev, i) => (
-                <div key={i} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors">
+                <div key={i} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 py-3 hover:bg-muted/50 transition-colors">
                   <span className="text-xs font-mono text-ink-soft min-w-[80px]">{new Date(ev.timestamp).toLocaleTimeString()}</span>
                   <span className="text-xs font-mono text-ink-soft min-w-[80px] uppercase">{ev.type}</span>
-                  <span className="text-sm text-foreground truncate">{ev.message}</span>
+                  <span className="text-sm text-foreground min-w-0 break-words">{ev.message}</span>
                 </div>
               ))}
             </div>

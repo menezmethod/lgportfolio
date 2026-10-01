@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
 /**
@@ -9,6 +9,8 @@ import { usePathname } from "next/navigation";
  */
 export default function PageViewTracker() {
   const pathname = usePathname();
+  // StrictMode (dev) runs effects twice; one view = one POST.
+  const lastPath = useRef<string | null>(null);
 
   useEffect(() => {
     // Skip static page views and admin routes for privacy
@@ -19,6 +21,9 @@ export default function PageViewTracker() {
     ) {
       return;
     }
+
+    if (lastPath.current === pathname) return;
+    lastPath.current = pathname;
 
     // Fire and forget — no await, no error handling needed
     fetch("/api/analytics/page-view", {

@@ -123,14 +123,14 @@ export default function TraceWaterfall() {
 
   const rows: Row[] = [
     {
-      key: "browser", name: "Visitor", sub: "Browser, POST /api/chat", Icon: Globe,
+      key: "browser", name: "Visitor", sub: "Your browser, this page load (time to first byte)", Icon: Globe,
       ms: nav ? nav.ttfb : null,
       note: nav ? "time to first byte, your browser, this page load" : "not available in this browser",
     },
     {
-      key: "edge", name: "Cloudflare proxy", sub: "DNS and proxy in front", Icon: Cloud,
+      key: "edge", name: "Connection setup", sub: "DNS + connect + TLS", Icon: Cloud,
       ms: nav ? nav.connect : null,
-      note: nav ? (nav.connect === 0 ? "connection reused, your browser, this page load" : "DNS and connect, your browser, this page load") : "not available in this browser",
+      note: nav ? (nav.connect === 0 ? "connection reused, your browser, this page load" : "DNS, connect and TLS, your browser, this page load") : "not available in this browser",
     },
     {
       key: "app", name: "Next.js app", sub: "Coolify, free-tier cloud VM", Icon: Layers,
