@@ -24,6 +24,8 @@ const MIN_BUDGET_LEFT = 20;
 export interface ProbeSample {
   at: number;
   ms: number;
+  /** Model that answered the probe (inference probe only). */
+  model?: string;
 }
 
 export interface ProbeState {
@@ -74,14 +76,14 @@ async function runInferenceProbe(): Promise<void> {
   try {
     incrementDailyCount();
     const start = Date.now();
-    const { result, attemptMs } = await streamChatWithFallbacks({
+    const { result, attemptMs, model } = await streamChatWithFallbacks({
       system: "Reply with one short word.",
       messages: [{ role: "user", content: "Say ok." }],
       maxOutputTokens: 8,
       temperature: 0,
     });
     // Same definition as the chat span: first token of the succeeding provider attempt (failed attempts excluded).
-    infSample = { at: Date.now(), ms: attemptMs ?? Date.now() - start };
+    infSample = { at: Date.now(), ms: attemptMs ?? Date.now() - start, model };
     // Drain the tiny response so the request completes cleanly.
     await Promise.race([
       result.toTextStreamResponse().text(),
@@ -102,7 +104,8 @@ export function maybeRunProbes(): void {
     const now = Date.now();
     const chat = getChatSpans();
 
-    if (!ragLock && isCloudflareRagConfigured()) {
+    // Keeps the retrieval path warm while idle; skipped when the daily budget is low, like the inference probe.
+    if (!ragLock && isCloudflareRagConfigured() && getDailyBudgetStats().remaining >= MIN_BUDGET_LEFT) {
       const newest = Math.max(chat.last?.at ?? 0, ragSample?.at ?? 0, lastRagAttempt);
       if (now - newest > RAG_STALE_MS) {
         ragLock = true;

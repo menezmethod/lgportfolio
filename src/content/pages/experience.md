@@ -28,7 +28,7 @@ entries:
     highlights:
       - Built and maintained Go services on the payments authorization platform (authorization, reversal, refund)
       - "Worked a card-authorization broker service: request validation, duplicate detection, and format conversion between upstream clients and downstream processors"
-      - Worked a gift-card tender API from initial design, through production-readiness review, alerting, and on-call
+      - Worked a gift-card API from initial design, through production-readiness review, alerting, and on-call
       - Contributed to modernization off legacy systems
       - Carried the on-call rotation and contributed to incident response and blameless postmortems
   - company: Daugherty Business Solutions

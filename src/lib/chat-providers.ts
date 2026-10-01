@@ -1,5 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { streamText } from "ai";
+import { modelFamily } from "@/lib/model-label";
 import { activeChatProviderIds, type ChatProviderId } from "@/lib/chat-provider-env";
 import {
   getInferenciaApiKey,
@@ -26,6 +27,28 @@ function inferenciaFastFailMs(): number {
   return Number.isFinite(n) && n >= 500 ? n : 6_000;
 }
 const OPENROUTER_PER_MODEL_MS = 35_000;
+const CLOUDFLARE_LAST_MODEL_MS = 20_000;
+const CLOUDFLARE_DEFAULT_MODELS = [
+  "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  "@cf/meta/llama-3.1-8b-instruct-fast",
+];
+
+/** First-token deadline for every Workers AI model except the last. Override with CLOUDFLARE_FAST_FAIL_MS. */
+function cloudflareFastFailMs(): number {
+  const n = Number(process.env.CLOUDFLARE_FAST_FAIL_MS);
+  return Number.isFinite(n) && n >= 500 ? n : 3_500;
+}
+
+/** Ordered Workers AI models: CLOUDFLARE_CHAT_MODELS (comma list), with legacy CLOUDFLARE_CHAT_MODEL as the first entry. */
+function cloudflareChatModels(): string[] {
+  const list = (process.env.CLOUDFLARE_CHAT_MODELS ?? "")
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean);
+  const base = list.length > 0 ? list : [...CLOUDFLARE_DEFAULT_MODELS];
+  const legacy = process.env.CLOUDFLARE_CHAT_MODEL?.trim();
+  return legacy ? [legacy, ...base.filter((m) => m !== legacy)] : base;
+}
 const TOTAL_INFERENCE_BUDGET_MS = 52_000;
 
 export type { ChatProviderId };
@@ -54,6 +77,8 @@ export interface StreamChatResult {
   attemptMs?: number;
   /** Time spent on failed attempts before the successful one started. */
   fallbackDelayMs?: number;
+  /** True when the second Workers AI model was started in parallel because the first was slow. */
+  hedged?: boolean;
 }
 
 function parseOpenRouterModels(): string[] {
@@ -132,18 +157,22 @@ function buildSpecs(): Record<ChatProviderId, ChatProviderSpec[]> {
       process.env.CLOUDFLARE_RAG_WORKER_URL?.trim() ||
       "https://lgportfolio-rag.luisgimenezdev.workers.dev"
     ).replace(/\/$/, "");
-    specs.cloudflare.push({
-      id: "cloudflare",
-      label: "Workers AI (llama-3.3-70b)",
-      model:
-        process.env.CLOUDFLARE_CHAT_MODEL?.trim() ||
-        "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-      timeoutMs: OPENROUTER_PER_MODEL_MS,
-      createClient: () =>
-        createOpenAI({
-          baseURL: `${workerUrl}/v1`,
-          apiKey: process.env.CLOUDFLARE_RAG_KEY!.trim(),
-        }),
+    const models = cloudflareChatModels();
+    const failMs = cloudflareFastFailMs();
+    // Every model but the last gets a short first-token deadline so a stalled call falls through quickly;
+    // the last one gets a long deadline so a total failure still resolves.
+    models.forEach((model, i) => {
+      specs.cloudflare.push({
+        id: "cloudflare",
+        label: `Workers AI (${modelFamily(model)})`,
+        model,
+        timeoutMs: i < models.length - 1 ? failMs : CLOUDFLARE_LAST_MODEL_MS,
+        createClient: () =>
+          createOpenAI({
+            baseURL: `${workerUrl}/v1`,
+            apiKey: process.env.CLOUDFLARE_RAG_KEY!.trim(),
+          }),
+      });
     });
   }
 
@@ -189,11 +218,130 @@ async function awaitFirstTextDelta(
     throw new Error("Empty inference stream");
   })();
 
+  firstDelta.catch(() => {}); // a late rejection after the deadline (abort) must not become an unhandled rejection
   try {
     await Promise.race([firstDelta, timeoutPromise]);
   } finally {
     if (timeoutId) clearTimeout(timeoutId);
   }
+}
+
+/** Delay before the second Workers AI model is started in parallel. 0 turns hedging off. Override with CLOUDFLARE_HEDGE_MS. */
+function cloudflareHedgeMs(): number {
+  const raw = process.env.CLOUDFLARE_HEDGE_MS;
+  if (raw === undefined || raw.trim() === "") return 1_500;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : 1_500;
+}
+
+interface Attempt {
+  provider: ChatProviderSpec;
+  start: number;
+  controller: AbortController;
+  /** Resolves on the first token. On failure or deadline it aborts its own upstream request and rejects. */
+  done: Promise<StreamChatResult>;
+}
+
+/** Start one provider attempt. Aborting its controller cancels the upstream fetch. */
+function startAttempt(
+  provider: ChatProviderSpec,
+  params: StreamChatParams,
+  budget: number,
+  startedAt: number,
+  options?: { onAttempt?: (provider: ChatProviderSpec) => void }
+): Attempt {
+  const timeoutMs = Math.min(provider.timeoutMs, budget);
+  options?.onAttempt?.(provider);
+  const start = Date.now();
+  const controller = new AbortController();
+  const done = (async () => {
+    try {
+      const client = provider.createClient();
+      // First-token gate uses the provider deadline; the full stream uses the remaining budget.
+      // The signal only cancels a failed or losing attempt; it is not a short cap on the answering stream.
+      const result = streamText({
+        model: client.chat(provider.model),
+        system: params.system,
+        messages: params.messages,
+        maxRetries: 0,
+        maxOutputTokens: params.maxOutputTokens ?? 800,
+        temperature: params.temperature ?? 0.5,
+        timeout: budget,
+        abortSignal: controller.signal,
+      });
+      await awaitFirstTextDelta(result, timeoutMs);
+      return {
+        result,
+        provider: provider.id,
+        model: provider.model,
+        attemptMs: Date.now() - start,
+        fallbackDelayMs: start - startedAt,
+        hedged: false,
+      } as StreamChatResult;
+    } catch (error) {
+      controller.abort();
+      throw error;
+    }
+  })();
+  done.catch(() => {}); // a loser that fails after the winner was chosen must not become an unhandled rejection
+  return { provider, start, controller, done };
+}
+
+/**
+ * Workers AI hedge: run the primary; if it has no first token after hedgeMs, start the secondary in parallel
+ * without cancelling the primary. The first first-token wins and the loser is aborted upstream. Each attempt
+ * keeps its own hard deadline as a backstop. The caller counts the daily budget once, after this resolves.
+ */
+async function hedgedPair(
+  primary: ChatProviderSpec,
+  secondary: ChatProviderSpec,
+  params: StreamChatParams,
+  budget: number,
+  startedAt: number,
+  hedgeMs: number,
+  options?: { onAttempt?: (provider: ChatProviderSpec) => void; onFallback?: (from: ChatProviderSpec, error: string) => void }
+): Promise<StreamChatResult> {
+  const a = startAttempt(primary, params, budget, startedAt, options);
+  let hedgeTimer: ReturnType<typeof setTimeout> | undefined;
+  const timer = new Promise<"hedge">((resolve) => {
+    hedgeTimer = setTimeout(() => resolve("hedge"), hedgeMs);
+  });
+  const first = await Promise.race([
+    a.done.then(
+      (r) => ({ ok: true as const, r }),
+      (e) => ({ ok: false as const, e })
+    ),
+    timer,
+  ]);
+  if (hedgeTimer) clearTimeout(hedgeTimer);
+  if (first !== "hedge") {
+    if (first.ok) return first.r; // fast primary: the secondary never starts
+    options?.onFallback?.(primary, formatProviderError(first.e));
+    // Primary failed before the hedge delay: plain sequential fallback, no hedge.
+    const b = startAttempt(secondary, params, remainingBudgetMs(startedAt), startedAt, options);
+    return await b.done.catch((e) => {
+      options?.onFallback?.(secondary, formatProviderError(e));
+      throw e;
+    });
+  }
+
+  // Primary is slow: hedge.
+  const b = startAttempt(secondary, params, remainingBudgetMs(startedAt), startedAt, options);
+  const settle = (at: Attempt, other: Attempt) =>
+    at.done.then(
+      (r) => {
+        other.controller.abort(); // cancel the loser upstream right away
+        return { ...r, hedged: true };
+      },
+      (e) => {
+        options?.onFallback?.(at.provider, formatProviderError(e));
+        throw e;
+      }
+    );
+  // The first to produce a token wins; if one fails the other can still win; both failing rejects.
+  return await Promise.any([settle(a, b), settle(b, a)]).catch((agg: AggregateError) => {
+    throw agg.errors?.[agg.errors.length - 1] ?? new Error("unknown");
+  });
 }
 
 export async function streamChatWithFallbacks(
@@ -207,40 +355,25 @@ export async function streamChatWithFallbacks(
 
   const startedAt = Date.now();
   let lastError = "unknown";
+  const hedgeMs = cloudflareHedgeMs();
 
-  for (const provider of chain) {
+  for (let i = 0; i < chain.length; i++) {
+    const provider = chain[i];
     const budget = remainingBudgetMs(startedAt);
     if (budget < 3_000) break;
 
-    const timeoutMs = Math.min(provider.timeoutMs, budget);
-    options?.onAttempt?.(provider);
-
-    const attemptStart = Date.now();
     try {
-      const client = provider.createClient();
-      // First-token gate uses provider.timeoutMs; full stream uses remaining budget.
-      // Do not pass AbortSignal.timeout(timeoutMs) — it caps the entire response at the
-      // fast-fail window and truncates answers after the first token arrives.
-      const result = streamText({
-        model: client.chat(provider.model),
-        system: params.system,
-        messages: params.messages,
-        maxRetries: 0,
-        maxOutputTokens: params.maxOutputTokens ?? 800,
-        temperature: params.temperature ?? 0.5,
-        timeout: budget,
-      });
-      await awaitFirstTextDelta(result, timeoutMs);
-      return {
-        result,
-        provider: provider.id,
-        model: provider.model,
-        attemptMs: Date.now() - attemptStart,
-        fallbackDelayMs: attemptStart - startedAt,
-      };
+      const next = chain[i + 1];
+      if (provider.id === "cloudflare" && next?.id === "cloudflare" && hedgeMs > 0) {
+        const r = await hedgedPair(provider, next, params, budget, startedAt, hedgeMs, options);
+        return r;
+      }
+      const attempt = startAttempt(provider, params, budget, startedAt, options);
+      return await attempt.done;
     } catch (error) {
       lastError = formatProviderError(error);
-      options?.onFallback?.(provider, lastError);
+      if (!(chain[i].id === "cloudflare" && chain[i + 1]?.id === "cloudflare" && hedgeMs > 0)) options?.onFallback?.(provider, lastError);
+      else i++; // the hedged pair already tried both models
     }
   }
 

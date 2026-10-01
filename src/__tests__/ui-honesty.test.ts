@@ -10,7 +10,7 @@ describe("labels say what they measure", () => {
     expect(trace).not.toContain("POST /api/chat");
   });
   it("browser connection timing is not labelled as the proxy", () => {
-    expect(trace).toContain('name: "Connection setup"');
+    expect(trace).toContain('name: "Connection"');
     expect(trace).toContain("DNS + connect + TLS");
     expect(trace).not.toContain('name: "Cloudflare proxy"');
   });
@@ -21,5 +21,36 @@ describe("labels say what they measure", () => {
   it("page view tracker dedupes by last tracked path (StrictMode)", () => {
     const t = read("src/components/PageViewTracker.tsx");
     expect(t).toContain("lastPath.current === pathname");
+  });
+
+  it("privacy discloses the Cloudflare edge beacon and the theme localStorage key", () => {
+    const priv = read("src/app/privacy/page.tsx");
+    expect(priv).toContain("Cloudflare web analytics");
+    expect(priv).toContain("may add its own web analytics beacon");
+    expect(priv).toContain("sets no cookies");
+    expect(priv).toContain("switch it off in Cloudflare");
+    expect(priv).toContain('localStorage under the key \\"theme\\"');
+  });
+
+  it("war room neutral values and the memory badge use neutral ink, alarm colours only for real breaches", () => {
+    const wr = read("src/components/war-room/WarRoomDashboard.tsx");
+    expect(wr).toMatch(/label: `Requests \(\$\{win\}\)`[^\n]*color: 'text-foreground'/);
+    expect(wr).toMatch(/label: `Cache Hit[^\n]*color: 'text-foreground'/);
+    expect(wr).toMatch(/latency_p95 > 500 \? 'text-amber/);
+    expect(wr).toContain("'bg-muted text-ink-soft border-hairline'");
+    expect(wr).not.toMatch(/rate_limit_hits_24h > 0 \?/);
+  });
+
+  it("chat page renders the text stream incrementally, not via response.text()", () => {
+    const chat = read("src/app/chat/page.tsx");
+    expect(chat).toContain("readTextStream(response.body");
+    expect(chat).not.toMatch(/await response\.text\(\)/);
+  });
+
+  it("case study eyebrow does not repeat kind and status; chat heading has top spacing; counter shows at load", () => {
+    expect(read("src/app/work/[slug]/page.tsx")).toContain("function eyebrow(kind: string, status: string)");
+    const chat = read("src/app/chat/page.tsx");
+    expect(chat).toContain("pt-8 sm:pb-4 sm:pt-10");
+    expect(chat).not.toMatch(/maxMessages !== null && sessionMessageCount > 0/);
   });
 });

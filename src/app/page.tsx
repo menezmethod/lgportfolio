@@ -45,7 +45,7 @@ const CASES: Case[] = [
     kind: "Build",
     slug: "enterprise-payments",
     title: "Enterprise Payments",
-    text: "Go authorization services on CockroachDB. I contributed to a card-authorization broker service and worked a gift-card tender API from initial design.",
+    text: "Go authorization services on CockroachDB. I contributed to a card-authorization broker service and worked a gift-card API from initial design.",
     Diagram: PaymentsDiagram,
     label: "Scope and tech",
     facts: [

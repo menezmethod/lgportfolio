@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
+// React dev tooling needs eval; production builds do not.
+const scriptEval = process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'";
+
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -14,7 +17,7 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://static.cloudflareinsights.com",
+      `script-src 'self' 'unsafe-inline'${scriptEval} https://www.googletagmanager.com https://static.cloudflareinsights.com`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob:",

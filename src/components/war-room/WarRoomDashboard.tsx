@@ -1,5 +1,6 @@
 'use client';
 
+import { modelFamily } from '@/lib/model-label';
 import { useState } from 'react';
 import { Cpu, Zap, Shield, Database, Radio, Clock, AlertTriangle, BarChart3, Wifi, Bot, ChevronDown, ChevronUp } from 'lucide-react';
 import { checkDisplay, overallDisplay, MIN_REQUESTS, type Tone } from './status';
@@ -13,10 +14,10 @@ export interface WarRoomData {
     samples: number;
     rag_p50_ms: number;
     inference_p50_ms: number;
-    last: { at: number; rag_ms: number; inference_ms: number } | null;
+    last: { at: number; rag_ms: number; inference_ms: number; model?: string } | null;
     probe?: {
       rag: { at: number; ms: number } | null;
-      inference: { at: number; ms: number } | null;
+      inference: { at: number; ms: number; model?: string } | null;
       rag_configured: boolean;
       inference_configured: boolean;
     };
@@ -43,6 +44,9 @@ export interface WarRoomData {
     avg_inference_ms: number;
     cache_hit_rate: number;
     rate_limit_hits_24h: number;
+    model_answers?: number;
+    hedged_answers?: number;
+    hedge_rate?: number;
     budget_used: number;
     budget_remaining: number;
   };
@@ -172,6 +176,8 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
   if (!data) return null;
 
   const d = data;
+  // Model that actually served the most recent answer (chat first, else the scheduled probe).
+  const servedModel = d.chat_spans?.last?.model ?? d.chat_spans?.probe?.inference?.model;
   const checks = d.service_status.checks;
   const budgetMax = d.chat_metrics.budget_used + d.chat_metrics.budget_remaining;
   const thin = d.request_metrics.total_24h < MIN_REQUESTS;
@@ -193,7 +199,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
               <span className={`px-1.5 py-0.5 rounded border uppercase ${
                 d.metrics_source === 'prometheus'
                   ? 'bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 border-emerald-400/20'
-                  : 'bg-amber-400/10 text-amber-700 dark:text-amber-400 border-amber-400/20'
+                  : 'bg-muted text-ink-soft border-hairline'
               }`}>
                 {d.metrics_source === 'prometheus' ? 'prometheus' : `${d.metrics_source} fallback`}
               </span>
@@ -237,7 +243,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
               {name === 'inference_api' && d.service_status.chat_providers && (
                 <span className="text-xs text-ink-soft">
                   {d.service_status.chat_providers.length > 0
-                    ? `via ${d.service_status.chat_providers.map((p) => PROVIDER_LABELS[p] ?? p).join(' then ')}`
+                    ? `via ${d.service_status.chat_providers.map((p) => (PROVIDER_LABELS[p] ?? p) + (p === 'cloudflare' && servedModel ? ` (${modelFamily(servedModel)})` : '')).join(' then ')}`
                     : 'no provider configured'}
                 </span>
               )}
@@ -249,7 +255,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
       {d.slos && d.slos.length > 0 && (
         <section>
           <h3 className="eyebrow mb-3 flex items-center gap-2">
-            <Shield className="size-3.5 text-brand-text" /> SLO Status
+            <Shield className="size-3.5 text-ink-soft" /> SLO Status
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {d.slos.map((slo) => thin ? (
@@ -290,10 +296,10 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
             icon: Clock,
             color: 'text-emerald-700 dark:text-emerald-400',
           },
-          { label: `Requests (${win})`, value: d.request_metrics.total_24h.toLocaleString(), icon: BarChart3, color: 'text-brand-text' },
-          { label: 'P95 Latency (1h)', value: `${d.request_metrics.latency_p95}ms`, icon: Zap, color: 'text-amber-700 dark:text-amber-400' },
+          { label: `Requests (${win})`, value: d.request_metrics.total_24h.toLocaleString(), icon: BarChart3, color: 'text-foreground' },
+          { label: 'P95 Latency (1h)', value: `${d.request_metrics.latency_p95}ms`, icon: Zap, color: d.request_metrics.latency_p95 > 500 ? 'text-amber-700 dark:text-amber-400' : 'text-foreground' },
           { label: 'Server Errors (1h)', value: `${d.request_metrics.error_rate_1h.toFixed(1)}%`, icon: AlertTriangle, color: d.request_metrics.error_rate_1h > 5 ? 'text-red-700 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400' },
-          { label: `Cache Hit (${win})`, value: `${d.chat_metrics.cache_hit_rate}%`, icon: Cpu, color: 'text-brand-text' },
+          { label: `Cache Hit (${win})`, value: `${d.chat_metrics.cache_hit_rate}%`, icon: Cpu, color: 'text-foreground' },
           { label: 'Budget Left', value: d.chat_metrics.budget_remaining.toString(), icon: Shield, color: d.chat_metrics.budget_remaining < 20 ? 'text-red-700 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400' },
         ].map((m) => (
           <div key={m.label} className="p-4 rounded-md border border-hairline bg-card flex flex-col">
@@ -311,7 +317,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
           <section className="grid md:grid-cols-2 gap-4">
             <div className="p-5 rounded-md border border-hairline bg-card">
               <h3 className="eyebrow mb-4 flex items-center gap-2">
-                <Zap className="size-3.5 text-amber-700 dark:text-amber-400" /> Request Latency (last hour)
+                <Zap className="size-3.5 text-ink-soft" /> Request Latency (last hour)
               </h3>
               {d.timeseries.latency_1h.length >= 1 ? (
                 <ResponsiveContainer width="100%" height={200}>
@@ -321,8 +327,8 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
                     <YAxis stroke="var(--hairline)" tick={{ fontSize: 11, fill: 'var(--ink-soft)' }} unit="ms" />
                     <Tooltip contentStyle={{ background: 'var(--card)', border: '1px solid var(--hairline)', color: 'var(--foreground)', borderRadius: 6, fontSize: 12 }} labelFormatter={(l: unknown) => formatTime(Number(l))} />
                     <Legend wrapperStyle={{ fontSize: 12, fontFamily: 'monospace' }} formatter={(v: string) => <span style={{ color: 'var(--ink)' }}>{v}</span>} />
-                    <Line type="monotone" dataKey="p50" stroke="var(--live)" strokeWidth={2} dot={true} name={fromProm ? 'P50' : 'Average per 10 s'} />
-                    <Line type="monotone" dataKey="p95" stroke="var(--brand-text)" strokeWidth={2} dot={true} name={fromProm ? 'P95' : 'P95 of last hour'} />
+                    <Line type="monotone" dataKey="p50" stroke="var(--ink-soft)" strokeWidth={2} dot={true} name={fromProm ? 'P50' : 'Average per 10 s'} />
+                    <Line type="monotone" dataKey="p95" stroke="var(--foreground)" strokeWidth={2} dot={true} name={fromProm ? 'P95' : 'P95 of last hour'} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
@@ -331,7 +337,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
             </div>
             <div className="p-5 rounded-md border border-hairline bg-card">
               <h3 className="eyebrow mb-4 flex items-center gap-2">
-                <BarChart3 className="size-3.5 text-brand-text" /> Requests per {fromProm ? 'minute' : '10 s'} (last hour)
+                <BarChart3 className="size-3.5 text-ink-soft" /> Requests per {fromProm ? 'minute' : '10 s'} (last hour)
               </h3>
               {d.timeseries.requests_1h.length >= 1 ? (
                 <ResponsiveContainer width="100%" height={200}>
@@ -363,16 +369,17 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
               </div>
             </div>
             <div className="p-5 rounded-md border border-hairline bg-card">
-              <h3 className="eyebrow mb-4 flex items-center gap-2"><Wifi className="size-3.5 text-brand-text" /> Chat Metrics</h3>
+              <h3 className="eyebrow mb-4 flex items-center gap-2"><Wifi className="size-3.5 text-ink-soft" /> Chat Metrics</h3>
               <div className="space-y-3 text-sm font-mono">
                 <div className="flex justify-between"><span className="text-ink-soft">Conversations ({win})</span><span>{d.chat_metrics.conversations_24h}</span></div>
                 <div className="flex justify-between"><span className="text-ink-soft">Inference p50, first token</span><span>{d.chat_metrics.avg_inference_ms}ms</span></div>
-                <div className="flex justify-between"><span className="text-ink-soft">Cache Hit Rate ({win})</span><span className="text-brand-text">{d.chat_metrics.cache_hit_rate}%</span></div>
-                <div className="flex justify-between"><span className="text-ink-soft">Rate Limits ({win})</span><span className={d.chat_metrics.rate_limit_hits_24h > 0 ? 'text-amber-700 dark:text-amber-400' : ''}>{d.chat_metrics.rate_limit_hits_24h}</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Cache Hit Rate ({win})</span><span>{d.chat_metrics.cache_hit_rate}%</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Hedged answers ({win})</span><span>{d.chat_metrics.hedged_answers ?? 0} of {d.chat_metrics.model_answers ?? 0}{(d.chat_metrics.model_answers ?? 0) > 0 ? ` (${d.chat_metrics.hedge_rate ?? 0}%)` : ''}</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Rate Limits ({win})</span><span>{d.chat_metrics.rate_limit_hits_24h}</span></div>
               </div>
             </div>
             <div className="p-5 rounded-md border border-hairline bg-card">
-              <h3 className="eyebrow mb-4 flex items-center gap-2"><Database className="size-3.5 text-brand-text" /> Infrastructure</h3>
+              <h3 className="eyebrow mb-4 flex items-center gap-2"><Database className="size-3.5 text-ink-soft" /> Infrastructure</h3>
               <div className="space-y-3 text-sm font-mono">
                 <div className="flex justify-between"><span className="text-ink-soft">Runtime</span><span>{d.infrastructure.node_version}</span></div>
                 <div className="flex justify-between"><span className="text-ink-soft">Uptime</span><span>{formatUptime(d.infrastructure.uptime_seconds)}</span></div>

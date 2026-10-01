@@ -290,7 +290,7 @@ CONTEXT FROM KNOWLEDGE BASE:
 ${context}`;
 
     const inferenceStart = Date.now();
-    const { result, provider, model, attemptMs, fallbackDelayMs } = await streamChatWithFallbacks(
+    const { result, provider, model, attemptMs, fallbackDelayMs, hedged } = await streamChatWithFallbacks(
       {
         system: systemPrompt,
         messages: messagesForModel,
@@ -331,6 +331,8 @@ ${context}`;
       ragDurationMs,
       cacheHit: false,
       rateLimited: false,
+      model,
+      hedged: Boolean(hedged),
     });
 
     log("INFO", "Chat response (inference)", {
@@ -341,6 +343,7 @@ ${context}`;
       inference_duration_ms: inferenceDuration,
       attempt_ms: attemptMs,
       fallback_delay_ms: fallbackDelayMs,
+      hedged: Boolean(hedged),
       cache_hit: false,
       provider,
       model,

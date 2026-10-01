@@ -1,5 +1,7 @@
 "use client";
 
+import { modelFamily } from "@/lib/model-label";
+import { formatMs, spanView } from "@/lib/trace-rows";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -19,16 +21,6 @@ interface Row {
   note: string;
 }
 
-const MIN_P50 = 5;
-
-function ago(ms: number) {
-  const m = Math.max(0, Math.round(ms / 60000));
-  if (m < 1) return "just now";
-  if (m < 60) return `${m} min ago`;
-  const h = Math.round(m / 60);
-  return h < 48 ? `${h} h ago` : `${Math.round(h / 24)} d ago`;
-}
-
 /** This visitor's own page-load timings from the Navigation Timing API. */
 function readNavigation(): { ttfb: number; connect: number } | null {
   try {
@@ -41,30 +33,6 @@ function readNavigation(): { ttfb: number; connect: number } | null {
   } catch {
     return null;
   }
-}
-
-type Spans = NonNullable<WarRoomData["chat_spans"]>;
-
-function spanRow(
-  which: "rag" | "inf",
-  spans: Spans | null,
-  now: number,
-): { ms: number | null; note: string } {
-  if (!spans) return { ms: null, note: "not available" };
-  const chatMs = (use: "p50" | "last") =>
-    which === "rag"
-      ? use === "p50" ? spans.rag_p50_ms : spans.last?.rag_ms ?? 0
-      : use === "p50" ? spans.inference_p50_ms : spans.last?.inference_ms ?? 0;
-  if (spans.samples >= MIN_P50 && spans.last) {
-    return { ms: chatMs("p50"), note: `from visitor chats, p50, n=${spans.samples}, sampled ${ago(now - spans.last.at)}` };
-  }
-  if (spans.samples >= 1 && spans.last) {
-    return { ms: chatMs("last"), note: `from visitor chats, last sample, n=${spans.samples}, sampled ${ago(now - spans.last.at)}` };
-  }
-  const p = which === "rag" ? spans.probe?.rag : spans.probe?.inference;
-  if (p) return { ms: p.ms, note: `from a scheduled probe, n=1, sampled ${ago(now - p.at)}` };
-  const configured = which === "rag" ? spans.probe?.rag_configured : spans.probe?.inference_configured;
-  return { ms: null, note: configured ? "not available yet, a probe runs shortly" : "not available" };
 }
 
 export default function TraceWaterfall() {
@@ -116,32 +84,33 @@ export default function TraceWaterfall() {
   }
 
   const spans = data?.chat_spans ?? null;
-  const rag = spanRow("rag", spans, now);
-  const inf = spanRow("inf", spans, now);
+  const rag = spanView("rag", spans, now);
+  const inf = spanView("inf", spans, now);
   const rm = data?.request_metrics;
-  const providerLabel = (data?.service_status?.chat_providers ?? ["cloudflare"]).map((p: string) => ({ cloudflare: "Workers AI", openrouter: "OpenRouter", inferencia: "Inferencia" } as Record<string, string>)[p] ?? p).join(" then ") || "no provider";
+  const servedModel = data?.chat_spans?.last?.model ?? data?.chat_spans?.probe?.inference?.model;
+  const providerLabel = (data?.service_status?.chat_providers ?? ["cloudflare"]).map((p: string) => (({ cloudflare: "Workers AI", openrouter: "OpenRouter", inferencia: "Inferencia" } as Record<string, string>)[p] ?? p) + (p === "cloudflare" && servedModel ? ` (${modelFamily(servedModel)})` : "")).join(" then ") || "no provider";
   const appMs = rm && rm.total_24h > 0 ? rm.latency_p50 : null;
 
   const rows: Row[] = [
     {
       key: "browser", name: "Visitor", sub: "Your browser, this page load (time to first byte)", Icon: Globe,
       ms: nav ? nav.ttfb : null,
-      note: nav ? "time to first byte, your browser, this page load" : "not available in this browser",
+      note: nav ? "this page load, n=1, just now" : "not available in this browser",
     },
     {
-      key: "edge", name: "Connection setup", sub: "DNS + connect + TLS", Icon: Cloud,
+      key: "edge", name: "Connection", sub: "DNS + connect + TLS", Icon: Cloud,
       ms: nav ? nav.connect : null,
-      note: nav ? (nav.connect === 0 ? "connection reused, your browser, this page load" : "DNS, connect and TLS, your browser, this page load") : "not available in this browser",
+      note: nav ? (nav.connect === 0 ? "connection reused, this page load, n=1, just now" : "this page load, n=1, just now") : "not available in this browser",
     },
     {
       key: "app", name: "Next.js app", sub: "Coolify, free-tier cloud VM", Icon: Layers,
       ms: appMs,
-      note: appMs !== null && rm ? `p50 of server request durations, ${rm.total_24h} requests counted` : "not available yet",
+      note: appMs !== null && rm ? `median of ${rm.total_24h.toLocaleString("en-US")} server ${rm.total_24h === 1 ? "request" : "requests"}, since restart` : "not available yet",
     },
     { key: "rag", name: "RAG retrieval", sub: "RAG worker, Vectorize", Icon: Search, ms: rag.ms, note: rag.note },
     { key: "inf", name: "Chat inference", sub: `RAG worker, ${providerLabel}, to first token`, Icon: Sparkles, ms: inf.ms, note: inf.note },
   ];
-  const max = Math.max(1, ...rows.map((r) => r.ms ?? 0));
+  const max = Math.max(1, ...rows.map((r) => r.ms ?? 0)); // headline values only, so a stale outlier cannot stretch every bar
 
   return (
     <figure aria-label="Trace of this site's request path">
@@ -182,10 +151,10 @@ export default function TraceWaterfall() {
                   )}
                 </span>
                 <span className={`whitespace-nowrap text-right font-mono text-xs ${isActive && r.ms !== null ? "text-brand-text" : "text-ink-soft"}`}>
-                  {r.ms === null ? "n/a" : r.ms === 0 ? "<1 ms" : `${r.ms} ms`}
+                  {r.ms === null ? "n/a" : formatMs(r.ms)}
                 </span>
               </button>
-              {isActive && <p className="-mt-1 pb-2 pl-7 font-mono text-xs leading-snug text-ink-soft">{r.note}</p>}
+              <p className="-mt-1 pb-2 pl-7 font-mono text-xs leading-snug text-ink-soft">{r.note}</p>
             </li>
           );
         })}

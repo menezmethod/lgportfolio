@@ -315,7 +315,7 @@ export function publishDailyBudgetGauge(): void {
 }
 
 /** Most recent real chat request, kept in memory so the home page can show it with its age. */
-let lastChatSample: { at: number; rag_ms: number; inference_ms: number } | null = null;
+let lastChatSample: { at: number; rag_ms: number; inference_ms: number; model?: string } | null = null;
 
 export function recordChatMetrics(fields: {
   durationMs: number;
@@ -323,6 +323,10 @@ export function recordChatMetrics(fields: {
   cacheHit: boolean;
   rateLimited: boolean;
   tokensUsed?: number;
+  /** Model id that actually answered (for the trace label and logs, never shown in chat text). */
+  model?: string;
+  /** True when the hedge model was started in parallel for this answer. */
+  hedged?: boolean;
 }): void {
   observe("chat_inference_duration_seconds", fields.durationMs);
   observe("chat_rag_retrieval_duration_seconds", fields.ragDurationMs);
@@ -330,7 +334,9 @@ export function recordChatMetrics(fields: {
   if (!fields.cacheHit && !fields.rateLimited) {
     observe("chat_span_rag_ms", fields.ragDurationMs);
     observe("chat_span_inference_ms", fields.durationMs);
-    lastChatSample = { at: Date.now(), rag_ms: fields.ragDurationMs, inference_ms: fields.durationMs };
+    increment("chat_model_answers_total");
+    if (fields.hedged) increment("chat_hedges_total");
+    lastChatSample = { at: Date.now(), rag_ms: fields.ragDurationMs, inference_ms: fields.durationMs, model: fields.model };
   }
   if (fields.cacheHit) increment("chat_cache_hits_total");
   if (fields.rateLimited) {
@@ -542,7 +548,7 @@ export interface ChatSpans {
   samples: number;
   rag_p50_ms: number;
   inference_p50_ms: number;
-  last: { at: number; rag_ms: number; inference_ms: number } | null;
+  last: { at: number; rag_ms: number; inference_ms: number; model?: string } | null;
 }
 
 export function getChatSpans(): ChatSpans {
@@ -570,6 +576,10 @@ export interface WarRoomData {
     avg_inference_ms: number;
     cache_hit_rate: number;
     rate_limit_hits_24h: number;
+    /** Real model answers, and how many of them needed the hedge model started in parallel. */
+    model_answers: number;
+    hedged_answers: number;
+    hedge_rate: number;
     budget_used: number;
     budget_remaining: number;
   };
@@ -620,6 +630,9 @@ export function getWarRoomData(): WarRoomData {
       avg_inference_ms: Math.round(percentile("chat_inference_duration_seconds", 50)),
       cache_hit_rate: chatTotal > 0 ? Math.round((cacheHits / chatTotal) * 100) : 0,
       rate_limit_hits_24h: rateLimitHits,
+      model_answers: getCounter("chat_model_answers_total"),
+      hedged_answers: getCounter("chat_hedges_total"),
+      hedge_rate: getCounter("chat_model_answers_total") > 0 ? Math.round((getCounter("chat_hedges_total") / getCounter("chat_model_answers_total")) * 100) : 0,
       budget_used: budgetUsed,
       budget_remaining: budgetRemaining,
     },

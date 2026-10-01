@@ -89,7 +89,7 @@
     "kind": "Professional",
     "where": "The Home Depot (Jan 2024 to Mar 2026); earlier through Daugherty Business Solutions, contracting at The Home Depot, Apr 2022 to Jan 2024.",
     "summary": "Go authorization services on CockroachDB. A card-authorization broker service validates requests, catches duplicates, and converts formats between upstream clients and downstream processors.",
-    "role": "Contributed to the card-authorization broker service. Worked a gift-card tender API from initial design.",
+    "role": "Contributed to the card-authorization broker service. Worked a gift-card API from initial design.",
     "stack": [
       "Go",
       "CockroachDB",
@@ -107,7 +107,7 @@
       },
       {
         "label": "Scope",
-        "text": "Broker service: request validation, duplicate detection, and format conversion between upstream clients and downstream processors. Gift-card tender: a central API for balance inquiry, authorization and reversal, activation, and balance adjustment, worked from initial design. I also contributed to modernization off legacy systems."
+        "text": "Broker service: request validation, duplicate detection, and format conversion between upstream clients and downstream processors. Gift-card API: a central API for balance inquiry, authorization and reversal, activation, and balance adjustment, worked from initial design. I also contributed to modernization off legacy systems."
       },
       {
         "label": "Context",

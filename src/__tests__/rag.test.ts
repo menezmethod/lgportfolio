@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { KNOWLEDGE_BASE } from "@/lib/knowledge";
-import { isCurrentChunk } from "@/lib/rag";
+import { isCurrentChunk, resetRetrievalCache } from "@/lib/rag";
 
 /** A real sentence from the current knowledge base. */
 const CURRENT = KNOWLEDGE_BASE.split("\n").find((l) => l.startsWith("- Alert quality:"))!.trim();
@@ -19,6 +19,7 @@ function workerResponse(matches: unknown[]) {
 beforeEach(() => {
   vi.clearAllMocks();
   global.fetch = vi.fn();
+  resetRetrievalCache();
   vi.stubEnv("CLOUDFLARE_RAG_KEY", "test-key");
 });
 

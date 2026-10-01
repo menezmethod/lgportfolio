@@ -29,6 +29,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
+/** "Public repo / Public" repeats itself; when one label contains the other, show the longer one once. */
+function eyebrow(kind: string, status: string): string {
+  const k = kind.trim().toLowerCase();
+  const st = status.trim().toLowerCase();
+  if (k.includes(st)) return kind;
+  if (st.includes(k)) return status;
+  return `${kind} / ${status}`;
+}
+
 export default async function CaseStudy({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const p = getProject(slug);
@@ -43,7 +52,7 @@ export default async function CaseStudy({ params }: { params: Promise<{ slug: st
         <Link href="/work" className="link-under inline-flex min-h-11 items-center gap-2 text-sm text-ink-soft hover:text-foreground">
           <ArrowLeft className="size-4" aria-hidden /> All work
         </Link>
-        <p className="eyebrow mt-6">{p.kind} / {p.status}</p>
+        <p className="eyebrow mt-6">{eyebrow(p.kind, p.status)}</p>
         <h1 className="mt-4 max-w-4xl text-[clamp(40px,7vw,88px)] font-medium leading-[1.05] tracking-[-0.045em]">{p.title}</h1>
         <p className="mt-6 max-w-2xl text-xl leading-snug">{p.summary}</p>
         <p className="mt-3 text-sm text-ink-soft">{p.where}</p>
