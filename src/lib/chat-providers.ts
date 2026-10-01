@@ -1,5 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { streamText } from "ai";
+import { modelFamily } from "@/lib/model-label";
 import { activeChatProviderIds, type ChatProviderId } from "@/lib/chat-provider-env";
 import {
   getInferenciaApiKey,
@@ -26,6 +27,28 @@ function inferenciaFastFailMs(): number {
   return Number.isFinite(n) && n >= 500 ? n : 6_000;
 }
 const OPENROUTER_PER_MODEL_MS = 35_000;
+const CLOUDFLARE_LAST_MODEL_MS = 20_000;
+const CLOUDFLARE_DEFAULT_MODELS = [
+  "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  "@cf/meta/llama-3.1-8b-instruct-fast",
+];
+
+/** First-token deadline for every Workers AI model except the last. Override with CLOUDFLARE_FAST_FAIL_MS. */
+function cloudflareFastFailMs(): number {
+  const n = Number(process.env.CLOUDFLARE_FAST_FAIL_MS);
+  return Number.isFinite(n) && n >= 500 ? n : 6_000;
+}
+
+/** Ordered Workers AI models: CLOUDFLARE_CHAT_MODELS (comma list), with legacy CLOUDFLARE_CHAT_MODEL as the first entry. */
+function cloudflareChatModels(): string[] {
+  const list = (process.env.CLOUDFLARE_CHAT_MODELS ?? "")
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean);
+  const base = list.length > 0 ? list : [...CLOUDFLARE_DEFAULT_MODELS];
+  const legacy = process.env.CLOUDFLARE_CHAT_MODEL?.trim();
+  return legacy ? [legacy, ...base.filter((m) => m !== legacy)] : base;
+}
 const TOTAL_INFERENCE_BUDGET_MS = 52_000;
 
 export type { ChatProviderId };
@@ -132,18 +155,22 @@ function buildSpecs(): Record<ChatProviderId, ChatProviderSpec[]> {
       process.env.CLOUDFLARE_RAG_WORKER_URL?.trim() ||
       "https://lgportfolio-rag.luisgimenezdev.workers.dev"
     ).replace(/\/$/, "");
-    specs.cloudflare.push({
-      id: "cloudflare",
-      label: "Workers AI (llama-3.3-70b)",
-      model:
-        process.env.CLOUDFLARE_CHAT_MODEL?.trim() ||
-        "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-      timeoutMs: OPENROUTER_PER_MODEL_MS,
-      createClient: () =>
-        createOpenAI({
-          baseURL: `${workerUrl}/v1`,
-          apiKey: process.env.CLOUDFLARE_RAG_KEY!.trim(),
-        }),
+    const models = cloudflareChatModels();
+    const failMs = cloudflareFastFailMs();
+    // Every model but the last gets a short first-token deadline so a stalled call falls through quickly;
+    // the last one gets a long deadline so a total failure still resolves.
+    models.forEach((model, i) => {
+      specs.cloudflare.push({
+        id: "cloudflare",
+        label: `Workers AI (${modelFamily(model)})`,
+        model,
+        timeoutMs: i < models.length - 1 ? failMs : CLOUDFLARE_LAST_MODEL_MS,
+        createClient: () =>
+          createOpenAI({
+            baseURL: `${workerUrl}/v1`,
+            apiKey: process.env.CLOUDFLARE_RAG_KEY!.trim(),
+          }),
+      });
     });
   }
 
@@ -189,6 +216,7 @@ async function awaitFirstTextDelta(
     throw new Error("Empty inference stream");
   })();
 
+  firstDelta.catch(() => {}); // a late rejection after the deadline (abort) must not become an unhandled rejection
   try {
     await Promise.race([firstDelta, timeoutPromise]);
   } finally {
@@ -216,6 +244,8 @@ export async function streamChatWithFallbacks(
     options?.onAttempt?.(provider);
 
     const attemptStart = Date.now();
+    // Aborting on failure cancels the upstream request, so a stalled call stops consuming the provider.
+    const controller = new AbortController();
     try {
       const client = provider.createClient();
       // First-token gate uses provider.timeoutMs; full stream uses remaining budget.
@@ -229,6 +259,7 @@ export async function streamChatWithFallbacks(
         maxOutputTokens: params.maxOutputTokens ?? 800,
         temperature: params.temperature ?? 0.5,
         timeout: budget,
+        abortSignal: controller.signal,
       });
       await awaitFirstTextDelta(result, timeoutMs);
       return {
@@ -239,6 +270,7 @@ export async function streamChatWithFallbacks(
         fallbackDelayMs: attemptStart - startedAt,
       };
     } catch (error) {
+      controller.abort();
       lastError = formatProviderError(error);
       options?.onFallback?.(provider, lastError);
     }

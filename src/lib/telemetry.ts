@@ -315,7 +315,7 @@ export function publishDailyBudgetGauge(): void {
 }
 
 /** Most recent real chat request, kept in memory so the home page can show it with its age. */
-let lastChatSample: { at: number; rag_ms: number; inference_ms: number } | null = null;
+let lastChatSample: { at: number; rag_ms: number; inference_ms: number; model?: string } | null = null;
 
 export function recordChatMetrics(fields: {
   durationMs: number;
@@ -323,6 +323,8 @@ export function recordChatMetrics(fields: {
   cacheHit: boolean;
   rateLimited: boolean;
   tokensUsed?: number;
+  /** Model id that actually answered (for the trace label and logs, never shown in chat text). */
+  model?: string;
 }): void {
   observe("chat_inference_duration_seconds", fields.durationMs);
   observe("chat_rag_retrieval_duration_seconds", fields.ragDurationMs);
@@ -330,7 +332,7 @@ export function recordChatMetrics(fields: {
   if (!fields.cacheHit && !fields.rateLimited) {
     observe("chat_span_rag_ms", fields.ragDurationMs);
     observe("chat_span_inference_ms", fields.durationMs);
-    lastChatSample = { at: Date.now(), rag_ms: fields.ragDurationMs, inference_ms: fields.durationMs };
+    lastChatSample = { at: Date.now(), rag_ms: fields.ragDurationMs, inference_ms: fields.durationMs, model: fields.model };
   }
   if (fields.cacheHit) increment("chat_cache_hits_total");
   if (fields.rateLimited) {
@@ -542,7 +544,7 @@ export interface ChatSpans {
   samples: number;
   rag_p50_ms: number;
   inference_p50_ms: number;
-  last: { at: number; rag_ms: number; inference_ms: number } | null;
+  last: { at: number; rag_ms: number; inference_ms: number; model?: string } | null;
 }
 
 export function getChatSpans(): ChatSpans {

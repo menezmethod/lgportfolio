@@ -1,5 +1,6 @@
 "use client";
 
+import { modelFamily } from "@/lib/model-label";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -119,7 +120,8 @@ export default function TraceWaterfall() {
   const rag = spanRow("rag", spans, now);
   const inf = spanRow("inf", spans, now);
   const rm = data?.request_metrics;
-  const providerLabel = (data?.service_status?.chat_providers ?? ["cloudflare"]).map((p: string) => ({ cloudflare: "Workers AI", openrouter: "OpenRouter", inferencia: "Inferencia" } as Record<string, string>)[p] ?? p).join(" then ") || "no provider";
+  const servedModel = data?.chat_spans?.last?.model ?? data?.chat_spans?.probe?.inference?.model;
+  const providerLabel = (data?.service_status?.chat_providers ?? ["cloudflare"]).map((p: string) => (({ cloudflare: "Workers AI", openrouter: "OpenRouter", inferencia: "Inferencia" } as Record<string, string>)[p] ?? p) + (p === "cloudflare" && servedModel ? ` (${modelFamily(servedModel)})` : "")).join(" then ") || "no provider";
   const appMs = rm && rm.total_24h > 0 ? rm.latency_p50 : null;
 
   const rows: Row[] = [

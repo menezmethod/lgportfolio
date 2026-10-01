@@ -331,6 +331,7 @@ ${context}`;
       ragDurationMs,
       cacheHit: false,
       rateLimited: false,
+      model,
     });
 
     log("INFO", "Chat response (inference)", {

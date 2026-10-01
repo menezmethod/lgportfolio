@@ -1,5 +1,6 @@
 'use client';
 
+import { modelFamily } from '@/lib/model-label';
 import { useState } from 'react';
 import { Cpu, Zap, Shield, Database, Radio, Clock, AlertTriangle, BarChart3, Wifi, Bot, ChevronDown, ChevronUp } from 'lucide-react';
 import { checkDisplay, overallDisplay, MIN_REQUESTS, type Tone } from './status';
@@ -13,10 +14,10 @@ export interface WarRoomData {
     samples: number;
     rag_p50_ms: number;
     inference_p50_ms: number;
-    last: { at: number; rag_ms: number; inference_ms: number } | null;
+    last: { at: number; rag_ms: number; inference_ms: number; model?: string } | null;
     probe?: {
       rag: { at: number; ms: number } | null;
-      inference: { at: number; ms: number } | null;
+      inference: { at: number; ms: number; model?: string } | null;
       rag_configured: boolean;
       inference_configured: boolean;
     };
@@ -172,6 +173,8 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
   if (!data) return null;
 
   const d = data;
+  // Model that actually served the most recent answer (chat first, else the scheduled probe).
+  const servedModel = d.chat_spans?.last?.model ?? d.chat_spans?.probe?.inference?.model;
   const checks = d.service_status.checks;
   const budgetMax = d.chat_metrics.budget_used + d.chat_metrics.budget_remaining;
   const thin = d.request_metrics.total_24h < MIN_REQUESTS;
@@ -237,7 +240,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
               {name === 'inference_api' && d.service_status.chat_providers && (
                 <span className="text-xs text-ink-soft">
                   {d.service_status.chat_providers.length > 0
-                    ? `via ${d.service_status.chat_providers.map((p) => PROVIDER_LABELS[p] ?? p).join(' then ')}`
+                    ? `via ${d.service_status.chat_providers.map((p) => (PROVIDER_LABELS[p] ?? p) + (p === 'cloudflare' && servedModel ? ` (${modelFamily(servedModel)})` : '')).join(' then ')}`
                     : 'no provider configured'}
                 </span>
               )}

@@ -129,6 +129,20 @@ describe("/api/chat — provider configuration", () => {
     expect(getChatSpans().last?.inference_ms).toBe(412);
   });
 
+  it("counts the daily budget once per user message even when a fallback model answered", async () => {
+    const { getDailyBudgetStats } = await import("@/lib/rate-limit");
+    mockStreamChatWithFallbacks.mockResolvedValueOnce({
+      result: { toTextStreamResponse: mockToTextStreamResponse },
+      provider: "cloudflare",
+      model: "@cf/meta/llama-3.1-8b-instruct-fast",
+      attemptMs: 300,
+      fallbackDelayMs: 6000,
+    });
+    const before = getDailyBudgetStats().used;
+    await POST(makeChatRequest(validBody));
+    expect(getDailyBudgetStats().used - before).toBe(1);
+  });
+
   it("calls streamChatWithFallbacks with temperature 0.5", async () => {
     await POST(makeChatRequest(validBody));
     expect(mockStreamChatWithFallbacks).toHaveBeenCalledWith(

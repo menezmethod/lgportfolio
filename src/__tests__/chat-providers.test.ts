@@ -69,9 +69,9 @@ describe("chat-providers", () => {
   it("appends the Cloudflare Workers AI fallback last when configured", () => {
     vi.stubEnv("CLOUDFLARE_RAG_KEY", "cf-key");
     const chain = buildChatProviderChain();
-    const last = chain[chain.length - 1];
-    expect(last.id).toBe("cloudflare");
-    expect(last.model).toBe("@cf/meta/llama-3.3-70b-instruct-fp8-fast");
+    const cf = chain.filter((c) => c.id === "cloudflare");
+    expect(chain[chain.length - 1].id).toBe("cloudflare");
+    expect(cf.map((c) => c.model)).toEqual(["@cf/meta/llama-3.3-70b-instruct-fp8-fast", "@cf/meta/llama-3.1-8b-instruct-fast"]);
   });
 
   it("uses only Cloudflare when it is the sole provider", () => {
@@ -79,8 +79,8 @@ describe("chat-providers", () => {
     delete process.env.OPENROUTER_API_KEY;
     vi.stubEnv("CLOUDFLARE_RAG_KEY", "cf-key");
     const chain = buildChatProviderChain();
-    expect(chain).toHaveLength(1);
-    expect(chain[0].id).toBe("cloudflare");
+    expect(chain).toHaveLength(2); // 70B then the 8B fallback model
+    expect(chain.every((c) => c.id === "cloudflare")).toBe(true);
     expect(isChatConfigured()).toBe(true);
   });
 
@@ -169,7 +169,8 @@ describe("chat-providers", () => {
     );
     const call = mockStreamText.mock.calls[0][0];
     expect(call.timeout).toBeGreaterThanOrEqual(50_000);
-    expect(call.abortSignal).toBeUndefined();
+    // The signal only cancels a failed attempt; it is not a short cap on the answering stream.
+    expect(call.abortSignal.aborted).toBe(false);
   });
 
   it("throws when all providers fail", async () => {
