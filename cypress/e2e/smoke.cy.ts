@@ -5,10 +5,10 @@
 describe('Smoke: page load + content', () => {
   it('homepage: shows name, the headline, and the case studies', () => {
     cy.visit('/');
-    cy.get('h1').should('contain.text', 'Luis Gimenez');
+    cy.get('h1').invoke('text').should('match', /Luis\s*Gimenez/); // the name wraps onto two lines
     cy.contains('I build and run systems that have to keep working').should('exist');
     cy.contains('The Home Depot').should('exist');
-    cy.contains('Open to Senior Platform, Infrastructure, and Go backend roles').should('exist');
+    cy.contains('Senior Platform, Infrastructure, and Go backend roles').should('exist');
     cy.get('#systems').should('exist');
     cy.contains('Open case study').should('exist');
   });

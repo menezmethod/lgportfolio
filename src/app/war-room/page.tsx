@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Loader2 } from 'lucide-react';
 import { WarRoomDashboard, type WarRoomData } from '@/components/war-room/WarRoomDashboard';
 
 export default function WarRoom() {
@@ -49,17 +48,6 @@ export default function WarRoom() {
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }, [fetchData]);
-
-  if (loading && !data) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="flex items-center gap-3 font-mono text-ink-soft">
-          <Loader2 className="size-5 animate-spin motion-reduce:animate-none" aria-hidden />
-          <span>Initializing telemetry...</span>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="pb-16">

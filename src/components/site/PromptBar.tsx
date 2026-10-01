@@ -24,13 +24,15 @@ export default function PromptBar() {
 
   return (
     <div>
-      <form onSubmit={submit} className="flex items-center gap-3 rounded-lg border border-hairline bg-card p-2 pl-5 transition-colors focus-within:border-foreground">
+      <form action="/chat" method="get" onSubmit={submit} className="flex items-center gap-3 rounded-lg border border-hairline bg-card p-2 pl-5 transition-colors focus-within:border-foreground">
         <Search className="size-5 shrink-0 text-ink-soft" aria-hidden />
         <label htmlFor="ask" className="sr-only">
           Ask the assistant about Luis&apos;s work. The answer comes from the chat.
         </label>
         <input
           id="ask"
+          name="q"
+          maxLength={500}
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Ask the assistant about Luis's work"
