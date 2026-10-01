@@ -31,4 +31,13 @@ describe("labels say what they measure", () => {
     expect(priv).toContain("switch it off in Cloudflare");
     expect(priv).toContain('localStorage under the key \\"theme\\"');
   });
+
+  it("war room neutral values and the memory badge use neutral ink, alarm colours only for real breaches", () => {
+    const wr = read("src/components/war-room/WarRoomDashboard.tsx");
+    expect(wr).toMatch(/label: `Requests \(\$\{win\}\)`[^\n]*color: 'text-foreground'/);
+    expect(wr).toMatch(/label: `Cache Hit[^\n]*color: 'text-foreground'/);
+    expect(wr).toMatch(/latency_p95 > 500 \? 'text-amber/);
+    expect(wr).toContain("'bg-muted text-ink-soft border-hairline'");
+    expect(wr).not.toMatch(/rate_limit_hits_24h > 0 \?/);
+  });
 });
