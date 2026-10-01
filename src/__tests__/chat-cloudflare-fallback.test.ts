@@ -37,6 +37,86 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+const after = (ms: number, text = "ok") => ({
+  textStream: (async function* () { await new Promise((r) => setTimeout(r, ms)); yield text; })(),
+  toTextStreamResponse: vi.fn(),
+});
+
+describe("Workers AI hedging", () => {
+  it("70B stalls past 1.5 s: the 8B starts in parallel and answers; total about 1.5 s; the 70B is aborted", async () => {
+    vi.useFakeTimers();
+    mockStreamText.mockReturnValueOnce(stalled()).mockReturnValueOnce(fast("from 8b"));
+    const t0 = Date.now();
+    const p = streamChatWithFallbacks(params);
+    await vi.advanceTimersByTimeAsync(1_500);
+    const r = await p;
+    expect(Date.now() - t0).toBeLessThan(1_800);
+    expect(r.model).toBe(M8);
+    expect(r.hedged).toBe(true);
+    expect(r.fallbackDelayMs).toBeGreaterThanOrEqual(1_500);
+    expect(r.attemptMs).toBeLessThan(500); // span from the hedge attempt's own start
+    expect(mockStreamText).toHaveBeenCalledTimes(2);
+    expect(mockStreamText.mock.calls[0][0].abortSignal.aborted).toBe(true); // loser cancelled upstream
+    expect(mockStreamText.mock.calls[1][0].abortSignal.aborted).toBe(false);
+  });
+
+  it("the 70B still wins when its first token arrives after the hedge started; the 8B is aborted", async () => {
+    vi.useFakeTimers();
+    mockStreamText.mockReturnValueOnce(after(3_100, "from 70b")).mockReturnValueOnce(stalled());
+    const p = streamChatWithFallbacks(params);
+    await vi.advanceTimersByTimeAsync(3_100);
+    const r = await p;
+    expect(r.model).toBe(M70);
+    expect(r.hedged).toBe(true); // the hedge fired even though the primary won
+    expect(r.attemptMs).toBeGreaterThanOrEqual(3_100);
+    expect(mockStreamText.mock.calls[1][0].abortSignal.aborted).toBe(true);
+    expect(mockStreamText.mock.calls[0][0].abortSignal.aborted).toBe(false);
+  });
+
+  it("both stall: each is abandoned at its own backstop (70B 3.5 s, 8B 20 s) and the error is clean", async () => {
+    vi.useFakeTimers();
+    mockStreamText.mockReturnValue(stalled());
+    const p = streamChatWithFallbacks(params);
+    const settled = p.then(() => "ok", (e: Error) => e.message);
+    await vi.advanceTimersByTimeAsync(3_500);
+    expect(mockStreamText.mock.calls[0][0].abortSignal.aborted).toBe(true); // 70B backstop
+    expect(mockStreamText.mock.calls[1][0].abortSignal.aborted).toBe(false); // 8B still allowed to answer
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(await settled).toMatch(/^All chat providers failed: Inference timeout/);
+    expect(mockStreamText.mock.calls[1][0].abortSignal.aborted).toBe(true);
+    expect(mockStreamText).toHaveBeenCalledTimes(2);
+  });
+
+  it("if the 70B fails fast (before the hedge delay) the 8B runs sequentially, not hedged", async () => {
+    mockStreamText
+      .mockReturnValueOnce({ textStream: (async function* () { throw new Error("502"); })(), toTextStreamResponse: vi.fn() })
+      .mockReturnValueOnce(fast("from 8b"));
+    const r = await streamChatWithFallbacks(params);
+    expect(r.model).toBe(M8);
+    expect(r.hedged).toBe(false);
+  });
+
+  it("CLOUDFLARE_HEDGE_MS overrides the delay; 0 disables hedging (sequential after the 70B deadline)", async () => {
+    vi.useFakeTimers();
+    vi.stubEnv("CLOUDFLARE_HEDGE_MS", "500");
+    mockStreamText.mockReturnValueOnce(stalled()).mockReturnValueOnce(fast("8b"));
+    let p = streamChatWithFallbacks(params);
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await p).hedged).toBe(true);
+
+    mockStreamText.mockReset();
+    vi.stubEnv("CLOUDFLARE_HEDGE_MS", "0");
+    mockStreamText.mockReturnValueOnce(stalled()).mockReturnValueOnce(fast("8b"));
+    p = streamChatWithFallbacks(params);
+    await vi.advanceTimersByTimeAsync(1_500);
+    expect(mockStreamText).toHaveBeenCalledTimes(1); // no hedge
+    await vi.advanceTimersByTimeAsync(2_000);
+    const r = await p;
+    expect(r.model).toBe(M8);
+    expect(r.hedged).toBe(false);
+  });
+});
+
 describe("Workers AI ordered models with a first-token deadline", () => {
   it("default list is 70B then 8B; 70B gets 3.5 s, the last model gets 20 s", () => {
     const chain = buildChatProviderChain();
@@ -44,25 +124,11 @@ describe("Workers AI ordered models with a first-token deadline", () => {
     expect(chain.map((c) => c.timeoutMs)).toEqual([3_500, 20_000]);
   });
 
-  it("a stalled 70B is abandoned at 3.5 s and the 8B answers, total under 4.5 s, upstream aborted", async () => {
-    vi.useFakeTimers();
-    mockStreamText.mockReturnValueOnce(stalled()).mockReturnValueOnce(fast("from 8b"));
-    const t0 = Date.now();
-    const p = streamChatWithFallbacks(params);
-    await vi.advanceTimersByTimeAsync(3_500);
-    const r = await p;
-    expect(Date.now() - t0).toBeLessThan(4_500);
-    expect(r.model).toBe(M8);
-    expect(r.fallbackDelayMs).toBeGreaterThanOrEqual(3_500);
-    expect(r.attemptMs).toBeLessThan(1_000);
-    expect(mockStreamText.mock.calls[0][0].abortSignal.aborted).toBe(true); // cancels the stalled upstream request
-    expect(mockStreamText.mock.calls[1][0].abortSignal.aborted).toBe(false); // the answering stream stays alive
-  });
-
-  it("a fast 70B does not trigger the fallback", async () => {
+  it("a fast 70B does not fire the hedge: the 8B is never started", async () => {
     mockStreamText.mockReturnValueOnce(fast());
     const r = await streamChatWithFallbacks(params);
     expect(r.model).toBe(M70);
+    expect(r.hedged).toBe(false);
     expect(mockStreamText).toHaveBeenCalledTimes(1);
     expect(r.fallbackDelayMs).toBeLessThan(100);
   });

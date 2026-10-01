@@ -143,6 +143,32 @@ describe("/api/chat — provider configuration", () => {
     expect(getDailyBudgetStats().used - before).toBe(1);
   });
 
+  it("records whether the hedge fired: log field, counters and hedge rate; budget still +1", async () => {
+    const { getCounter, getWarRoomData } = await import("@/lib/telemetry");
+    const { getDailyBudgetStats } = await import("@/lib/rate-limit");
+    const h0 = getCounter("chat_hedges_total");
+    const a0 = getCounter("chat_model_answers_total");
+    const used0 = getDailyBudgetStats().used;
+    mockStreamChatWithFallbacks.mockResolvedValueOnce({
+      result: { toTextStreamResponse: mockToTextStreamResponse },
+      provider: "cloudflare",
+      model: "@cf/meta/llama-3.1-8b-instruct-fast",
+      attemptMs: 200,
+      fallbackDelayMs: 1500,
+      hedged: true,
+    });
+    const spy = vi.spyOn(console, "log");
+    await POST(makeChatRequest(validBody));
+    const logged = spy.mock.calls.map((c) => String(c[0])).find((l) => l.includes("Chat response (inference)"));
+    expect(logged).toContain('"hedged":true');
+    expect(getCounter("chat_hedges_total") - h0).toBe(1);
+    expect(getCounter("chat_model_answers_total") - a0).toBe(1);
+    expect(getDailyBudgetStats().used - used0).toBe(1);
+    const cm = getWarRoomData().chat_metrics;
+    expect(cm.hedged_answers).toBeGreaterThanOrEqual(1);
+    expect(cm.hedge_rate).toBeGreaterThan(0);
+  });
+
   it("calls streamChatWithFallbacks with temperature 0.5", async () => {
     await POST(makeChatRequest(validBody));
     expect(mockStreamChatWithFallbacks).toHaveBeenCalledWith(

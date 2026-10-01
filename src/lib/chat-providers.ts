@@ -77,6 +77,8 @@ export interface StreamChatResult {
   attemptMs?: number;
   /** Time spent on failed attempts before the successful one started. */
   fallbackDelayMs?: number;
+  /** True when the second Workers AI model was started in parallel because the first was slow. */
+  hedged?: boolean;
 }
 
 function parseOpenRouterModels(): string[] {
@@ -224,33 +226,39 @@ async function awaitFirstTextDelta(
   }
 }
 
-export async function streamChatWithFallbacks(
+/** Delay before the second Workers AI model is started in parallel. 0 turns hedging off. Override with CLOUDFLARE_HEDGE_MS. */
+function cloudflareHedgeMs(): number {
+  const raw = process.env.CLOUDFLARE_HEDGE_MS;
+  if (raw === undefined || raw.trim() === "") return 1_500;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : 1_500;
+}
+
+interface Attempt {
+  provider: ChatProviderSpec;
+  start: number;
+  controller: AbortController;
+  /** Resolves on the first token. On failure or deadline it aborts its own upstream request and rejects. */
+  done: Promise<StreamChatResult>;
+}
+
+/** Start one provider attempt. Aborting its controller cancels the upstream fetch. */
+function startAttempt(
+  provider: ChatProviderSpec,
   params: StreamChatParams,
-  options?: { onAttempt?: (provider: ChatProviderSpec) => void; onFallback?: (from: ChatProviderSpec, error: string) => void }
-): Promise<StreamChatResult> {
-  const chain = buildChatProviderChain();
-  if (chain.length === 0) {
-    throw new Error("No chat providers configured");
-  }
-
-  const startedAt = Date.now();
-  let lastError = "unknown";
-
-  for (const provider of chain) {
-    const budget = remainingBudgetMs(startedAt);
-    if (budget < 3_000) break;
-
-    const timeoutMs = Math.min(provider.timeoutMs, budget);
-    options?.onAttempt?.(provider);
-
-    const attemptStart = Date.now();
-    // Aborting on failure cancels the upstream request, so a stalled call stops consuming the provider.
-    const controller = new AbortController();
+  budget: number,
+  startedAt: number,
+  options?: { onAttempt?: (provider: ChatProviderSpec) => void }
+): Attempt {
+  const timeoutMs = Math.min(provider.timeoutMs, budget);
+  options?.onAttempt?.(provider);
+  const start = Date.now();
+  const controller = new AbortController();
+  const done = (async () => {
     try {
       const client = provider.createClient();
-      // First-token gate uses provider.timeoutMs; full stream uses remaining budget.
-      // Do not pass AbortSignal.timeout(timeoutMs) — it caps the entire response at the
-      // fast-fail window and truncates answers after the first token arrives.
+      // First-token gate uses the provider deadline; the full stream uses the remaining budget.
+      // The signal only cancels a failed or losing attempt; it is not a short cap on the answering stream.
       const result = streamText({
         model: client.chat(provider.model),
         system: params.system,
@@ -266,13 +274,106 @@ export async function streamChatWithFallbacks(
         result,
         provider: provider.id,
         model: provider.model,
-        attemptMs: Date.now() - attemptStart,
-        fallbackDelayMs: attemptStart - startedAt,
-      };
+        attemptMs: Date.now() - start,
+        fallbackDelayMs: start - startedAt,
+        hedged: false,
+      } as StreamChatResult;
     } catch (error) {
       controller.abort();
+      throw error;
+    }
+  })();
+  done.catch(() => {}); // a loser that fails after the winner was chosen must not become an unhandled rejection
+  return { provider, start, controller, done };
+}
+
+/**
+ * Workers AI hedge: run the primary; if it has no first token after hedgeMs, start the secondary in parallel
+ * without cancelling the primary. The first first-token wins and the loser is aborted upstream. Each attempt
+ * keeps its own hard deadline as a backstop. The caller counts the daily budget once, after this resolves.
+ */
+async function hedgedPair(
+  primary: ChatProviderSpec,
+  secondary: ChatProviderSpec,
+  params: StreamChatParams,
+  budget: number,
+  startedAt: number,
+  hedgeMs: number,
+  options?: { onAttempt?: (provider: ChatProviderSpec) => void; onFallback?: (from: ChatProviderSpec, error: string) => void }
+): Promise<StreamChatResult> {
+  const a = startAttempt(primary, params, budget, startedAt, options);
+  let hedgeTimer: ReturnType<typeof setTimeout> | undefined;
+  const timer = new Promise<"hedge">((resolve) => {
+    hedgeTimer = setTimeout(() => resolve("hedge"), hedgeMs);
+  });
+  const first = await Promise.race([
+    a.done.then(
+      (r) => ({ ok: true as const, r }),
+      (e) => ({ ok: false as const, e })
+    ),
+    timer,
+  ]);
+  if (hedgeTimer) clearTimeout(hedgeTimer);
+  if (first !== "hedge") {
+    if (first.ok) return first.r; // fast primary: the secondary never starts
+    options?.onFallback?.(primary, formatProviderError(first.e));
+    // Primary failed before the hedge delay: plain sequential fallback, no hedge.
+    const b = startAttempt(secondary, params, remainingBudgetMs(startedAt), startedAt, options);
+    return await b.done.catch((e) => {
+      options?.onFallback?.(secondary, formatProviderError(e));
+      throw e;
+    });
+  }
+
+  // Primary is slow: hedge.
+  const b = startAttempt(secondary, params, remainingBudgetMs(startedAt), startedAt, options);
+  const settle = (at: Attempt, other: Attempt) =>
+    at.done.then(
+      (r) => {
+        other.controller.abort(); // cancel the loser upstream right away
+        return { ...r, hedged: true };
+      },
+      (e) => {
+        options?.onFallback?.(at.provider, formatProviderError(e));
+        throw e;
+      }
+    );
+  // The first to produce a token wins; if one fails the other can still win; both failing rejects.
+  return await Promise.any([settle(a, b), settle(b, a)]).catch((agg: AggregateError) => {
+    throw agg.errors?.[agg.errors.length - 1] ?? new Error("unknown");
+  });
+}
+
+export async function streamChatWithFallbacks(
+  params: StreamChatParams,
+  options?: { onAttempt?: (provider: ChatProviderSpec) => void; onFallback?: (from: ChatProviderSpec, error: string) => void }
+): Promise<StreamChatResult> {
+  const chain = buildChatProviderChain();
+  if (chain.length === 0) {
+    throw new Error("No chat providers configured");
+  }
+
+  const startedAt = Date.now();
+  let lastError = "unknown";
+  const hedgeMs = cloudflareHedgeMs();
+
+  for (let i = 0; i < chain.length; i++) {
+    const provider = chain[i];
+    const budget = remainingBudgetMs(startedAt);
+    if (budget < 3_000) break;
+
+    try {
+      const next = chain[i + 1];
+      if (provider.id === "cloudflare" && next?.id === "cloudflare" && hedgeMs > 0) {
+        const r = await hedgedPair(provider, next, params, budget, startedAt, hedgeMs, options);
+        return r;
+      }
+      const attempt = startAttempt(provider, params, budget, startedAt, options);
+      return await attempt.done;
+    } catch (error) {
       lastError = formatProviderError(error);
-      options?.onFallback?.(provider, lastError);
+      if (!(chain[i].id === "cloudflare" && chain[i + 1]?.id === "cloudflare" && hedgeMs > 0)) options?.onFallback?.(provider, lastError);
+      else i++; // the hedged pair already tried both models
     }
   }
 

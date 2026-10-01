@@ -44,6 +44,9 @@ export interface WarRoomData {
     avg_inference_ms: number;
     cache_hit_rate: number;
     rate_limit_hits_24h: number;
+    model_answers?: number;
+    hedged_answers?: number;
+    hedge_rate?: number;
     budget_used: number;
     budget_remaining: number;
   };
@@ -371,6 +374,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
                 <div className="flex justify-between"><span className="text-ink-soft">Conversations ({win})</span><span>{d.chat_metrics.conversations_24h}</span></div>
                 <div className="flex justify-between"><span className="text-ink-soft">Inference p50, first token</span><span>{d.chat_metrics.avg_inference_ms}ms</span></div>
                 <div className="flex justify-between"><span className="text-ink-soft">Cache Hit Rate ({win})</span><span>{d.chat_metrics.cache_hit_rate}%</span></div>
+                <div className="flex justify-between"><span className="text-ink-soft">Hedged answers ({win})</span><span>{d.chat_metrics.hedged_answers ?? 0} of {d.chat_metrics.model_answers ?? 0}{(d.chat_metrics.model_answers ?? 0) > 0 ? ` (${d.chat_metrics.hedge_rate ?? 0}%)` : ''}</span></div>
                 <div className="flex justify-between"><span className="text-ink-soft">Rate Limits ({win})</span><span>{d.chat_metrics.rate_limit_hits_24h}</span></div>
               </div>
             </div>
