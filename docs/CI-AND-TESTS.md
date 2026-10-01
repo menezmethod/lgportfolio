@@ -12,7 +12,20 @@ The **GitHub Actions workflow** (`.github/workflows/ci.yml`) runs on every **pul
 1. **`lint-build-test`:** lint, build, unit tests.
 2. **`cypress`:** builds the commit, starts its own production server (`node .next/standalone/server.js` on `127.0.0.1:3000`, with `public` and `.next/static` copied in as the Dockerfile does), waits for `/api/health/live`, and runs Cypress against it (`CYPRESS_BASE_URL=http://127.0.0.1:3000`). A redesign is therefore tested against itself, not against the live site it is about to replace.
 3. **`deploy`** (push to `main` only, needs `lint-build-test` and `cypress`): triggers the **Coolify deploy** via the API.
-4. **`smoke-production`** (after `deploy`, **non-blocking**, `continue-on-error`): waits up to about 5 minutes for `https://gimenez.dev/api/health/live` while Coolify builds, then runs `cypress/e2e/smoke.cy.ts` against production. A failure prints a warning annotation and does not turn the workflow red.
+4. **`smoke-production`** (after `deploy`): this job is **strict**.
+   - It polls `https://gimenez.dev/api/health/live` every 10 s for up to 8 minutes while Coolify builds. If it never returns HTTP 200 the job **fails**, the workflow turns red, and the `::error::` annotation says Coolify accepted the deploy but the live site is not answering.
+   - Then plain `curl` assertions: `/` and `/privacy` return 200, `/api/health/live` returns exactly `{"status":"ok"}`, and `/api/chat/storage` returns JSON with a boolean `storage`. Any miss fails the job.
+   - Only the last step, the Cypress content smoke (`cypress/e2e/smoke.cy.ts`), is non-blocking: if it fails it prints a warning annotation.
+
+### Uptime check (`.github/workflows/uptime.yml`)
+
+Runs on `schedule: "*/15 * * * *"` and by hand (`workflow_dispatch`). One job requests `/`, `/privacy` and `/api/health/live` with `curl -fsS -m 15`, 3 attempts 10 s apart, and fails with an `::error::` message on any non-200, or if the `/api/health/live` body is not exactly `{"status":"ok"}`. It needs no secrets, has `contents: read` only, and a concurrency group so runs do not stack.
+
+Limits to know about:
+- GitHub Actions cron can run late (it often slips by several minutes under load) and is not guaranteed.
+- Scheduled workflows are **auto-disabled after 60 days without repository activity**. Re-enable from the Actions tab if that happens.
+- GitHub emails only the user who last touched the workflow (the "actor"), and only if their notification settings allow it.
+- **Owner action:** also add an external free monitor, for example UptimeRobot, on `https://gimenez.dev/api/health/live` (keyword `ok`, 5 minute interval) with email or push alerts. It does not depend on GitHub.
 
 `cypress.config.ts` keeps `https://gimenez.dev` as the default `baseUrl` for manual runs; override with `CYPRESS_BASE_URL` or `--config baseUrl=...`.
 
