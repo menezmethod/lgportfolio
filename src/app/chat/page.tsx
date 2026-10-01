@@ -177,6 +177,7 @@ export default function Chat() {
   const [sessionMessageCount, setSessionMessageCount] = useState(0);
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [emailError, setEmailError] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -469,6 +470,7 @@ export default function Chat() {
               <a href="/privacy" className="link-under text-foreground">Privacy</a>
             </p>
 
+            {emailSent && <p className="mt-2 text-center font-mono text-xs text-ink-soft">Saved. Luis can follow up by email.</p>}
             {messages.length > 2 && !emailSent && (
               <div className="text-center mt-2">
                 {!showEmailCapture ? (
@@ -493,8 +495,15 @@ export default function Chat() {
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ session_id: sessionIdRef.current, email }),
                         });
-                        if (res.ok) setEmailSent(true);
-                      } catch { /* ignore */ }
+                        if (res.ok) {
+                          setEmailSent(true);
+                          setEmailError('');
+                        } else {
+                          setEmailError('Could not save your email here. Please email luisgimenezdev@gmail.com directly.');
+                        }
+                      } catch {
+                        setEmailError('Could not save your email here. Please email luisgimenezdev@gmail.com directly.');
+                      }
                     }}
                   >
                     <input
@@ -511,6 +520,7 @@ export default function Chat() {
                     <p className="w-full text-xs text-ink-soft font-mono mt-1">
                       Your email is saved with this chat so Luis can follow up. To delete it, email luisgimenezdev@gmail.com.
                     </p>
+                    {emailError && <p role="alert" className="w-full text-xs text-red-700 dark:text-red-400 font-mono">{emailError}</p>}
                   </form>
                 )}
               </div>

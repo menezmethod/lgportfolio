@@ -1,4 +1,4 @@
-import { setRecruiterEmail } from "@/lib/firestore";
+import { isFirestoreConfigured, setRecruiterEmail } from "@/lib/firestore";
 import { getTraceIdFromRequest } from "@/lib/trace-context";
 import { log, recordRequest } from "@/lib/telemetry";
 
@@ -25,6 +25,15 @@ export async function POST(req: Request) {
     if (!trimmed || !EMAIL_REGEX.test(trimmed)) {
       recordRequest("/api/chat/save-email", "POST", 400, Date.now() - start);
       return new Response(JSON.stringify({ error: "Valid email required" }), { status: 400, headers: SECURITY_HEADERS });
+    }
+
+    // Never claim success when nothing is stored.
+    if (!isFirestoreConfigured()) {
+      recordRequest("/api/chat/save-email", "POST", 503, Date.now() - start);
+      return new Response(
+        JSON.stringify({ error: "Email storage is not available", message: "Storage is not enabled on this site right now." }),
+        { status: 503, headers: SECURITY_HEADERS }
+      );
     }
 
     await setRecruiterEmail(sessionId, trimmed);

@@ -3,10 +3,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // Mock firestore before importing route
 vi.mock("@/lib/firestore", () => ({
   setRecruiterEmail: vi.fn().mockResolvedValue(undefined),
+  isFirestoreConfigured: vi.fn(() => true),
 }));
 
 import { POST } from "@/app/api/chat/save-email/route";
-import { setRecruiterEmail } from "@/lib/firestore";
+import { isFirestoreConfigured, setRecruiterEmail } from "@/lib/firestore";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -24,6 +25,16 @@ function makeRequest(body: unknown) {
     body: JSON.stringify(body),
   });
 }
+
+describe("/api/chat/save-email without Firestore", () => {
+  it("returns 503 and stores nothing when Firestore is not configured", async () => {
+    vi.mocked(isFirestoreConfigured).mockReturnValueOnce(false);
+    const response = await POST(makeRequest({ session_id: "s1", email: "a@b.co" }));
+    expect(response.status).toBe(503);
+    expect((await response.json()).error).toContain("not available");
+    expect(setRecruiterEmail).not.toHaveBeenCalled();
+  });
+});
 
 describe("/api/chat/save-email", () => {
   it("returns 400 when session_id is missing", async () => {

@@ -107,7 +107,7 @@ await withApp({ PROMETHEUS_URL: `http://127.0.0.1:${fakePort}` }, async (base) =
   check("fake: requests 4321, rpm 7", r.total_24h === 4321 && r.rpm_current === 7, JSON.stringify(r));
   check("fake: p50 45 ms, p95 310 ms, p99 900 ms", r.latency_p50 === 45 && r.latency_p95 === 310 && r.latency_p99 === 900);
   check("fake: server error rate 0.5%", Math.abs(r.error_rate_1h - 0.5) < 0.001, String(r.error_rate_1h));
-  check("fake: chat 12 conversations, inference p50 1200 ms, cache hit 25%, rate limits 1", d.chat_metrics.avg_inference_ms === 1200 && d.chat_metrics.conversations_24h === 12 && d.chat_metrics.cache_hit_rate === 25 && d.chat_metrics.rate_limit_hits_24h === 1, JSON.stringify(d.chat_metrics));
+  check("fake: chat 12 conversations, inference p50 1200 ms, cache hit rate 25, rate limits 1", d.chat_metrics.avg_inference_ms === 1200 && d.chat_metrics.conversations_24h === 12 && d.chat_metrics.cache_hit_rate === 25 && d.chat_metrics.rate_limit_hits_24h === 1, JSON.stringify(d.chat_metrics));
   check("fake: cold starts 2", d.infrastructure.cold_starts === 2);
   check("fake: chart series have 5 points", d.timeseries.latency_1h.length === 5 && d.timeseries.requests_1h.length === 5);
   const slo = Object.fromEntries(d.slos.map((s) => [s.name, s]));
