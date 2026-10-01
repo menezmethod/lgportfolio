@@ -225,7 +225,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
             <div key={name} className={`p-4 rounded-md border ${TONE_BG[c.tone]} flex flex-col gap-2`}>
               <div className="flex items-center gap-2">
                 <StatusDot tone={c.tone} />
-                <span className="text-xs font-mono uppercase tracking-wider text-ink-soft truncate">{name.replace(/_/g, ' ')}</span>
+                <span className="text-xs font-mono uppercase tracking-wider text-ink-soft break-words">{name.replace(/_/g, ' ')}</span>
               </div>
               <span className={`text-sm font-mono ${TONE_TEXT[c.tone]}`}>
                 {c.label}
@@ -245,7 +245,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
             {d.slos.map((slo) => thin ? (
               <div key={slo.name} className="p-3 rounded-md border border-hairline bg-card">
                 <div className="flex items-center justify-between gap-2 mb-1 min-w-0">
-                  <span className="text-xs font-mono text-ink-soft truncate min-w-0">{slo.name}</span>
+                  <span className="text-xs font-mono text-ink-soft min-w-0">{slo.name}</span>
                   <span className="text-xs font-mono text-ink-soft shrink-0">NO DATA</span>
                 </div>
                 <p className="text-sm text-ink-soft">Insufficient data (&lt;{MIN_REQUESTS} requests)</p>
@@ -253,7 +253,7 @@ export function WarRoomDashboard({ data, loading, error, lastFetch = '', compact
             ) : (
               <div key={slo.name} className={`p-3 rounded-md border ${slo.met ? 'border-emerald-400/20 bg-emerald-400/5' : 'border-red-400/20 bg-red-400/5'}`}>
                 <div className="flex items-center justify-between gap-2 mb-1 min-w-0">
-                  <span className="text-xs font-mono text-ink-soft truncate min-w-0">{slo.name}</span>
+                  <span className="text-xs font-mono text-ink-soft min-w-0">{slo.name}</span>
                   <span className={`text-xs font-mono font-bold ${slo.met ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}>
                     {slo.met ? 'MET' : 'BREACH'}
                   </span>
