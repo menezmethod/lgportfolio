@@ -1,6 +1,6 @@
 # CI: lint, build, unit tests, e2e (Cypress against this commit's own production build).
 # Required to pass before merging to main. On push to main, deploys to Coolify after all checks pass,
-# then a non-blocking smoke test runs against the live site.
+# then strict live checks (fail if the site is down) and a non-blocking content smoke test.
 # Terraform (terraform/) is kept for optional GCP rollback only, not run in CI.
 
 name: CI
@@ -115,13 +115,43 @@ jobs:
             "${COOLIFY_URL%/}/api/v1/deploy?uuid=${COOLIFY_APP_UUID}&force=false")"
           echo "${deploy_response}"
 
-  # Non-blocking: after the deploy, check the live site. A failure here is a warning, never a red workflow.
+  # After the deploy: the live site MUST answer (strict, fails the workflow and emails the owner), then a content
+  # smoke test runs that only warns.
   smoke-production:
     runs-on: ubuntu-latest
     needs: deploy
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+
+      - name: Wait for production (strict; Coolify builds the image, up to 8 minutes)
+        run: |
+          for i in $(seq 1 48); do
+            code="$(curl -s -o /dev/null -w '%{http_code}' -m 15 https://gimenez.dev/api/health/live || true)"
+            if [ "$code" = "200" ]; then
+              echo "gimenez.dev answered 200 after about $((i * 10)) s"
+              # The old container can answer while the new one is still starting; give the swap a moment.
+              sleep 30
+              exit 0
+            fi
+            echo "attempt $i: HTTP ${code:-none}"
+            sleep 10
+          done
+          echo "::error title=Production is not answering::Coolify accepted the deploy but https://gimenez.dev/api/health/live did not return HTTP 200 within 8 minutes. The live site is down or unreachable."
+          exit 1
+
+      - name: Strict live checks (plain curl)
+        run: |
+          set -euo pipefail
+          fail() { echo "::error title=Production check failed::$1"; exit 1; }
+          for path in / /privacy; do
+            code="$(curl -s -o /dev/null -w '%{http_code}' -m 20 "https://gimenez.dev${path}" || true)"
+            [ "$code" = "200" ] || fail "https://gimenez.dev${path} returned HTTP ${code:-none}, expected 200."
+          done
+          body="$(curl -fsS -m 15 https://gimenez.dev/api/health/live)" || fail "/api/health/live request failed."
+          [ "$body" = '{"status":"ok"}' ] || fail "/api/health/live body was not {\"status\":\"ok\"}."
+          storage="$(curl -fsS -m 15 https://gimenez.dev/api/chat/storage)" || fail "/api/chat/storage request failed."
+          echo "$storage" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d.get("storage"), bool)' || fail "/api/chat/storage did not return the expected JSON."
+          echo "Live checks passed."
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -132,20 +162,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Wait for production (Coolify builds the image, up to about 5 minutes)
-        run: |
-          for i in $(seq 1 30); do
-            if curl -fsS -o /dev/null https://gimenez.dev/api/health/live; then
-              echo "gimenez.dev is up after $((i * 10)) s"
-              # The old container can answer while the new one is still starting; give the swap a moment.
-              sleep 30
-              exit 0
-            fi
-            sleep 10
-          done
-          echo "::warning::gimenez.dev did not answer /api/health/live within 5 minutes; the smoke test will run anyway."
-
-      - name: Smoke test production
+      - name: Smoke test production (content, non-blocking)
         id: smoke
         continue-on-error: true
         uses: cypress-io/github-action@v6
@@ -155,6 +172,6 @@ jobs:
           spec: cypress/e2e/smoke.cy.ts
           browser: chrome
 
-      - name: Warn if the production smoke test failed
+      - name: Warn if the content smoke test failed
         if: steps.smoke.outcome == 'failure'
-        run: echo "::warning title=Production smoke test failed::The deploy went out but cypress/e2e/smoke.cy.ts failed against https://gimenez.dev. Check the site; this does not fail the workflow."
+        run: echo "::warning title=Production content smoke test failed::The site answers, but cypress/e2e/smoke.cy.ts failed against https://gimenez.dev. Check the pages; this step does not fail the workflow."

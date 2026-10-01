@@ -1,0 +1,46 @@
+# Uptime check for gimenez.dev. Runs every 15 minutes and fails (GitHub emails the workflow actor) when the live
+# site does not answer. Needs no secrets.
+
+name: Uptime
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check gimenez.dev
+        run: |
+          set -u
+          fail() { echo "::error title=gimenez.dev is down::$1"; exit 1; }
+
+          # curl -fsS -m 15, 3 attempts 10 s apart. Prints the body on success.
+          fetch() {
+            local url="$1" out
+            for attempt in 1 2 3; do
+              if out="$(curl -fsS -m 15 "$url" 2>&1)"; then
+                printf '%s' "$out"
+                return 0
+              fi
+              echo "attempt ${attempt} for ${url} failed: ${out}" >&2
+              [ "$attempt" -lt 3 ] && sleep 10
+            done
+            return 1
+          }
+
+          fetch https://gimenez.dev/ >/dev/null || fail "https://gimenez.dev/ did not return HTTP 200 after 3 attempts."
+          fetch https://gimenez.dev/privacy >/dev/null || fail "https://gimenez.dev/privacy did not return HTTP 200 after 3 attempts."
+          body="$(fetch https://gimenez.dev/api/health/live)" || fail "https://gimenez.dev/api/health/live did not return HTTP 200 after 3 attempts."
+          [ "$body" = '{"status":"ok"}' ] || fail "/api/health/live answered 200 but the body was not exactly {\"status\":\"ok\"}: ${body}"
+          echo "gimenez.dev is up."
