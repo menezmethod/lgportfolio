@@ -469,6 +469,7 @@ export default function Chat() {
               <Input
                 data-testid="chat-input"
                 data-cy="chat-input"
+                name="message"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about Luis's work"
