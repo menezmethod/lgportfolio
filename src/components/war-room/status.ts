@@ -23,7 +23,7 @@ export function overallDisplay(status: string, totalRequests: number): { label: 
     return {
       label: "WARMING UP",
       tone: "neutral",
-      detail: `Warming up: ${totalRequests} requests, SLO shown at ${MIN_REQUESTS}`,
+      detail: `Warming up: ${totalRequests} ${totalRequests === 1 ? "request" : "requests"}, SLO shown at ${MIN_REQUESTS}`,
     };
   }
   return checkDisplay(status);

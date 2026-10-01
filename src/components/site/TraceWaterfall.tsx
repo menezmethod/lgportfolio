@@ -166,7 +166,7 @@ export default function TraceWaterfall() {
                   <r.Icon className={`size-4 shrink-0 ${isActive ? "text-brand-text" : "text-ink-soft"}`} aria-hidden />
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-medium">{r.name}</span>
-                    <span className="block truncate text-xs leading-tight text-ink-soft">{r.sub}</span>
+                    <span className="block text-xs leading-tight text-ink-soft">{r.sub}</span>
                   </span>
                 </span>
                 <span className="relative block h-3 border-x border-dashed border-hairline" aria-hidden>
