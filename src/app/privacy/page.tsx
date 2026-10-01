@@ -15,7 +15,9 @@ const SECTIONS: { h: string; items: string[] }[] = [
       "Chat messages. What you type in the chat is sent to the server and to the AI services that answer it. When storage is enabled, the last 20 messages of a chat, a random session ID from your browser's session storage, and session statistics (message count, timing, and status) are saved. The code sets no automatic expiry on saved chats.",
       "Your email, only if you choose to leave it in the chat, and only when storage is enabled. It is saved on the chat session so Luis can follow up. When storage is not enabled the email box is hidden and nothing is saved.",
       "IP addresses. The app reads your IP address in memory to limit requests per minute, to compare it with Luis's own addresses, and as a hashed, truncated key held for about 30 minutes to avoid duplicate visit pings. The app does not write your IP to its logs or to saved chats. For likely-human visitors the IP is sent in the visit message described below.",
-      "Analytics scripts. The pages do not load Google Analytics or any advertising script. The repository has an optional Google Analytics component that only loads when a measurement ID is configured and your browser is not sending Do Not Track or Global Privacy Control.",
+      "Cloudflare web analytics. The site is served through Cloudflare, which may add its own web analytics beacon to pages at the edge. It is not part of this site's code. On these pages it sets no cookies, and the site sets none either. Luis can switch it off in Cloudflare.",
+      "Your browser's storage. If you use the theme button, your choice is saved in your browser's localStorage under the key \"theme\", on your device only. The chat uses your browser's session storage for a random session ID and a message count.",
+      "Other analytics scripts. The pages do not load Google Analytics or any advertising script. The repository has an optional Google Analytics component that only loads when a measurement ID is configured and your browser is not sending Do Not Track or Global Privacy Control.",
     ],
   },
   {

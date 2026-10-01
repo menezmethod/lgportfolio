@@ -22,4 +22,13 @@ describe("labels say what they measure", () => {
     const t = read("src/components/PageViewTracker.tsx");
     expect(t).toContain("lastPath.current === pathname");
   });
+
+  it("privacy discloses the Cloudflare edge beacon and the theme localStorage key", () => {
+    const priv = read("src/app/privacy/page.tsx");
+    expect(priv).toContain("Cloudflare web analytics");
+    expect(priv).toContain("may add its own web analytics beacon");
+    expect(priv).toContain("sets no cookies");
+    expect(priv).toContain("switch it off in Cloudflare");
+    expect(priv).toContain('localStorage under the key \\"theme\\"');
+  });
 });
