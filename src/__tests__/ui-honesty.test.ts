@@ -10,7 +10,7 @@ describe("labels say what they measure", () => {
     expect(trace).not.toContain("POST /api/chat");
   });
   it("browser connection timing is not labelled as the proxy", () => {
-    expect(trace).toContain('name: "Connection setup"');
+    expect(trace).toContain('name: "Connection"');
     expect(trace).toContain("DNS + connect + TLS");
     expect(trace).not.toContain('name: "Cloudflare proxy"');
   });
