@@ -41,6 +41,9 @@ export function classifyVisitor(userAgent: string): VisitorCategory {
   if (!userAgent || userAgent.length < 10) return "unknown";
   const ua = userAgent.toLowerCase();
 
+  // Link-preview crawlers are not people.
+  if (ua.includes("linkedinbot")) return "crawler";
+
   // Recruiter / ATS tools
   const recruiterSignals = [
     "linkedin", "greenhouse", "lever.co", "workday", "indeed",

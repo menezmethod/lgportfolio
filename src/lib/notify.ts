@@ -3,18 +3,16 @@
  *
  * Called from /api/analytics/page-view for likely-human visitors only
  * (category "person" | "recruiter"; bots and crawlers never reach here).
- * Deduped: one ping per visitor per 30 minutes.
+ * Deduped: one ping per visitor per 30 minutes. Visits from OWNER_IPS never ping.
  *
- * The site POSTs a signed JSON payload (HMAC-SHA256 in X-Hub-Signature-256) to
- * VISITOR_WEBHOOK_URL using VISITOR_WEBHOOK_SECRET. The site never talks to a
- * chat service directly, so each visit yields exactly one message.
+ * The site POSTs a signed JSON payload (HMAC-SHA256 in X-Hub-Signature-256, key
+ * VISITOR_WEBHOOK_SECRET) to VISITOR_WEBHOOK_URL. The body is:
+ *   { event_type: "visitor-pageview", category, path, referrer, uaSummary, ip,
+ *     country (when the CDN header is present), timestamp }
+ * Set VISITOR_PING_OMIT_IP=1 to leave ip out of the body.
  *
- * Privacy: the payload carries only a coarse category, the page path, and the
- * country code from the CDN header. It never carries an IP address, a
- * user-agent string, a referrer, or anything that identifies a person or a
- * company. The IP is used only in memory: compared with OWNER_IPS, and hashed
- * (sha256, truncated) into the dedupe key. Never throws and never logs secrets
- * or IPs.
+ * The visitor IP is also hashed (sha256, truncated) into the in-memory dedupe key.
+ * Never throws. Never logs the IP, the payload, or any secret.
  */
 
 import { createHash, createHmac } from "node:crypto";
@@ -41,12 +39,11 @@ function getOwnerIps(): string[] {
 export interface VisitorPing {
   category: string;
   path: string;
+  referrer: string;
+  uaSummary: string;
+  ip: string;
   /** Country code from the CDN header, if present. */
   country?: string;
-  /** Used only in memory (owner check and hashed dedupe key). Never sent or logged. */
-  ip: string;
-  /** Used only in the hashed dedupe key. Never sent or logged. */
-  uaSummary: string;
 }
 
 function dedupeKey(ping: VisitorPing): string {
@@ -89,10 +86,14 @@ export async function notifyVisitor(ping: VisitorPing): Promise<boolean> {
       if (oldestKey) seen.delete(oldestKey);
     }
 
+    const omitIp = process.env.VISITOR_PING_OMIT_IP === "1";
     const body = JSON.stringify({
       event_type: "visitor-pageview",
       category: ping.category,
       path: ping.path,
+      referrer: ping.referrer,
+      uaSummary: ping.uaSummary,
+      ...(!omitIp && { ip: ping.ip }),
       ...(ping.country && { country: ping.country }),
       timestamp: new Date().toISOString(),
     });

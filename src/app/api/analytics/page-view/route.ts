@@ -6,7 +6,7 @@
  * in War Room and Prometheus metrics.
  *
  * For likely-human visitors (person/recruiter), fires one signed webhook ping
- * (deduped 30 min per visitor) with only category, path and country. Bots and
+ * (deduped 30 min per visitor). See src/lib/notify.ts for the exact payload. Bots and
  * crawlers never ping.
  * The ping must never break the endpoint: failures are swallowed and the
  * route always returns 200.
@@ -48,6 +48,7 @@ export async function POST(req: Request) {
       await notifyVisitor({
         category,
         path,
+        referrer: referrer.slice(0, 200),
         country: req.headers.get("cf-ipcountry") || undefined,
         uaSummary: summarizeUA(userAgent),
         ip: getClientIp(req),
