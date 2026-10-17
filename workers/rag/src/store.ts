@@ -7,6 +7,7 @@
 export const RETENTION_DAYS = 180;
 const MAX_MEMORY_MESSAGES = 20;
 const MAX_LIST = 200;
+export const EVENT_NAMES = ["page_view", "resume_download", "github_click", "linkedin_click", "email_click"] as const;
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -138,23 +139,50 @@ export async function handleStoreOp(db: D1Database, body: Record<string, unknown
       const row = await db.prepare("SELECT * FROM chat_sessions WHERE session_id = ?").bind(sessionId).first<SessionRow>();
       return { session: row ? toSession(row) : null, messages: await memory(db, sessionId) };
     }
+    case "event": {
+      const name = str(body.name, 40);
+      const path = str(body.path, 200);
+      if (!name || !(EVENT_NAMES as readonly string[]).includes(name) || !path) throw bad("valid name and path required");
+      const src = typeof body.src === "string" && /^[a-z0-9-]{1,40}$/.test(body.src) ? body.src : null;
+      await db.prepare("INSERT INTO site_events (name, path, src, created_at) VALUES (?, ?, ?, ?)").bind(name, path, src, now).run();
+      return { ok: true };
+    }
     case "board": {
       const days = Math.min(Math.max(int(body.days) ?? 7, 1), RETENTION_DAYS);
+      const since = now - days * 86_400_000;
+      const { results: events } = await db
+        .prepare("SELECT name, COUNT(*) AS n FROM site_events WHERE created_at >= ? GROUP BY name")
+        .bind(since)
+        .all<{ name: string; n: number }>();
+      const { results: paths } = await db
+        .prepare("SELECT path, COUNT(*) AS n FROM site_events WHERE name = 'page_view' AND created_at >= ? GROUP BY path ORDER BY n DESC LIMIT 20")
+        .bind(since)
+        .all<{ path: string; n: number }>();
+      const { results: sources } = await db
+        .prepare("SELECT src, COUNT(*) AS n FROM site_events WHERE src IS NOT NULL AND created_at >= ? GROUP BY src ORDER BY n DESC LIMIT 20")
+        .bind(since)
+        .all<{ src: string; n: number }>();
       const row = await db
         .prepare(
           `SELECT COUNT(*) AS n, SUM(CASE WHEN recruiter_email IS NOT NULL AND TRIM(recruiter_email) <> '' THEN 1 ELSE 0 END) AS e
            FROM chat_sessions WHERE last_activity_at >= ?`
         )
-        .bind(now - days * 86_400_000)
+        .bind(since)
         .first<{ n: number; e: number | null }>();
-      return { sessions_last_n_days: row?.n ?? 0, sessions_with_email: row?.e ?? 0 };
+      return {
+        sessions_last_n_days: row?.n ?? 0,
+        sessions_with_email: row?.e ?? 0,
+        events: Object.fromEntries(events.map((e) => [e.name, e.n])),
+        top_paths: paths,
+        sources,
+      };
     }
     default:
       throw bad("unknown op");
   }
 }
 
-/** Daily cron: delete sessions (and their messages) idle longer than RETENTION_DAYS. */
+/** Daily cron: delete sessions (and their messages) idle longer than RETENTION_DAYS, and older site events. */
 export async function purgeExpired(db: D1Database): Promise<void> {
   const cutoff = Date.now() - RETENTION_DAYS * 86_400_000;
   await db.batch([
@@ -164,5 +192,6 @@ export async function purgeExpired(db: D1Database): Promise<void> {
     db.prepare("DELETE FROM chat_sessions WHERE last_activity_at < ?").bind(cutoff),
     // Messages whose session row never got written (append without summary) still expire.
     db.prepare("DELETE FROM chat_messages WHERE created_at < ?").bind(cutoff),
+    db.prepare("DELETE FROM site_events WHERE created_at < ?").bind(cutoff),
   ]);
 }

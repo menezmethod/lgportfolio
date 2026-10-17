@@ -1,7 +1,7 @@
 /**
- * Chat session store: Cloudflare D1 behind the lgportfolio-rag worker (POST /store).
+ * Chat session store and durable site events: Cloudflare D1 behind the lgportfolio-rag worker (POST /store).
  * Storage is on whenever the worker key (CLOUDFLARE_RAG_KEY) is set.
- * The worker deletes sessions idle for 180 days (daily cron, workers/rag/src/store.ts).
+ * The worker deletes sessions idle for 180 days and events older than 180 days (daily cron, workers/rag/src/store.ts).
  */
 
 import { workerKey, workerUrl } from "./rag";
@@ -99,8 +99,27 @@ export async function getSessionWithMemory(
   return store("session", { session_id: sessionId });
 }
 
-/** Admin board summary: sessions active in the last N days, and how many left an email. */
-export async function getBoardStats(days = 7): Promise<{ sessions_last_n_days: number; sessions_with_email: number }> {
-  if (!isStorageConfigured()) return { sessions_last_n_days: 0, sessions_with_email: 0 };
+export const SITE_EVENTS = ["page_view", "resume_download", "github_click", "linkedin_click", "email_click"] as const;
+export type SiteEvent = (typeof SITE_EVENTS)[number];
+
+export interface BoardStats {
+  sessions_last_n_days: number;
+  sessions_with_email: number;
+  events: Partial<Record<SiteEvent, number>>;
+  top_paths: Array<{ path: string; n: number }>;
+  sources: Array<{ src: string; n: number }>;
+}
+
+/** Durable event for a likely-human visitor. No IP, user-agent or session ID is sent. */
+export async function recordSiteEvent(name: SiteEvent, path: string, src?: string | null): Promise<void> {
+  if (!isStorageConfigured()) return;
+  await store("event", { name, path: path.slice(0, 200), src: src ?? undefined });
+}
+
+/** Admin board summary for the last N days: chat sessions, emails left, site events, top paths, ?src= tags. */
+export async function getBoardStats(days = 7): Promise<BoardStats> {
+  if (!isStorageConfigured()) {
+    return { sessions_last_n_days: 0, sessions_with_email: 0, events: {}, top_paths: [], sources: [] };
+  }
   return store("board", { days });
 }
