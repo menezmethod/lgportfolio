@@ -18,6 +18,7 @@ import {
   summarizeUA,
 } from "@/lib/telemetry";
 import { notifyVisitor } from "@/lib/notify";
+import { recordSiteEvent } from "@/lib/chat-store";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,7 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json().catch(() => ({}))) as {
       path?: string;
+      src?: string;
     };
     const path = body.path || "/";
 
@@ -43,6 +45,9 @@ export async function POST(req: Request) {
 
     const category = classifyVisitor(userAgent);
     if (category === "person" || category === "recruiter") {
+      // Durable page view (path and optional ?src= tag only); the in-memory counters reset on restart.
+      const src = typeof body.src === "string" && /^[a-z0-9-]{1,40}$/.test(body.src) ? body.src : null;
+      await recordSiteEvent("page_view", path, src).catch(() => {});
       // Fire-and-forget within the request: notifyVisitor never throws,
       // but a defensive catch keeps the endpoint 200 even if it does.
       await notifyVisitor({

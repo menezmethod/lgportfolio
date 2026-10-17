@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import type { BoardStats } from "@/lib/chat-store";
 
 type Tab = "system" | "recruiters" | "logs" | "metrics";
 const TABS: { id: Tab; label: string }[] = [
@@ -162,7 +163,7 @@ function System() {
 
 function Recruiters({ api }: { api: Api }) {
   const [sessions, setSessions] = useState<Session[] | null>(null);
-  const [stats, setStats] = useState<{ sessions_last_n_days: number; sessions_with_email: number } | null>(null);
+  const [stats, setStats] = useState<BoardStats | null>(null);
   const [open, setOpen] = useState<{ id: string; messages: { role: string; content: string }[] } | null>(null);
   useEffect(() => {
     api("/api/admin/sessions?limit=50").then((r) => r.json()).then((j) => setSessions(j.sessions ?? [])).catch(() => setSessions([]));
@@ -176,9 +177,19 @@ function Recruiters({ api }: { api: Api }) {
   return (
     <div>
       {stats && (
-        <p className="text-sm text-ink-soft">
-          Last 7 days: {stats.sessions_last_n_days} sessions, {stats.sessions_with_email} with an email.
-        </p>
+        <div className="text-sm text-ink-soft">
+          <p>
+            Last 7 days: {stats.sessions_last_n_days} chat sessions, {stats.sessions_with_email} with an email.
+            {" "}Human page views {stats.events?.page_view ?? 0}, resume downloads {stats.events?.resume_download ?? 0},
+            {" "}GitHub {stats.events?.github_click ?? 0}, LinkedIn {stats.events?.linkedin_click ?? 0}, email {stats.events?.email_click ?? 0}.
+          </p>
+          {stats.top_paths?.length > 0 && (
+            <p className="mt-1">Top pages: {stats.top_paths.map((p) => `${p.path} (${p.n})`).join(", ")}</p>
+          )}
+          {stats.sources?.length > 0 && (
+            <p className="mt-1">Link tags (?src=): {stats.sources.map((s) => `${s.src} (${s.n})`).join(", ")}</p>
+          )}
+        </div>
       )}
       {sessions.length === 0 ? (
         <p className="mt-4 max-w-2xl">

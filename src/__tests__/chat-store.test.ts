@@ -25,7 +25,7 @@ describe("chat-store", () => {
     await writeSessionSummary({ sessionId: "s", rateLimited: false, status: "ok" });
     expect(await getSessionMemory("s")).toEqual([]);
     expect(await listSessions()).toEqual([]);
-    expect(await getBoardStats()).toEqual({ sessions_last_n_days: 0, sessions_with_email: 0 });
+    expect(await getBoardStats()).toEqual({ sessions_last_n_days: 0, sessions_with_email: 0, events: {}, top_paths: [], sources: [] });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
