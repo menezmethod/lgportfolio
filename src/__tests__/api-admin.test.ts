@@ -17,8 +17,8 @@ vi.mock("@google-cloud/logging", () => ({
   })),
 }));
 
-// Mock Firestore
-vi.mock("@/lib/firestore", () => ({
+// Mock chat store
+vi.mock("@/lib/chat-store", () => ({
   listSessions: vi.fn().mockResolvedValue([]),
   getSessionWithMemory: vi.fn().mockResolvedValue({ session: null, messages: [] }),
   getBoardStats: vi.fn().mockResolvedValue({ sessions_last_n_days: 0, sessions_with_email: 0 }),

@@ -82,3 +82,7 @@ terraform/.terraform.lock.hcl
 
 # Private files that must never be committed (redaction rules, forbidden-term lists)
 .private/
+
+# Cloudflare worker local state and secrets
+.dev.vars
+.wrangler/

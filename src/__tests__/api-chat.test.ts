@@ -33,9 +33,9 @@ vi.mock("@/lib/rag", () => ({
   retrieveContext: vi.fn().mockResolvedValue("Mock knowledge base context about Luis."),
 }));
 
-// ── Mock Firestore ──────────────────────────────────────────────────────────
-vi.mock("@/lib/firestore", () => ({
-  getDb: vi.fn(() => null),
+// ── Mock chat store ──────────────────────────────────────────────────────────
+vi.mock("@/lib/chat-store", () => ({
+  isStorageConfigured: vi.fn(() => false),
   getSessionMemory: vi.fn().mockResolvedValue([]),
   getSessionStats: vi.fn().mockResolvedValue({ message_count: 0, engagement_score: 0, cache_hits: 0 }),
   appendSessionMemory: vi.fn().mockResolvedValue(undefined),
@@ -45,12 +45,12 @@ vi.mock("@/lib/firestore", () => ({
 import { POST } from "@/app/api/chat/route";
 import { retrieveContext } from "@/lib/rag";
 import {
-  getDb,
+  isStorageConfigured,
   getSessionMemory,
   appendSessionMemory,
   writeSessionSummary,
   getSessionStats,
-} from "@/lib/firestore";
+} from "@/lib/chat-store";
 
 beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => {});
@@ -334,9 +334,9 @@ describe("/api/chat — cached response short-circuit", () => {
 // STREAMING RESPONSE
 // ═══════════════════════════════════════════════════════════════════════════
 
-describe("/api/chat — Firestore session persistence", () => {
+describe("/api/chat — session persistence", () => {
   beforeEach(() => {
-    vi.mocked(getDb).mockReturnValue({} as ReturnType<typeof getDb>);
+    vi.mocked(isStorageConfigured).mockReturnValue(true);
     vi.mocked(getSessionMemory).mockResolvedValue([]);
     vi.mocked(getSessionStats).mockResolvedValue({
       message_count: 0,
@@ -348,7 +348,7 @@ describe("/api/chat — Firestore session persistence", () => {
   });
 
   afterEach(() => {
-    vi.mocked(getDb).mockReturnValue(null);
+    vi.mocked(isStorageConfigured).mockReturnValue(false);
   });
 
   it("awaits memory persistence before closing the stream", async () => {

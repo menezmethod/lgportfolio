@@ -1,4 +1,4 @@
-import { getBoardStats } from "@/lib/firestore";
+import { getBoardStats } from "@/lib/chat-store";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { recordRequest } from "@/lib/telemetry";
 import { NextResponse } from "next/server";

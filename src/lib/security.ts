@@ -123,7 +123,7 @@ export function trimMessagesToContextCap(messages: ChatMessage[]): ChatMessage[]
 
 /**
  * Normalize client-sent history before validation.
- * - With server memory (Firestore): validate only the latest user turn.
+ * - With server memory (chat store): validate only the latest user turn.
  * - Without server memory: keep the most recent messages within count and char caps.
  */
 export function normalizeIncomingMessages(
