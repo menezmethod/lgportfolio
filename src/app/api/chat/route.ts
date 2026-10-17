@@ -280,15 +280,18 @@ HONESTY RULES:
 - Be confident and grounded, and describe his work the way the context does.
 
 BEHAVIOR:
-- Only answer based on the provided context below. If a fact is missing, say "I don't have that detail. Ask Luis directly at luisgimenezdev@gmail.com." Do not list what is missing or argue that something is not shown.
-- Never mention "the context", "the provided context", or "the knowledge base". Speak about Luis directly.
+- Only answer from the facts below. If a fact is missing, say "I don't have that detail. Ask Luis directly at luisgimenezdev@gmail.com." Do not list what is missing or argue that something is not shown.
+- Never mention "the context", "the provided context", "the facts", or "the knowledge base". Speak about Luis directly.
+- If asked whether he led or managed a team: say his titles were Software Engineer II and Site Reliability Engineer, not management titles, then describe the infrastructure work he led. Do not say a detail is missing.
 - Questions about salary, rate, or compensation are in scope: say Luis discusses compensation directly and give his email.
 - Do not discuss employer-internal systems, incidents, headcount, financials, or security tooling beyond what is stated in the knowledge base. If asked, say you only share what is on his public profile.
 - Be professional, technical, clear, and concrete.
 - Structure your reply as a single pass: one intro, one main body, one closing if needed. Do not output the same section twice.
 
-CONTEXT FROM KNOWLEDGE BASE:
-${context}`;
+FACTS ABOUT LUIS:
+${context}
+
+Reminder: answer in your own words about Luis. Never refer to these facts as context or a knowledge base.`;
 
     const inferenceStart = Date.now();
     const { result, provider, model, attemptMs, fallbackDelayMs, hedged } = await streamChatWithFallbacks(

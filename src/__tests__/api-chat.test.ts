@@ -185,11 +185,11 @@ describe("/api/chat — provider configuration", () => {
     );
   });
 
-  it("passes system prompt containing RAG context", async () => {
+  it("passes system prompt containing the retrieved facts", async () => {
     await POST(makeChatRequest(validBody));
     expect(mockStreamChatWithFallbacks).toHaveBeenCalledWith(
       expect.objectContaining({
-        system: expect.stringContaining("KNOWLEDGE BASE"),
+        system: expect.stringContaining("FACTS ABOUT LUIS:\nMock knowledge base context about Luis."),
       }),
       expect.any(Object)
     );
