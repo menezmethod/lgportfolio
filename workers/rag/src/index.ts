@@ -52,8 +52,12 @@ async function handlePrune(request: Request, env: Env): Promise<Response> {
   const body = (await request.json().catch(() => null)) as { ids?: unknown } | null;
   const ids = Array.isArray(body?.ids) ? (body.ids as unknown[]).filter((x): x is string => typeof x === "string") : [];
   if (ids.length === 0 || ids.length > 1000) return json({ error: "ids must be 1 to 1000 strings" }, 400);
-  const result = await env.VECTORIZE.deleteByIds(ids);
-  return json({ requested: ids.length, mutationId: result.mutationId ?? null });
+  // Vectorize accepts at most 100 ids per delete call.
+  let mutationId: string | null = null;
+  for (let i = 0; i < ids.length; i += 100) {
+    mutationId = (await env.VECTORIZE.deleteByIds(ids.slice(i, i + 100))).mutationId ?? mutationId;
+  }
+  return json({ requested: ids.length, mutationId });
 }
 
 async function embed(env: Env, texts: string[]): Promise<number[][]> {
