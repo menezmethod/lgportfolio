@@ -11,6 +11,17 @@
       "index_name": "lgportfolio-kb"
     }
   ],
+  "d1_databases": [
+    {
+      "binding": "CHAT_DB",
+      "database_name": "lgportfolio-chat",
+      "database_id": "21105cf3-86b5-4a15-bf6c-dcf2079b65da",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "triggers": {
+    "crons": ["17 4 * * *"]
+  },
   "vars": {
     "EMBEDDING_MODEL": "@cf/baai/bge-m3",
     "CHAT_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"

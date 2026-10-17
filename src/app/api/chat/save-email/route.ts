@@ -1,4 +1,4 @@
-import { isFirestoreConfigured, setRecruiterEmail } from "@/lib/firestore";
+import { isStorageConfigured, setRecruiterEmail } from "@/lib/chat-store";
 import { getTraceIdFromRequest } from "@/lib/trace-context";
 import { log, recordRequest } from "@/lib/telemetry";
 
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     }
 
     // Never claim success when nothing is stored.
-    if (!isFirestoreConfigured()) {
+    if (!isStorageConfigured()) {
       recordRequest("/api/chat/save-email", "POST", 503, Date.now() - start);
       return new Response(
         JSON.stringify({ error: "Email storage is not available", message: "Storage is not enabled on this site right now." }),

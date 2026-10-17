@@ -24,12 +24,12 @@ import {
   recordError,
 } from "@/lib/telemetry";
 import {
-  getDb,
+  isStorageConfigured,
   getSessionMemory,
   getSessionStats,
   appendSessionMemory,
   writeSessionSummary,
-} from "@/lib/firestore";
+} from "@/lib/chat-store";
 
 export const maxDuration = 60;
 
@@ -83,9 +83,8 @@ function wrapStreamForPersistence(
           }
         }
         if (!assistantText && buffer.trim()) assistantText = buffer.trim();
-        const db = getDb();
-        if (db && assistantText) {
-          // Await persistence before closing, server memory is authoritative when Firestore is enabled
+        if (isStorageConfigured() && assistantText) {
+          // Await persistence before closing, server memory is authoritative when storage is enabled
           try {
             await appendSessionMemory(params.sessionId, [
               { role: "user", content: params.userContent },
@@ -149,7 +148,7 @@ export async function POST(req: Request) {
 
     const { messages: rawMessages, session_id: sessionId } = body as { messages: unknown; session_id?: string };
 
-    const useServerMemory = Boolean(sessionId && getDb());
+    const useServerMemory = Boolean(sessionId && isStorageConfigured());
     const messagesForValidation = normalizeIncomingMessages(rawMessages, { useServerMemory });
     const validation = validateMessages(messagesForValidation);
     if (!validation.safe || !validation.parsed) {
@@ -161,7 +160,7 @@ export async function POST(req: Request) {
     const engagedSessionLimit = parseInt(process.env.CHAT_ENGAGED_SESSION_LIMIT || "50", 10);
     const engagementThreshold = parseInt(process.env.CHAT_ENGAGEMENT_THRESHOLD || "5", 10);
 
-    if (sessionId && getDb()) {
+    if (sessionId && isStorageConfigured()) {
       const stats = await getSessionStats(sessionId);
       const atDefaultLimit = stats.message_count >= defaultSessionLimit;
       const atEngagedLimit = stats.message_count >= engagedSessionLimit;
@@ -183,7 +182,7 @@ export async function POST(req: Request) {
       content: m.content,
     }));
 
-    if (sessionId && getDb()) {
+    if (sessionId && isStorageConfigured()) {
       const memory = await getSessionMemory(sessionId);
       if (memory.length > 0 && validation.parsed.length <= 2) {
         const lastIncoming = validation.parsed[validation.parsed.length - 1];
@@ -221,7 +220,7 @@ export async function POST(req: Request) {
       const duration = Date.now() - requestStart;
       recordRequest("/api/chat", "POST", 200, duration);
       recordChatMetrics({ durationMs: duration, ragDurationMs: 0, cacheHit: true, rateLimited: false });
-      if (sessionId && getDb()) {
+      if (sessionId && isStorageConfigured()) {
         const userMsg = validation.parsed.filter((m) => m.role === "user").pop();
         if (userMsg) {
           try {
@@ -281,7 +280,9 @@ HONESTY RULES:
 - Be confident and grounded, and describe his work the way the context does.
 
 BEHAVIOR:
-- Only answer based on the provided context below. If info is missing, say so honestly.
+- Only answer based on the provided context below. If a fact is missing, say "I don't have that detail. Ask Luis directly at luisgimenezdev@gmail.com." Do not list what is missing or argue that something is not shown.
+- Never mention "the context", "the provided context", or "the knowledge base". Speak about Luis directly.
+- Questions about salary, rate, or compensation are in scope: say Luis discusses compensation directly and give his email.
 - Do not discuss employer-internal systems, incidents, headcount, financials, or security tooling beyond what is stated in the knowledge base. If asked, say you only share what is on his public profile.
 - Be professional, technical, clear, and concrete.
 - Structure your reply as a single pass: one intro, one main body, one closing if needed. Do not output the same section twice.
@@ -351,7 +352,7 @@ ${context}`;
 
     const userMsgForMemory = validation.parsed.filter((m) => m.role === "user").pop();
     const streamBody =
-      sessionId && getDb() && userMsgForMemory
+      sessionId && isStorageConfigured() && userMsgForMemory
         ? wrapStreamForPersistence(response.body, {
             sessionId,
             userContent: userMsgForMemory.content,

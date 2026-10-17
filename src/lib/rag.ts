@@ -13,12 +13,12 @@ const DEFAULT_WORKER_URL = "https://lgportfolio-rag.luisgimenezdev.workers.dev";
 const MATCH_THRESHOLD = 0.4;
 const WORKER_TIMEOUT_MS = 10_000;
 
-function workerUrl(): string {
+export function workerUrl(): string {
   const url = process.env.CLOUDFLARE_RAG_WORKER_URL?.trim() || DEFAULT_WORKER_URL;
   return url.replace(/\/$/, "");
 }
 
-function workerKey(): string | null {
+export function workerKey(): string | null {
   return process.env.CLOUDFLARE_RAG_KEY?.trim() || null;
 }
 

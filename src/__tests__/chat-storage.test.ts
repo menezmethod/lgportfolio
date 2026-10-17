@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const { configured } = vi.hoisted(() => ({ configured: vi.fn() }));
-vi.mock("@/lib/firestore", () => ({ isFirestoreConfigured: configured }));
+vi.mock("@/lib/chat-store", () => ({ isStorageConfigured: configured }));
 import { GET } from "@/app/api/chat/storage/route";
 import { getChatLimits, checkRateLimit, getDailyBudgetStats } from "@/lib/rate-limit";
 

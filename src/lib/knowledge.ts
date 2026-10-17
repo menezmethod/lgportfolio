@@ -135,6 +135,18 @@ B.S. Software Development (WGU, 2021), GCP Professional Cloud Architect (earned 
 ### What kind of work does he want?
 Platform, infrastructure, and Go backend engineering: services and tooling, deployment systems and governance, observability, and incident response.
 
+### Has he led infrastructure or platform work? Has he led a team?
+His titles at The Home Depot were Software Engineer II and Site Reliability Engineer, not a management title. The infrastructure work he led there: he built the reusable deployment path that lets non-developers ship Home Services applications to production through the required gates, took the first application through it, and it became the pattern later applications followed. He took a production change through the change-approval board on his own, presenting to senior management with measured load-test evidence. He is primary owner, with team input, of the Home Services telemetry applications, a named subject-matter expert for specific applications, and helped onboard newer engineers and contractors.
+
+### Has he built CI/CD or deployment systems from the ground up?
+Yes, for these pieces. At Home Services he built the reusable deployment path with its gates: governance, security scanning, static analysis, hardened base images, production readiness, branch protection, and rollback planning. He shipped the metrics ETL from design through schema, CI/CD, and production readiness. On the payments contract he built automated testing and continuous-delivery controls for financial transaction systems. For this site he built the pipeline himself: GitHub Actions runs lint, unit tests, the build, and Cypress, then deploys through the Coolify API.
+
+### What is his Kubernetes and Terraform experience?
+Kubernetes: on Enterprise Payments (Jan 2024 to Mar 2026) his Go services deployed to GKE and Pivotal Cloud Foundry through a Jenkins to Spinnaker to GKE pipeline. On Home Services the telemetry applications run on GCP, including GKE and Cloud Run. Terraform: it is in his toolset, and this site's public repository keeps a Terraform path for GCP (Cloud Run, load balancer, CDN, Cloud Armor, budget alerts). For an exact year count, ask Luis directly at luisgimenezdev@gmail.com.
+
+### What salary or rate is he looking for?
+Compensation is something Luis discusses directly. Email him at luisgimenezdev@gmail.com. He is looking for Senior Platform, Infrastructure, and Go backend roles, remote U.S.
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # SECTION 8: THIS PORTFOLIO SITE (gimenez.dev)
 # ═══════════════════════════════════════════════════════════════════════════════

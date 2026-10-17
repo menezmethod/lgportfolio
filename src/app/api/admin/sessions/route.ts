@@ -1,4 +1,4 @@
-import { listSessions } from "@/lib/firestore";
+import { listSessions } from "@/lib/chat-store";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { incrementAdminMetric, recordRequest } from "@/lib/telemetry";
 import { NextResponse } from "next/server";

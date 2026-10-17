@@ -182,7 +182,7 @@ function Recruiters({ api }: { api: Api }) {
       )}
       {sessions.length === 0 ? (
         <p className="mt-4 max-w-2xl">
-          No saved sessions. Either no chats have been saved yet, or Firestore is not configured (set FIREBASE_SERVICE_ACCOUNT_JSON on the app). Without it, chats are not stored.
+          No saved sessions. Either no chats have been saved yet, or chat storage is not configured (set CLOUDFLARE_RAG_KEY on the app). Without it, chats are not stored.
         </p>
       ) : (
         <div className="mt-4 overflow-x-auto">

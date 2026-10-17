@@ -10,11 +10,17 @@
  *   POST /seed                { chunks: [...] }      -> embed + upsert (idempotent by id)
  *   POST /prune               { ids: [...] }         -> delete vectors by id (ids that do not exist are ignored)
  *   POST /v1/chat/completions OpenAI-compatible SSE  -> Workers AI chat fallback
+ *   POST /store               { op, ... }            -> chat session store on D1 (see store.ts)
+ *
+ * Cron (daily): delete saved chats idle longer than RETENTION_DAYS.
  */
+
+import { handleStoreOp, purgeExpired } from "./store";
 
 interface Env {
   AI: Ai;
   VECTORIZE: Vectorize;
+  CHAT_DB: D1Database;
   RAG_KEY: string;
   EMBEDDING_MODEL: string;
   CHAT_MODEL: string;
@@ -145,8 +151,9 @@ async function handleChat(request: Request, env: Env): Promise<Response> {
           const payload = trimmed.slice(5).trim();
           if (payload === "[DONE]") continue;
           try {
-            const parsed = JSON.parse(payload) as { response?: string };
-            const text = parsed.response ?? "";
+            const parsed = JSON.parse(payload) as { response?: string | number | null };
+            // Workers AI can send a numeric token (e.g. a year) as a JSON number.
+            const text = parsed.response == null ? "" : String(parsed.response);
             if (!text) continue;
             const chunk = {
               id: "chatcmpl-cf",
@@ -190,10 +197,20 @@ export default {
       if (path === "/seed") return await handleSeed(request, env);
       if (path === "/prune") return await handlePrune(request, env);
       if (path === "/v1/chat/completions") return await handleChat(request, env);
+      if (path === "/store") {
+        const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+        if (!body) return json({ error: "invalid JSON" }, 400);
+        return json(await handleStoreOp(env.CHAT_DB, body));
+      }
       return json({ error: "not found" }, 404);
     } catch (error) {
       const message = error instanceof Error ? error.message : "internal error";
-      return json({ error: message }, 502);
+      const status = (error as { status?: number }).status === 400 ? 400 : 502;
+      return json({ error: message }, status);
     }
+  },
+
+  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(purgeExpired(env.CHAT_DB));
   },
 } satisfies ExportedHandler<Env>;

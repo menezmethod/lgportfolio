@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-// Mock firestore before importing route
-vi.mock("@/lib/firestore", () => ({
+// Mock chat store before importing route
+vi.mock("@/lib/chat-store", () => ({
   setRecruiterEmail: vi.fn().mockResolvedValue(undefined),
-  isFirestoreConfigured: vi.fn(() => true),
+  isStorageConfigured: vi.fn(() => true),
 }));
 
 import { POST } from "@/app/api/chat/save-email/route";
-import { isFirestoreConfigured, setRecruiterEmail } from "@/lib/firestore";
+import { isStorageConfigured, setRecruiterEmail } from "@/lib/chat-store";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -26,9 +26,9 @@ function makeRequest(body: unknown) {
   });
 }
 
-describe("/api/chat/save-email without Firestore", () => {
-  it("returns 503 and stores nothing when Firestore is not configured", async () => {
-    vi.mocked(isFirestoreConfigured).mockReturnValueOnce(false);
+describe("/api/chat/save-email without chat storage", () => {
+  it("returns 503 and stores nothing when storage is not configured", async () => {
+    vi.mocked(isStorageConfigured).mockReturnValueOnce(false);
     const response = await POST(makeRequest({ session_id: "s1", email: "a@b.co" }));
     expect(response.status).toBe(503);
     expect((await response.json()).error).toContain("not available");
@@ -84,7 +84,7 @@ describe("/api/chat/save-email", () => {
   });
 
   it("returns 503 when setRecruiterEmail throws", async () => {
-    vi.mocked(setRecruiterEmail).mockRejectedValueOnce(new Error("Firestore error"));
+    vi.mocked(setRecruiterEmail).mockRejectedValueOnce(new Error("store error"));
     const response = await POST(
       makeRequest({ session_id: "session-789", email: "test@example.com" })
     );
