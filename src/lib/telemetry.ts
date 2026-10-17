@@ -1,0 +1,665 @@
+/**
+ * Lightweight observability engine for Coolify/Docker (and local dev).
+ *
+ * Architecture:
+ *   - Structured JSON logs → stdout → container log drain
+ *   - In-memory metrics → /api/metrics (Prometheus scrape) + /api/health
+ *   - War Room aggregates from Prometheus when PROMETHEUS_URL is set
+ *   - Rolling time-series windows (1h) for dashboard charts (in-memory fallback)
+ *
+ * In-memory counters reset on container restart. Prometheus scrapes /api/metrics
+ * so War Room can show durable counters across restarts.
+ */
+
+import { getDailyBudgetStats } from "./rate-limit";
+import { activeChatProviderIds } from "./chat-provider-env";
+import { APP_VERSION } from "./version";
+
+type Severity = "INFO" | "WARNING" | "ERROR" | "CRITICAL";
+
+const BOOT_TIME = Date.now();
+const MAX_OBSERVATIONS = 2000;
+const MAX_TIMESERIES_POINTS = 360; // 1h at 10s intervals
+const MAX_EVENTS = 50;
+const MAX_RECENT_ERRORS = 20;
+const MAX_RECENT_VISITORS = 50;
+
+// ── Visitor Analytics ────────────────────────────────────────────────────────
+
+export type VisitorCategory = "recruiter" | "person" | "crawler" | "bot" | "unknown";
+
+export interface VisitorRecord {
+  timestamp: string;
+  category: VisitorCategory;
+  path: string;
+  referrer: string;
+  userAgent: string;
+  uaSummary: string;
+}
+
+/** Classify a User-Agent string into a visitor category. */
+export function classifyVisitor(userAgent: string): VisitorCategory {
+  if (!userAgent || userAgent.length < 10) return "unknown";
+  const ua = userAgent.toLowerCase();
+
+  // Link-preview crawlers are not people.
+  if (ua.includes("linkedinbot")) return "crawler";
+
+  // Recruiter / ATS tools
+  const recruiterSignals = [
+    "linkedin", "greenhouse", "lever.co", "workday", "indeed",
+    "glassdoor", "ziprecruiter", "hackerrank", "codility",
+    "hire." , "ashbyhq", "breezy", "smartrecruiters", "icims",
+    "recruitee", "jazzhr", "bullhorn", "jobvite"
+  ];
+  if (recruiterSignals.some((s) => ua.includes(s))) return "recruiter";
+
+  // Known crawlers
+  const crawlerSignals = [
+    "googlebot", "bingbot", "slurp", "duckduckbot", "baiduspider",
+    "yandexbot", "facebot", "facebookexternalhit", "twitterbot",
+    "linkedinbot", "applebot", "semrush", "ahrefsbot", "majestic",
+    "dotbot", "rogerbot", "crawler", "spider", "scrapy"
+  ];
+  if (crawlerSignals.some((s) => ua.includes(s))) return "crawler";
+
+  // Known non-human bots (API clients, curl, etc)
+  const botSignals = [
+    "curl/", "wget/", "python-requests", "go-http-client", "axios",
+    "node-fetch", "httpx", "aiohttp", "okhttp", "postman",
+    "insomnia", "httpie", "java/", "libcurl", "fetch/"
+  ];
+  if (botSignals.some((s) => ua.includes(s))) return "bot";
+
+  // Real browsers
+  const browserSignals = ["mozilla", "chrome/", "safari/", "firefox/", "edg/", "opr/", "gecko"];
+  if (browserSignals.some((s) => ua.includes(s))) return "person";
+
+  return "unknown";
+}
+
+export function summarizeUA(userAgent: string): string {
+  const ua = userAgent.toLowerCase();
+  if (ua.includes("linkedin")) return "LinkedIn";
+  if (ua.includes("greenhouse")) return "Greenhouse";
+  if (ua.includes("googlebot")) return "Googlebot";
+  if (ua.includes("bingbot")) return "Bingbot";
+  if (ua.includes("chrome/")) return "Chrome";
+  if (ua.includes("firefox/")) return "Firefox";
+  if (ua.includes("safari/") && !ua.includes("chrome")) return "Safari";
+  if (ua.includes("edg/")) return "Edge";
+  if (ua.includes("curl/")) return "curl";
+  if (ua.includes("python-requests")) return "Python";
+  if (ua.includes("postman")) return "Postman";
+  return userAgent.slice(0, 60);
+}
+
+const recentVisitors: VisitorRecord[] = [];
+
+export function recordVisitor(
+  path: string,
+  userAgent: string,
+  referrer: string
+): void {
+  const category = classifyVisitor(userAgent);
+  const record: VisitorRecord = {
+    timestamp: new Date().toISOString(),
+    category,
+    path,
+    referrer: referrer?.slice(0, 200) || "",
+    userAgent: userAgent?.slice(0, 200) || "",
+    uaSummary: summarizeUA(userAgent),
+  };
+  recentVisitors.push(record);
+  if (recentVisitors.length > MAX_RECENT_VISITORS) recentVisitors.shift();
+
+  // Counters with category + path labels for Prometheus
+  increment(`visitors_total{category="${category}"}`);
+  increment(`visitors_total{category="${category}",path="${path}"}`);
+  if (referrer) increment("visitors_with_referrer_total");
+}
+
+export function getRecentVisitors(): VisitorRecord[] {
+  return [...recentVisitors].reverse();
+}
+
+// ── Counters ────────────────────────────────────────────────────────────────
+
+const counters = new Map<string, number>();
+
+export function increment(name: string, amount = 1): void {
+  counters.set(name, (counters.get(name) || 0) + amount);
+}
+
+export function getCounter(name: string): number {
+  return counters.get(name) || 0;
+}
+
+// ── Histograms ──────────────────────────────────────────────────────────────
+
+const histograms = new Map<string, Array<{ t: number; v: number }>>();
+
+export function observe(name: string, value: number): void {
+  let arr = histograms.get(name);
+  if (!arr) {
+    arr = [];
+    histograms.set(name, arr);
+  }
+  arr.push({ t: Date.now(), v: value });
+  if (arr.length > MAX_OBSERVATIONS) arr.splice(0, arr.length - MAX_OBSERVATIONS);
+}
+
+function percentile(name: string, p: number, windowMs?: number): number {
+  const arr = histograms.get(name);
+  if (!arr || arr.length === 0) return 0;
+  const cutoff = windowMs ? Date.now() - windowMs : 0;
+  const values = arr.filter((x) => x.t >= cutoff).map((x) => x.v).sort((a, b) => a - b);
+  if (values.length === 0) return 0;
+  const idx = Math.ceil((p / 100) * values.length) - 1;
+  return values[Math.max(0, idx)];
+}
+
+function histogramCount(name: string, windowMs?: number): number {
+  const arr = histograms.get(name);
+  if (!arr) return 0;
+  if (!windowMs) return arr.length;
+  const cutoff = Date.now() - windowMs;
+  return arr.filter((x) => x.t >= cutoff).length;
+}
+
+// ── Gauges ───────────────────────────────────────────────────────────────────
+
+const gauges = new Map<string, number>();
+
+export function setGauge(name: string, value: number): void {
+  gauges.set(name, value);
+}
+
+export function getGauge(name: string): number {
+  return gauges.get(name) ?? 0;
+}
+
+// ── Time Series (rolling 1h window, 10s buckets) ────────────────────────────
+
+interface TimeSeriesPoint {
+  t: number;
+  requests: number;
+  errors: number;
+  latencySum: number;
+  latencyCount: number;
+}
+
+const timeSeriesBuckets: TimeSeriesPoint[] = [];
+let currentBucket: TimeSeriesPoint | null = null;
+
+function getBucket(): TimeSeriesPoint {
+  const now = Date.now();
+  const bucketTime = Math.floor(now / 10000) * 10000;
+  if (currentBucket && currentBucket.t === bucketTime) return currentBucket;
+  currentBucket = { t: bucketTime, requests: 0, errors: 0, latencySum: 0, latencyCount: 0 };
+  timeSeriesBuckets.push(currentBucket);
+  if (timeSeriesBuckets.length > MAX_TIMESERIES_POINTS) timeSeriesBuckets.shift();
+  return currentBucket;
+}
+
+export function recordRequestTimeSeries(latencyMs: number, isError: boolean): void {
+  const b = getBucket();
+  b.requests++;
+  if (isError) b.errors++;
+  b.latencySum += latencyMs;
+  b.latencyCount++;
+}
+
+// ── Events ──────────────────────────────────────────────────────────────────
+
+interface TelemetryEvent {
+  timestamp: string;
+  type: "deploy" | "error" | "scale" | "rate_limit" | "cold_start" | "health" | "cache_hit";
+  message: string;
+}
+
+const events: TelemetryEvent[] = [];
+
+export function addEvent(type: TelemetryEvent["type"], message: string): void {
+  events.push({ timestamp: new Date().toISOString(), type, message });
+  if (events.length > MAX_EVENTS) events.shift();
+}
+
+// ── Recent errors (for War Room display + AI explain) ────────────────────────
+
+export interface RecentError {
+  timestamp: string;
+  endpoint: string;
+  status_code: number;
+  message: string;
+  trace_id?: string;
+}
+
+const recentErrors: RecentError[] = [];
+
+export function recordError(details: {
+  endpoint: string;
+  status_code: number;
+  message: string;
+  trace_id?: string;
+}): void {
+  recentErrors.push({
+    timestamp: new Date().toISOString(),
+    endpoint: details.endpoint,
+    status_code: details.status_code,
+    message: details.message,
+    trace_id: details.trace_id,
+  });
+  if (recentErrors.length > MAX_RECENT_ERRORS) recentErrors.shift();
+}
+
+export function getRecentErrors(): RecentError[] {
+  return [...recentErrors].reverse();
+}
+
+// Record cold start on module load (scraped as app_cold_starts_total)
+addEvent("cold_start", `Instance started (Node ${process.version})`);
+increment("app_cold_starts_total");
+
+// ── Structured Logging (stdout → Cloud Logging) ────────────────────────────
+
+let traceCounter = 0;
+
+export function generateTraceId(): string {
+  traceCounter++;
+  const ts = Date.now().toString(36);
+  const seq = traceCounter.toString(36).padStart(4, "0");
+  const rand = Math.random().toString(36).substring(2, 8);
+  return `${ts}-${seq}-${rand}`;
+}
+
+export function log(
+  severity: Severity,
+  message: string,
+  fields?: Record<string, unknown>
+): void {
+  const entry: Record<string, unknown> = {
+    severity,
+    message,
+    timestamp: new Date().toISOString(),
+    ...fields,
+  };
+  if (fields?.trace_id) {
+    const projectId = process.env.GOOGLE_CLOUD_PROJECT;
+    if (projectId) {
+      entry["logging.googleapis.com/trace"] = `projects/${projectId}/traces/${fields.trace_id}`;
+    }
+  }
+  // stdout JSON → Cloud Logging auto-ingests with severity parsing
+  console.log(JSON.stringify(entry));
+}
+
+// ── High-Level Recording Helpers ────────────────────────────────────────────
+
+export function recordRequest(endpoint: string, method: string, statusCode: number, durationMs: number): void {
+  increment("http_requests_total");
+  increment(`http_requests_total{endpoint="${endpoint}",method="${method}",status="${statusCode}"}`);
+  observe("http_request_duration_seconds", durationMs);
+  // Exclude 401 from error rate so auth failures on protected routes don't inflate the dashboard
+  const isError = statusCode >= 400 && statusCode !== 401;
+  // The War Room error rate and SLO count server errors only; 4xx (bad requests, rate limits) are client behavior.
+  recordRequestTimeSeries(durationMs, statusCode >= 500);
+  if (isError) increment("errors_total");
+  if (statusCode >= 500) increment(`errors_total{type="server"}`);
+  else if (isError) increment(`errors_total{type="client"}`);
+}
+
+/** Expose calendar-day chat budget to Prometheus (scraped by War Room). */
+export function publishDailyBudgetGauge(): void {
+  setGauge("chat_daily_budget_used", getDailyBudgetStats().used);
+}
+
+/** Most recent real chat request, kept in memory so the home page can show it with its age. */
+let lastChatSample: { at: number; rag_ms: number; inference_ms: number; model?: string } | null = null;
+
+export function recordChatMetrics(fields: {
+  durationMs: number;
+  ragDurationMs: number;
+  cacheHit: boolean;
+  rateLimited: boolean;
+  tokensUsed?: number;
+  /** Model id that actually answered (for the trace label and logs, never shown in chat text). */
+  model?: string;
+  /** True when the hedge model was started in parallel for this answer. */
+  hedged?: boolean;
+}): void {
+  observe("chat_inference_duration_seconds", fields.durationMs);
+  observe("chat_rag_retrieval_duration_seconds", fields.ragDurationMs);
+  // Span timings for real model calls only (cache hits and rate-limited requests have no spans).
+  if (!fields.cacheHit && !fields.rateLimited) {
+    observe("chat_span_rag_ms", fields.ragDurationMs);
+    observe("chat_span_inference_ms", fields.durationMs);
+    increment("chat_model_answers_total");
+    if (fields.hedged) increment("chat_hedges_total");
+    lastChatSample = { at: Date.now(), rag_ms: fields.ragDurationMs, inference_ms: fields.durationMs, model: fields.model };
+  }
+  if (fields.cacheHit) increment("chat_cache_hits_total");
+  if (fields.rateLimited) {
+    increment("chat_rate_limit_hits_total");
+    addEvent("rate_limit", "Rate limit triggered");
+  }
+  if (fields.tokensUsed) increment("chat_tokens_used_total", fields.tokensUsed);
+  increment("chat_conversations_total");
+  publishDailyBudgetGauge();
+}
+
+/** Admin board usage metrics (for Prometheus and board Metrics section). */
+export function incrementAdminMetric(name: "board_views" | "sessions_list" | "logs" | "conversation_detail"): void {
+  const key = `admin_${name}_total`;
+  increment(key);
+}
+
+// ── Prometheus text exposition ────────────────────────────────────────────────
+
+/** Parse metric key into base name and optional labels string. */
+function parseMetricKey(key: string): { name: string; labels: string } {
+  const i = key.indexOf("{");
+  if (i === -1) return { name: key, labels: "" };
+  return { name: key.slice(0, i), labels: key.slice(i) };
+}
+
+/** Build Prometheus text format from in-memory counters, gauges, histograms. */
+export function getPrometheusText(): string {
+  const lines: string[] = [];
+  const durationMsToSeconds = (key: string) =>
+    key.includes("duration_seconds") || key.endsWith("_seconds");
+
+  // Counters: group by base name, emit # TYPE then samples
+  const counterByBase = new Map<string, Array<{ labels: string; value: number }>>();
+  for (const [key, value] of counters) {
+    const { name, labels } = parseMetricKey(key);
+    if (!counterByBase.has(name)) counterByBase.set(name, []);
+    counterByBase.get(name)!.push({ labels, value });
+  }
+  for (const [name, samples] of counterByBase) {
+    lines.push(`# TYPE ${name} counter`);
+    for (const { labels, value } of samples) {
+      lines.push(labels ? `${name}${labels} ${value}` : `${name} ${value}`);
+    }
+  }
+
+  // Gauges
+  const gaugeByBase = new Map<string, Array<{ labels: string; value: number }>>();
+  for (const [key, value] of gauges) {
+    const { name, labels } = parseMetricKey(key);
+    if (!gaugeByBase.has(name)) gaugeByBase.set(name, []);
+    gaugeByBase.get(name)!.push({ labels, value });
+  }
+  for (const [name, samples] of gaugeByBase) {
+    lines.push(`# TYPE ${name} gauge`);
+    for (const { labels, value } of samples) {
+      lines.push(labels ? `${name}${labels} ${value}` : `${name} ${value}`);
+    }
+  }
+
+  // Histograms: store observations; export as summary (quantiles + sum + count). Duration in ms → seconds.
+  // Group by base name so we emit one # TYPE per metric name.
+  const histogramGroups = new Map<string, Array<{ labels: string; arr: Array<{ t: number; v: number }> }>>();
+  for (const [key, arr] of histograms) {
+    if (!arr?.length) continue;
+    const { name, labels } = parseMetricKey(key);
+    if (!histogramGroups.has(name)) histogramGroups.set(name, []);
+    histogramGroups.get(name)!.push({ labels, arr });
+  }
+  const summaryQuantileLabels = (labels: string, quantile: string): string => {
+    if (!labels) return `{quantile="${quantile}"}`;
+    return labels.replace(/\}$/, `,quantile="${quantile}"}`);
+  };
+
+  for (const [name, group] of histogramGroups) {
+    lines.push(`# TYPE ${name} summary`);
+    for (const { labels, arr } of group) {
+      const values = arr.map((x) => x.v).sort((a, b) => a - b);
+      const sum = values.reduce((s, v) => s + v, 0);
+      const count = values.length;
+      const toSeconds = (v: number) => (durationMsToSeconds(name + labels) ? v / 1000 : v);
+      const q50 = values[Math.floor(0.5 * count)] ?? 0;
+      const q90 = values[Math.floor(0.9 * count)] ?? 0;
+      const q95 = values[Math.floor(0.95 * count)] ?? 0;
+      const q99 = values[Math.floor(0.99 * count)] ?? 0;
+      const labelPart = labels || "";
+      lines.push(`${name}${summaryQuantileLabels(labelPart, "0.5")} ${toSeconds(q50)}`);
+      lines.push(`${name}${summaryQuantileLabels(labelPart, "0.9")} ${toSeconds(q90)}`);
+      lines.push(`${name}${summaryQuantileLabels(labelPart, "0.95")} ${toSeconds(q95)}`);
+      lines.push(`${name}${summaryQuantileLabels(labelPart, "0.99")} ${toSeconds(q99)}`);
+      lines.push(`${name}_sum${labelPart} ${toSeconds(sum)}`);
+      lines.push(`${name}_count${labelPart} ${count}`);
+    }
+  }
+
+  return lines.join("\n") + "\n";
+}
+
+// ── Data Export Functions ────────────────────────────────────────────────────
+
+export function getUptimeSeconds(): number {
+  return Math.floor((Date.now() - BOOT_TIME) / 1000);
+}
+
+export interface HealthData {
+  status: "healthy" | "degraded" | "unhealthy";
+  timestamp: string;
+  uptime_seconds: number;
+  checks: Record<string, { status: string; latency_ms?: number; budget_remaining?: number }>;
+  version: string;
+  region: string;
+  /** Chat providers actually in the chain, in order (e.g. ["cloudflare"]). */
+  chat_providers: string[];
+}
+
+export function getHealthData(
+  inferenciaProbe?: {
+    status: "up" | "down" | "degraded";
+    latency_ms?: number;
+  },
+  options?: { shallow?: boolean }
+): HealthData {
+  const shallow = options?.shallow === true;
+  // Follows the real chat chain (CHAT_PROVIDERS allowlist applied): a provider that is not in the chain is not counted.
+  const providers = activeChatProviderIds();
+  const hasInferencia = providers.includes("inferencia");
+  const hasOpenRouter = providers.some((p) => p !== "inferencia");
+  const { remaining: budgetRemaining } = getDailyBudgetStats();
+
+  let inferenceStatus: string;
+  if (shallow) {
+    inferenceStatus = hasInferencia || hasOpenRouter ? "up" : "degraded";
+  } else if (!hasInferencia && !hasOpenRouter) {
+    inferenceStatus = "degraded";
+  } else if (hasOpenRouter && (!hasInferencia || inferenciaProbe?.status === "down")) {
+    inferenceStatus = "up";
+  } else if (inferenciaProbe?.status === "down") {
+    inferenceStatus = "down";
+  } else if (inferenciaProbe?.status === "degraded") {
+    inferenceStatus = "degraded";
+  } else {
+    inferenceStatus = "up";
+  }
+
+  const checks: HealthData["checks"] = {
+    inference_api: {
+      status: inferenceStatus,
+      latency_ms: shallow
+        ? inferenciaProbe?.latency_ms
+        : inferenciaProbe?.latency_ms ??
+          (Math.round(percentile("chat_inference_duration_seconds", 50, 300000)) || undefined),
+    },
+    rag_system: {
+      status: "up",
+      latency_ms: Math.round(percentile("chat_rag_retrieval_duration_seconds", 50, 300000)) || undefined,
+    },
+    rate_limiter: { status: "up", budget_remaining: budgetRemaining },
+    structured_logging: { status: "up" },
+    // Only claim Prometheus when a server is configured. The War Room overrides this after probing it.
+    prometheus: { status: process.env.PROMETHEUS_URL?.trim() ? "up" : "not_configured" },
+  };
+
+  const anyDown = Object.values(checks).some((c) => c.status === "down");
+  const anyDegraded = Object.values(checks).some((c) => c.status === "degraded");
+
+  return {
+    status: anyDown ? "unhealthy" : anyDegraded ? "degraded" : "healthy",
+    timestamp: new Date().toISOString(),
+    uptime_seconds: getUptimeSeconds(),
+    checks,
+    version: APP_VERSION,
+    region: process.env.DEPLOY_REGION || "n/a",
+    chat_providers: providers,
+  };
+}
+
+// ── SLO Definitions ──────────────────────────────────────────────────────────
+
+export interface SLODefinition {
+  name: string;
+  target: number;
+  unit: string;
+  current: number;
+  met: boolean;
+}
+
+function computeSLOs(): SLODefinition[] {
+  const totalReqs = getCounter("http_requests_total");
+  // Server errors (5xx) only, same counter as the "Server errors" tile and the Prometheus path.
+  // 4xx are client behavior and must never move an SLO.
+  const serverErrors = getCounter(`errors_total{type="server"}`);
+  const errorRate = totalReqs > 0 ? (serverErrors / totalReqs) * 100 : 0;
+  // Measured availability: share of requests that did not fail with a 5xx. 100 with no traffic (UI shows NO DATA below 50 requests).
+  const availability = totalReqs > 0 ? (1 - serverErrors / totalReqs) * 100 : 100;
+  const p95 = Math.round(percentile("http_request_duration_seconds", 95, 3600000));
+  const { used: budgetUsed, max: budgetMax } = getDailyBudgetStats();
+  const budgetPct = budgetMax > 0 ? ((budgetMax - budgetUsed) / budgetMax) * 100 : 100;
+
+  return [
+    { name: "Availability", target: 99.5, unit: "%", current: parseFloat(availability.toFixed(2)), met: availability >= 99.5 },
+    { name: "P95 Latency", target: 500, unit: "ms", current: p95, met: p95 <= 500 || p95 === 0 },
+    { name: "Server Error Rate", target: 5, unit: "% max", current: parseFloat(errorRate.toFixed(2)), met: errorRate <= 5 },
+    { name: "Budget Headroom", target: 10, unit: "% min", current: parseFloat(budgetPct.toFixed(1)), met: budgetPct >= 10 },
+  ];
+}
+
+/** p50 of the real chat request spans since the last restart, for the home page trace. */
+export interface ChatSpans {
+  samples: number;
+  rag_p50_ms: number;
+  inference_p50_ms: number;
+  last: { at: number; rag_ms: number; inference_ms: number; model?: string } | null;
+}
+
+export function getChatSpans(): ChatSpans {
+  return {
+    last: lastChatSample,
+    samples: histogramCount("chat_span_inference_ms"),
+    rag_p50_ms: Math.round(percentile("chat_span_rag_ms", 50)),
+    inference_p50_ms: Math.round(percentile("chat_span_inference_ms", 50)),
+  };
+}
+
+export interface WarRoomData {
+  chat_spans: ChatSpans;
+  service_status: HealthData;
+  request_metrics: {
+    total_24h: number;
+    rpm_current: number;
+    error_rate_1h: number;
+    latency_p50: number;
+    latency_p95: number;
+    latency_p99: number;
+  };
+  chat_metrics: {
+    conversations_24h: number;
+    avg_inference_ms: number;
+    cache_hit_rate: number;
+    rate_limit_hits_24h: number;
+    /** Real model answers, and how many of them needed the hedge model started in parallel. */
+    model_answers: number;
+    hedged_answers: number;
+    hedge_rate: number;
+    budget_used: number;
+    budget_remaining: number;
+  };
+  infrastructure: {
+    uptime_seconds: number;
+    cold_starts: number;
+    node_version: string;
+    boot_time: string;
+  };
+  slos: SLODefinition[];
+  recent_events: TelemetryEvent[];
+  recent_errors: RecentError[];
+  recent_visitors: VisitorRecord[];
+  timeseries: {
+    latency_1h: Array<{ t: number; p50: number; p95: number }>;
+    requests_1h: Array<{ t: number; count: number; errors: number }>;
+  };
+}
+
+export function getWarRoomData(): WarRoomData {
+  const totalReqs = getCounter("http_requests_total");
+  const chatTotal = getCounter("chat_conversations_total");
+  const cacheHits = getCounter("chat_cache_hits_total");
+  const rateLimitHits = getCounter("chat_rate_limit_hits_total");
+  const { used: budgetUsed, remaining: budgetRemaining } = getDailyBudgetStats();
+
+  const recentBuckets = timeSeriesBuckets.filter((b) => b.t > Date.now() - 60000);
+  const rpm = recentBuckets.reduce((sum, b) => sum + b.requests, 0);
+
+  const reqsLastHour = histogramCount("http_request_duration_seconds", 3600000);
+  const errorsLastHour = timeSeriesBuckets
+    .filter((b) => b.t > Date.now() - 3600000)
+    .reduce((sum, b) => sum + b.errors, 0);
+
+  return {
+    chat_spans: getChatSpans(),
+    service_status: getHealthData(),
+    request_metrics: {
+      total_24h: totalReqs,
+      rpm_current: rpm,
+      error_rate_1h: reqsLastHour > 0 ? (errorsLastHour / reqsLastHour) * 100 : 0,
+      latency_p50: Math.round(percentile("http_request_duration_seconds", 50, 3600000)),
+      latency_p95: Math.round(percentile("http_request_duration_seconds", 95, 3600000)),
+      latency_p99: Math.round(percentile("http_request_duration_seconds", 99, 3600000)),
+    },
+    chat_metrics: {
+      conversations_24h: chatTotal,
+      avg_inference_ms: Math.round(percentile("chat_inference_duration_seconds", 50)),
+      cache_hit_rate: chatTotal > 0 ? Math.round((cacheHits / chatTotal) * 100) : 0,
+      rate_limit_hits_24h: rateLimitHits,
+      model_answers: getCounter("chat_model_answers_total"),
+      hedged_answers: getCounter("chat_hedges_total"),
+      hedge_rate: getCounter("chat_model_answers_total") > 0 ? Math.round((getCounter("chat_hedges_total") / getCounter("chat_model_answers_total")) * 100) : 0,
+      budget_used: budgetUsed,
+      budget_remaining: budgetRemaining,
+    },
+    infrastructure: {
+      uptime_seconds: getUptimeSeconds(),
+      cold_starts: 1,
+      node_version: process.version,
+      boot_time: new Date(BOOT_TIME).toISOString(),
+    },
+    slos: computeSLOs(),
+    recent_events: [...events].reverse(),
+    recent_errors: getRecentErrors(),
+    recent_visitors: getRecentVisitors(),
+    timeseries: (() => {
+      const oneHourAgo = Date.now() - 3600000;
+      const buckets = timeSeriesBuckets.filter((b) => b.t > oneHourAgo);
+      const latency_1h = buckets
+        .map((b) => ({
+          t: b.t,
+          p50: b.latencyCount > 0 ? Math.round(b.latencySum / b.latencyCount) : 0,
+          p95: Math.round(percentile("http_request_duration_seconds", 95, 3600000)),
+        }))
+        .sort((a, b) => a.t - b.t);
+      const requests_1h = buckets
+        .map((b) => ({ t: b.t, count: b.requests, errors: b.errors }))
+        .sort((a, b) => a.t - b.t);
+      return { latency_1h, requests_1h };
+    })(),
+  };
+}

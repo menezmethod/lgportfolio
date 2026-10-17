@@ -1,0 +1,50 @@
+import { isFirestoreConfigured, setRecruiterEmail } from "@/lib/firestore";
+import { getTraceIdFromRequest } from "@/lib/trace-context";
+import { log, recordRequest } from "@/lib/telemetry";
+
+const SECURITY_HEADERS = {
+  "Content-Type": "application/json",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+};
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export async function POST(req: Request) {
+  const start = Date.now();
+  const traceId = getTraceIdFromRequest(req);
+  try {
+    const body = await req.json().catch(() => ({}));
+    const { session_id: sessionId, email } = body as { session_id?: string; email?: string };
+
+    if (!sessionId || typeof sessionId !== "string" || !sessionId.trim()) {
+      recordRequest("/api/chat/save-email", "POST", 400, Date.now() - start);
+      return new Response(JSON.stringify({ error: "Missing session_id" }), { status: 400, headers: SECURITY_HEADERS });
+    }
+    const trimmed = (email ?? "").toString().trim();
+    if (!trimmed || !EMAIL_REGEX.test(trimmed)) {
+      recordRequest("/api/chat/save-email", "POST", 400, Date.now() - start);
+      return new Response(JSON.stringify({ error: "Valid email required" }), { status: 400, headers: SECURITY_HEADERS });
+    }
+
+    // Never claim success when nothing is stored.
+    if (!isFirestoreConfigured()) {
+      recordRequest("/api/chat/save-email", "POST", 503, Date.now() - start);
+      return new Response(
+        JSON.stringify({ error: "Email storage is not available", message: "Storage is not enabled on this site right now." }),
+        { status: 503, headers: SECURITY_HEADERS }
+      );
+    }
+
+    await setRecruiterEmail(sessionId, trimmed);
+    log("INFO", "Chat session email captured", { session_id: sessionId, ...(traceId && { trace_id: traceId }) });
+    recordRequest("/api/chat/save-email", "POST", 200, Date.now() - start);
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers: SECURITY_HEADERS });
+  } catch {
+    recordRequest("/api/chat/save-email", "POST", 503, Date.now() - start);
+    return new Response(
+      JSON.stringify({ error: "Failed to save email" }),
+      { status: 503, headers: SECURITY_HEADERS }
+    );
+  }
+}

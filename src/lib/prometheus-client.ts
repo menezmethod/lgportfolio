@@ -1,0 +1,161 @@
+/**
+ * Thin Prometheus HTTP API client for War Room aggregated metrics.
+ * Prometheus scrapes GET /api/metrics (with X-Admin-Secret) so counters
+ * reflect traffic scraped from the running container.
+ */
+
+export interface PrometheusInstantResult {
+  value: number;
+  timestamp: number;
+}
+
+export interface PrometheusRangePoint {
+  t: number;
+  value: number;
+}
+
+type PromSeries = { value?: [number, string]; values?: Array<[number, string]> };
+
+interface PromVectorResponse {
+  status: string;
+  data?: {
+    resultType: string;
+    result: PromSeries[] | [number, string];
+  };
+}
+
+const QUERY_TIMEOUT_MS = 15_000;
+const QUERY_ATTEMPTS = 2;
+const REACHABLE_TIMEOUT_MS = 1_500;
+
+export function isPrometheusConfigured(): boolean {
+  return Boolean(process.env.PROMETHEUS_URL?.trim());
+}
+
+function prometheusBaseUrl(): string {
+  const url = process.env.PROMETHEUS_URL?.trim();
+  if (!url) throw new Error("PROMETHEUS_URL is not set");
+  return url.replace(/\/$/, "");
+}
+
+function authHeaders(): HeadersInit {
+  const headers: Record<string, string> = { Accept: "application/json" };
+  const token = process.env.PROMETHEUS_BEARER_TOKEN?.trim();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    return headers;
+  }
+  const basic = process.env.PROMETHEUS_BASIC_AUTH?.trim();
+  if (basic) {
+    headers.Authorization = `Basic ${Buffer.from(basic).toString("base64")}`;
+  }
+  return headers;
+}
+
+async function promFetch(path: string, params: URLSearchParams): Promise<PromVectorResponse> {
+  const url = `${prometheusBaseUrl()}${path}?${params.toString()}`;
+  let lastError: unknown;
+  // Retry once on timeout/network errors — Prometheus can share a host with other services, so a
+  // single slow scrape must not flip the whole War Room to the in-memory fallback.
+  for (let attempt = 0; attempt < QUERY_ATTEMPTS; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), QUERY_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { headers: authHeaders(), signal: controller.signal, cache: "no-store" });
+      if (!res.ok) throw new Error(`Prometheus ${res.status}: ${await res.text()}`);
+      return (await res.json()) as PromVectorResponse;
+    } catch (error) {
+      lastError = error;
+      const retryable =
+        error instanceof Error &&
+        (error.name === "AbortError" || error.name === "TimeoutError" || error.name === "TypeError");
+      if (!retryable) throw error;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw lastError;
+}
+
+function parseInstant(data: PromVectorResponse): PrometheusInstantResult | null {
+  if (data.status !== "success" || data.data?.result == null) return null;
+  const { resultType, result } = data.data;
+  // Scalar: result is [timestamp, "value"]
+  if (resultType === "scalar" && Array.isArray(result) && result.length === 2) {
+    const [ts, val] = result as [number, string];
+    const num = parseFloat(val);
+    return Number.isFinite(num) ? { timestamp: ts * 1000, value: num } : null;
+  }
+  if (!Array.isArray(result) || result.length === 0) return null;
+  const first = result[0] as { value?: [number, string] } | undefined;
+  if (!first?.value) return null;
+  const [ts, val] = first.value;
+  const num = parseFloat(val);
+  return Number.isFinite(num) ? { timestamp: ts * 1000, value: num } : null;
+}
+
+function isPromSeriesList(result: unknown): result is PromSeries[] {
+  return Array.isArray(result) && result.length > 0 && typeof result[0] === "object";
+}
+
+function parseRangeSum(data: PromVectorResponse): PrometheusRangePoint[] {
+  if (data.status !== "success" || !data.data?.result) return [];
+  if (!isPromSeriesList(data.data.result)) return [];
+  const bucket = new Map<number, number>();
+  for (const series of data.data.result) {
+    for (const [ts, val] of series.values ?? []) {
+      const t = ts * 1000;
+      const n = parseFloat(val);
+      if (!Number.isFinite(n)) continue;
+      bucket.set(t, (bucket.get(t) ?? 0) + n);
+    }
+  }
+  return [...bucket.entries()]
+    .map(([t, value]) => ({ t, value }))
+    .sort((a, b) => a.t - b.t);
+}
+
+export async function queryInstant(promql: string): Promise<number | null> {
+  const params = new URLSearchParams({ query: promql });
+  const data = await promFetch("/api/v1/query", params);
+  const parsed = parseInstant(data);
+  return parsed?.value ?? null;
+}
+
+export async function queryRange(
+  promql: string,
+  startMs: number,
+  endMs: number,
+  stepSec: number
+): Promise<PrometheusRangePoint[]> {
+  const params = new URLSearchParams({
+    query: promql,
+    start: String(Math.floor(startMs / 1000)),
+    end: String(Math.floor(endMs / 1000)),
+    step: String(stepSec),
+  });
+  const data = await promFetch("/api/v1/query_range", params);
+  return parseRangeSum(data);
+}
+
+/** Run a batch of instant queries in parallel. */
+export async function queryInstantBatch(
+  queries: Record<string, string>
+): Promise<Record<string, number | null>> {
+  const entries = Object.entries(queries);
+  const results = await Promise.all(entries.map(([, q]) => queryInstant(q).catch(() => null)));
+  return Object.fromEntries(entries.map(([key], i) => [key, results[i]]));
+}
+
+/** Quick reachability probe: one attempt, short timeout, so an unresolvable or dead host never stalls the page. */
+export async function checkPrometheusReachable(): Promise<boolean> {
+  if (!isPrometheusConfigured()) return false;
+  try {
+    const url = `${prometheusBaseUrl()}/api/v1/query?${new URLSearchParams({ query: "1" })}`;
+    const res = await fetch(url, { headers: authHeaders(), signal: AbortSignal.timeout(REACHABLE_TIMEOUT_MS), cache: "no-store" });
+    if (!res.ok) return false;
+    return parseInstant((await res.json()) as PromVectorResponse)?.value === 1;
+  } catch {
+    return false;
+  }
+}

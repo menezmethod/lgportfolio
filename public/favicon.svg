@@ -1,0 +1,17 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background: Deep Tech Dark -->
+  <rect width="64" height="64" rx="16" fill="#050508"/>
+  
+  <!-- The Foundation "L" (Primary Blue) -->
+  <path d="M20 16V42C20 45.3137 22.6863 48 26 48H42" stroke="#32C0F4" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- The Architecture "G" (Secondary Orange) -->
+  <path d="M44 16H30" stroke="#E97124" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M44 16V34H34" stroke="#E97124" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- The "Sigil" Core (AI/Data Spark) -->
+  <rect x="28" y="24" width="8" height="8" rx="2" fill="white" fill-opacity="0.9"/>
+  
+  <!-- Subtle Circuit Dot -->
+  <circle cx="42" cy="48" r="3" fill="#32C0F4"/>
+</svg>

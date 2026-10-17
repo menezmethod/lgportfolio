@@ -1,0 +1,26 @@
+# Copy this file to terraform.tfvars and fill in your values.
+# NEVER commit terraform.tfvars — it contains secrets.
+
+project_id           = "your-gcp-project-id"
+region               = "us-east1"
+domain               = "gimenez.dev"
+enable_load_balancer = true
+inferencia_api_key  = "your-inferencia-api-key"
+inferencia_base_url = "https://your-inferencia-endpoint.com/v1"
+
+# Optional: $20 budget kill switch (email + Pub/Sub → scale Cloud Run to 0). Get ID: gcloud billing accounts list
+# billing_account_id = "012345-6789AB-CDEF01"
+# budget_alert_email = "you@example.com"
+
+# Optional: email for portfolio alerts (recruiter left email, spam/abuse, high errors)
+# portfolio_alert_email = "you@example.com"
+
+# Optional: Cloud SQL (PostgreSQL + pgvector) for RAG vector search. Default true. Set to false to use file-based RAG only.
+# enable_rag_cloud_sql = true
+
+# Optional: Cloud Build CI/CD (off by default — Coolify hosts production). Enable for GCP rollback.
+# Connect GitHub in Cloud Build first (see docs/DEPLOY-CLOUDRUN.md).
+# enable_cloud_build_triggers           = true
+# enable_cloud_build_production_trigger = true   # push to main → lgportfolio
+# enable_cloud_build_preview_trigger    = false  # PR → lgportfolio-preview (cost/quota aware)
+# ga_measurement_id                     = "G-XXXXXXXXXX"

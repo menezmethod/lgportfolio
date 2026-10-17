@@ -1,0 +1,41 @@
+# Compose definition for the lgportfolio service. Kept for reference: production deploys
+# through GitHub Actions and the Coolify API (see docs/DEPLOY-COOLIFY.md).
+#
+# Variables come from .env.coolify (copy .env.coolify.example and fill the values).
+
+name: lgportfolio
+
+networks:
+  coolify:
+    external: true
+
+services:
+  lgportfolio:
+    container_name: lgportfolio
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lgportfolio:latest
+    restart: unless-stopped
+    networks:
+      - coolify
+    env_file:
+      - .env.coolify
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      COOLIFY: "1"
+      # Pinned defaults — override only by editing this file + redeploy (not Coolify UI drift)
+      INFERENCIA_BASE_URL: "http://inferencia:8080/v1"
+      INFERENCIA_CHAT_MODEL: "gemma4:12b"
+      PROMETHEUS_URL: "http://prometheus-prometheus-1:9090"
+      NEXT_PUBLIC_SITE_URL: "https://gimenez.dev"
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/api/health/live"]
+      interval: 30s
+      timeout: 5s
+      start_period: 45s
+      retries: 3
+    labels:
+      - coolify.managed=true
+      - traefik.enable=false
