@@ -185,7 +185,7 @@ export default function Chat() {
   const [providers, setProviders] = useState<string[] | null>(null);
   // Limits come from the server so the counter matches what it enforces; null until known.
   const [maxMessages, setMaxMessages] = useState<number | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // /chat?q=... prefills the input. The visitor presses send, so nothing spends the rate limit unasked.
@@ -211,10 +211,11 @@ export default function Chat() {
   useEffect(() => {
     // Do not scroll on first render: it clips the welcome message.
     if (messages.length <= 1 && !isLoading) return;
-    const el = messagesEndRef.current;
-    if (!el) return;
+    const list = listRef.current;
+    if (!list) return;
+    // Scroll only the message list, never the page: on phones the input sits below it.
     const id = requestAnimationFrame(() => {
-      el.scrollIntoView({ behavior: isLoading ? 'auto' : 'smooth', block: 'end' });
+      list.scrollTo({ top: list.scrollHeight, behavior: isLoading ? 'auto' : 'smooth' });
     });
     return () => cancelAnimationFrame(id);
   }, [messages.length, isLoading, streamedLength]);
@@ -370,8 +371,10 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex h-[calc(100dvh-4rem)] flex-col bg-background">
-      <div className="mx-auto flex h-full w-full max-w-[95%] xl:max-w-[1800px] flex-col gap-4 px-2 pb-4 sm:px-4 md:px-6">
+    // Phones: the page scrolls and the message list keeps a minimum height (a one-screen layout
+    // left it a sliver under the browser bars). md+: one screen, the list fills the space.
+    <div className="flex min-h-[calc(100dvh-4rem)] flex-col bg-background md:h-[calc(100dvh-4rem)]">
+      <div className="mx-auto flex min-h-0 flex-1 w-full max-w-[95%] xl:max-w-[1800px] flex-col gap-4 px-2 pb-4 sm:px-4 md:px-6">
 
         <header className="shrink-0 pb-2 pt-8 sm:pb-4 sm:pt-10">
           <p className="eyebrow">Chat / Answers from CV and notes</p>
@@ -380,8 +383,8 @@ export default function Chat() {
 
         <Card className="flex flex-1 flex-col min-h-0 overflow-hidden border-hairline bg-card shadow-none relative w-full">
           <div
-            className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain"
-            style={{ maxHeight: 'min(calc(100vh - 20rem), 100%)' }}
+            ref={listRef}
+            className="min-h-[40svh] max-h-[60svh] w-full flex-1 overflow-y-auto overflow-x-hidden overscroll-contain md:max-h-none md:min-h-0"
             aria-live="polite"
             aria-label="Chat messages"
             role="log"
@@ -441,7 +444,6 @@ export default function Chat() {
                 </div>
               )}
 
-              <div ref={messagesEndRef} className="h-px w-px shrink-0" />
             </div>
           </div>
 
