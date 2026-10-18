@@ -70,7 +70,8 @@ describe("/api/analytics/page-view visitor pings", () => {
       "sha256=" + createHmac("sha256", "test-secret").update(opts.body).digest("hex")
     );
     const payload = JSON.parse(opts.body) as Record<string, string>;
-    expect(payload.event_type).toBe("visitor-digest");
+    expect(payload.event_type).toBe("visitor-pageview");
+    expect(payload.kind).toBe("digest");
     expect(payload.category).toBe("person");
     expect(payload.text).toContain("Pages: / ");
     expect(payload.text).toMatch(/Pages: \/ \(\d+s\) → \//);
@@ -138,10 +139,11 @@ describe("/api/analytics/page-view visitor pings", () => {
     const body = (fetchMock.mock.calls[0][1] as { body: string }).body;
     const payload = JSON.parse(body) as Record<string, string>;
     expect(Object.keys(payload).sort()).toEqual(
-      ["category", "country", "event_type", "intent", "ip", "path", "referrer", "text", "timestamp", "uaSummary"],
+      ["category", "country", "event_type", "intent", "ip", "kind", "path", "referrer", "text", "timestamp", "uaSummary"],
     );
     expect(payload).toMatchObject({
-      event_type: "visitor-digest",
+      event_type: "visitor-pageview",
+      kind: "digest",
       category: "person",
       path: "/work",
       ip: "9.9.9.9",

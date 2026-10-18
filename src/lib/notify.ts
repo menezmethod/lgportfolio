@@ -1,8 +1,9 @@
 /**
  * Visitor messages to an owner-controlled webhook (Hermes → Telegram).
  *
- * Sent by src/lib/visits.ts: one "visitor-digest" per visit after 30 idle minutes,
- * and at most one "visitor-alert" per visit for high intent. Visits from OWNER_IPS
+ * Sent by src/lib/visits.ts: one digest per visit after 30 idle minutes, and at most
+ * one alert per visit for high intent. Both use event_type "visitor-pageview" (the only
+ * type the Hermes receiver accepts) with `kind` "digest" or "alert". Visits from OWNER_IPS
  * never send; owner-cookie browsers never reach visits.ts (see src/lib/owner.ts).
  *
  * The body is signed (HMAC-SHA256 in X-Hub-Signature-256, key VISITOR_WEBHOOK_SECRET)

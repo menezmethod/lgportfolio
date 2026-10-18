@@ -72,7 +72,8 @@ describe("visit digest", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     const [d] = sent();
-    expect(d.event_type).toBe("visitor-digest");
+    expect(d.event_type).toBe("visitor-pageview");
+    expect(d.kind).toBe("digest");
     expect(d.intent).toBe("high");
     expect(d.application).toBe("Astra");
     expect(d.path).toBe("/");
@@ -93,11 +94,11 @@ describe("visit digest", () => {
     await recordPageVisit(ctx, "/contact", "", "astra");
     await recordClick(ctx, "resume_download");
     await recordClick(ctx, "resume_download");
-    expect(sent().map((m) => m.event_type)).toEqual(["visitor-alert"]);
+    expect(sent().map((m) => m.kind)).toEqual(["alert"]);
     expect(sent()[0].text).toContain("NOW: resume downloaded — Astra");
 
     await vi.advanceTimersByTimeAsync(IDLE_MS);
-    expect(sent().map((m) => m.event_type)).toEqual(["visitor-alert", "visitor-digest"]);
+    expect(sent().map((m) => m.kind)).toEqual(["alert", "digest"]);
     expect(sent()[1].text).toContain("Clicks: resume_download");
   });
 
@@ -112,7 +113,7 @@ describe("visit digest", () => {
     fetchMock.mockClear();
     await recordPageVisit({ ...ctx, ip: "8.8.8.8" }, "/chat", "", "astra");
     await recordQuestion({ ...ctx, ip: "8.8.8.8" }, "What is his on-call experience?");
-    expect(sent().map((m) => m.event_type)).toEqual(["visitor-alert"]);
+    expect(sent().map((m) => m.kind)).toEqual(["alert"]);
   });
 
   it("a short direct visit is low intent; unknown src says so", async () => {
