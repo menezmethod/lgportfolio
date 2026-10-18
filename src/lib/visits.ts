@@ -162,7 +162,9 @@ async function flush(key: string): Promise<void> {
   const app = v.src ? await lookupApplication(v.src).catch(() => null) : null;
   await sendVisitorWebhook(
     {
-      event_type: "visitor-digest",
+      // Hermes accepts only event_type "visitor-pageview"; `kind` tells digest from alert.
+      event_type: "visitor-pageview",
+      kind: "digest",
       ...basePayload(v),
       intent: intentOf(v),
       application: app?.company,
@@ -210,7 +212,7 @@ async function maybeAlert(v: Visit, reason: string): Promise<void> {
     `From: ${v.referrer ? hostOf(v.referrer) : "direct"} · ${who}`,
     `Pages so far: ${v.pages.map((p) => p.path).join(" → ")}`,
   ].filter(Boolean).join("\n");
-  await sendVisitorWebhook({ event_type: "visitor-alert", ...basePayload(v), text }, v.ctx.ip);
+  await sendVisitorWebhook({ event_type: "visitor-pageview", kind: "alert", ...basePayload(v), text }, v.ctx.ip);
 }
 
 /** A page view. `referrer` (origin) and `src` count only on the first page of a visit. */
