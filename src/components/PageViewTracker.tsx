@@ -43,18 +43,22 @@ export default function PageViewTracker() {
       return;
     }
 
+    // Automated browsers (Lighthouse, Puppeteer, Playwright, Cypress) set navigator.webdriver.
+    if (navigator.webdriver) return;
     if (lastPath.current === pathname) return;
+    // document.referrer only means "where they came from" on the first page of the tab.
+    const ref = lastPath.current === null ? document.referrer || undefined : undefined;
     lastPath.current = pathname;
 
     const src = new URLSearchParams(window.location.search).get("src")?.toLowerCase() || undefined;
-    send("/api/analytics/page-view", { path: pathname, src });
+    send("/api/analytics/page-view", { path: pathname, src, ref });
   }, [pathname]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       const a = (e.target as Element | null)?.closest?.("a");
       const name = a ? clickEventFor(a.href) : null;
-      if (name && !window.location.pathname.startsWith("/admin")) {
+      if (name && !navigator.webdriver && !window.location.pathname.startsWith("/admin")) {
         send("/api/analytics/event", { name, path: window.location.pathname });
       }
     };

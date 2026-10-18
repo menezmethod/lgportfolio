@@ -112,17 +112,17 @@ describe("/api/analytics/page-view visitor pings", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("payload has the designed shape: event type, category, path, referrer, uaSummary, ip, country, timestamp", async () => {
+  it("payload has the designed shape; referrer is the origin from document.referrer, not the Referer header", async () => {
     const req = new Request("https://localhost:3000/api/analytics/page-view", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "User-Agent": CHROME_UA,
         "X-Forwarded-For": "9.9.9.9",
-        Referer: "https://example.org/some/page?q=1",
+        Referer: "https://gimenez.dev/work",
         "CF-IPCountry": "US",
       },
-      body: JSON.stringify({ path: "/work" }),
+      body: JSON.stringify({ path: "/work", ref: "https://example.org/some/page?q=1" }),
     });
     await POST(req);
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -137,7 +137,7 @@ describe("/api/analytics/page-view visitor pings", () => {
       path: "/work",
       ip: "9.9.9.9",
       country: "US",
-      referrer: "https://example.org/some/page?q=1",
+      referrer: "https://example.org",
       uaSummary: "Chrome",
     });
   });

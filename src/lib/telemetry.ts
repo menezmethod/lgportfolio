@@ -63,11 +63,18 @@ export function classifyVisitor(userAgent: string): VisitorCategory {
   ];
   if (crawlerSignals.some((s) => ua.includes(s))) return "crawler";
 
-  // Known non-human bots (API clients, curl, etc)
+  // Known non-human bots (API clients, curl, etc), headless/automation browsers
+  // (Lighthouse, Puppeteer, Playwright, Cypress), uptime monitors, and
+  // link-preview fetchers in chat apps that render pages when a link is shared.
   const botSignals = [
     "curl/", "wget/", "python-requests", "go-http-client", "axios",
     "node-fetch", "httpx", "aiohttp", "okhttp", "postman",
-    "insomnia", "httpie", "java/", "libcurl", "fetch/"
+    "insomnia", "httpie", "java/", "libcurl", "fetch/",
+    "headlesschrome", "lighthouse", "pagespeed", "puppeteer", "playwright",
+    "cypress", "electron/", "phantomjs", "selenium", "webdriver",
+    "uptimerobot", "pingdom", "statuscake", "gtmetrix", "datadog",
+    "telegrambot", "whatsapp", "slackbot", "discordbot", "skypeuripreview",
+    "redditbot", "embedly", "iframely", "bitlybot", "bot/", "preview"
   ];
   if (botSignals.some((s) => ua.includes(s))) return "bot";
 
@@ -76,6 +83,32 @@ export function classifyVisitor(userAgent: string): VisitorCategory {
   if (browserSignals.some((s) => ua.includes(s))) return "person";
 
   return "unknown";
+}
+
+/**
+ * Origin of the page the visitor came from, from document.referrer sent by the browser.
+ * The request's own Referer header is always this site's page, so it is not used.
+ * Same-site and malformed values return "" (direct).
+ */
+export function externalReferrer(ref: unknown, selfHost: string): string {
+  if (typeof ref !== "string" || !ref) return "";
+  try {
+    const u = new URL(ref);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return "";
+    if (u.hostname === selfHost || u.hostname === `www.${selfHost}`) return "";
+    return u.origin.slice(0, 200);
+  } catch {
+    return "";
+  }
+}
+
+/** This site's hostname without "www.", from NEXT_PUBLIC_SITE_URL (behind the proxy req.url may not be gimenez.dev). */
+export function siteHost(req: Request): string {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SITE_URL || req.url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
 }
 
 export function summarizeUA(userAgent: string): string {
