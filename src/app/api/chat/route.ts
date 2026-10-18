@@ -14,6 +14,8 @@ import {
   validateMessages,
 } from "@/lib/security";
 import { getTraceIdFromRequest } from "@/lib/trace-context";
+import { isOwnerRequest } from "@/lib/owner";
+import { recordQuestion } from "@/lib/visits";
 import {
   log,
   generateTraceId,
@@ -22,6 +24,7 @@ import {
   increment,
   addEvent,
   recordError,
+  visitContext,
 } from "@/lib/telemetry";
 import {
   isStorageConfigured,
@@ -214,6 +217,12 @@ export async function POST(req: Request) {
     }
 
     const sanitizedContent = inputCheck.sanitized || lastUserContent;
+
+    // The question joins the visitor's visit digest (and alerts for ?src=-tagged visits).
+    const visitor = visitContext(req);
+    if (!isOwnerRequest(req) && (visitor.category === "person" || visitor.category === "recruiter")) {
+      void recordQuestion(visitor, sanitizedContent).catch(() => {});
+    }
 
     const cached = await getCachedResponse(sanitizedContent);
     if (cached) {

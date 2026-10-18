@@ -4,7 +4,8 @@
  * Stores the event name, page path, and time. No IP, user-agent, or session ID.
  * Always returns 204 so analytics never breaks the page.
  */
-import { classifyVisitor, recordRequest } from "@/lib/telemetry";
+import { classifyVisitor, recordRequest, visitContext } from "@/lib/telemetry";
+import { recordClick } from "@/lib/visits";
 import { recordSiteEvent, SITE_EVENTS, type SiteEvent } from "@/lib/chat-store";
 import { isOwnerRequest } from "@/lib/owner";
 
@@ -21,6 +22,7 @@ export async function POST(req: Request) {
 
   if (!isOwnerRequest(req) && CLICK_EVENTS.includes(name) && path && (category === "person" || category === "recruiter")) {
     await recordSiteEvent(name, path).catch(() => {});
+    await recordClick(visitContext(req), name).catch(() => {});
   }
   recordRequest("/api/analytics/event", "POST", 204, Date.now() - start);
   return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });

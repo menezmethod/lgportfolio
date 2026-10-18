@@ -1,8 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createHmac } from "node:crypto";
 
-import { POST } from "@/app/api/analytics/page-view/route";
-import { clearVisitorNotifyCache } from "@/lib/notify";
+import { POST as rawPOST } from "@/app/api/analytics/page-view/route";
+import { clearVisits, flushAllVisits } from "@/lib/visits";
+
+/** One page view, then send its visit digest right away (instead of after 30 idle minutes). */
+const POST = async (req: Request) => {
+  const res = await rawPOST(req);
+  await flushAllVisits();
+  return res;
+};
 
 const CHROME_UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
@@ -30,7 +37,7 @@ beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => {});
   fetchMock = vi.fn().mockResolvedValue({ ok: true });
   vi.stubGlobal("fetch", fetchMock);
-  clearVisitorNotifyCache();
+  clearVisits();
   vi.stubEnv("VISITOR_WEBHOOK_URL", WEBHOOK_URL);
   vi.stubEnv("VISITOR_WEBHOOK_SECRET", "test-secret");
   delete process.env.OWNER_IPS;
@@ -40,13 +47,17 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
-  clearVisitorNotifyCache();
+  clearVisits();
 });
 
 describe("/api/analytics/page-view visitor pings", () => {
-  it("person UA → one signed webhook call; same visitor again → zero calls (dedupe)", async () => {
-    const res1 = await POST(makeRequest(CHROME_UA, "9.9.9.9"));
+  it("person UA → no message per page; one signed digest per visit with every page", async () => {
+    const res1 = await rawPOST(makeRequest(CHROME_UA, "9.9.9.9"));
     expect(res1.status).toBe(200);
+    const res2 = await rawPOST(makeRequest(CHROME_UA, "9.9.9.9"));
+    expect(res2.status).toBe(200);
+    expect(fetchMock).not.toHaveBeenCalled();
+    await flushAllVisits();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0][0]).toBe(WEBHOOK_URL);
 
@@ -59,12 +70,10 @@ describe("/api/analytics/page-view visitor pings", () => {
       "sha256=" + createHmac("sha256", "test-secret").update(opts.body).digest("hex")
     );
     const payload = JSON.parse(opts.body) as Record<string, string>;
-    expect(payload.event_type).toBe("visitor-pageview");
+    expect(payload.event_type).toBe("visitor-digest");
     expect(payload.category).toBe("person");
-
-    const res2 = await POST(makeRequest(CHROME_UA, "9.9.9.9"));
-    expect(res2.status).toBe(200);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(payload.text).toContain("Pages: / ");
+    expect(payload.text).toMatch(/Pages: \/ \(\d+s\) → \//);
   });
 
   it("curl UA → zero calls", async () => {
@@ -129,16 +138,16 @@ describe("/api/analytics/page-view visitor pings", () => {
     const body = (fetchMock.mock.calls[0][1] as { body: string }).body;
     const payload = JSON.parse(body) as Record<string, string>;
     expect(Object.keys(payload).sort()).toEqual(
-      ["category", "country", "event_type", "ip", "path", "referrer", "timestamp", "uaSummary"],
+      ["category", "country", "event_type", "intent", "ip", "path", "referrer", "text", "timestamp", "uaSummary"],
     );
     expect(payload).toMatchObject({
-      event_type: "visitor-pageview",
+      event_type: "visitor-digest",
       category: "person",
       path: "/work",
       ip: "9.9.9.9",
       country: "US",
-      referrer: "https://example.org",
-      uaSummary: "Chrome",
+      referrer: "example.org",
+      uaSummary: "Chrome on Windows",
     });
   });
 

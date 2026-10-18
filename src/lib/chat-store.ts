@@ -110,6 +110,20 @@ export interface BoardStats {
   sources: Array<{ src: string; n: number }>;
 }
 
+export interface Application {
+  src: string;
+  company: string;
+  role: string | null;
+  applied_at: string | null;
+  status: string | null;
+}
+
+/** The owner's application tagged with this ?src= value (D1 table seeded by scripts/sync-applications.mjs). */
+export async function lookupApplication(src: string): Promise<Application | null> {
+  if (!isStorageConfigured()) return null;
+  return (await store<{ application: Application | null }>("app_lookup", { src })).application;
+}
+
 /** Durable event for a likely-human visitor. No IP, user-agent or session ID is sent. */
 export async function recordSiteEvent(name: SiteEvent, path: string, src?: string | null): Promise<void> {
   if (!isStorageConfigured()) return;

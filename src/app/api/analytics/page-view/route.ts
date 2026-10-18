@@ -5,11 +5,10 @@
  * into in-memory telemetry (counters + recent visitors) so it shows up
  * in War Room and Prometheus metrics.
  *
- * For likely-human visitors (person/recruiter), fires one signed webhook ping
- * (deduped 30 min per visitor). See src/lib/notify.ts for the exact payload. Bots and
- * crawlers never ping.
- * The ping must never break the endpoint: failures are swallowed and the
- * route always returns 200.
+ * For likely-human visitors (person/recruiter) it also saves a durable page view
+ * and adds the page to the visitor's visit; src/lib/visits.ts sends one digest per
+ * visit. Bots, crawlers and owner browsers are skipped. Failures are swallowed and
+ * the route always returns 200.
  */
 import {
   classifyVisitor,
@@ -17,21 +16,13 @@ import {
   siteHost,
   recordVisitor,
   recordRequest,
-  summarizeUA,
+  visitContext,
 } from "@/lib/telemetry";
-import { notifyVisitor } from "@/lib/notify";
+import { recordPageVisit } from "@/lib/visits";
 import { recordSiteEvent } from "@/lib/chat-store";
 import { isOwnerRequest } from "@/lib/owner";
 
 export const dynamic = "force-dynamic";
-
-function getClientIp(req: Request): string {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  const realIp = req.headers.get("x-real-ip");
-  if (realIp) return realIp.trim();
-  return "";
-}
 
 export async function POST(req: Request) {
   const start = Date.now();
@@ -56,16 +47,8 @@ export async function POST(req: Request) {
       // Durable page view (path and optional ?src= tag only); the in-memory counters reset on restart.
       const src = typeof body.src === "string" && /^[a-z0-9-]{1,40}$/.test(body.src) ? body.src : null;
       await recordSiteEvent("page_view", path, src).catch(() => {});
-      // Fire-and-forget within the request: notifyVisitor never throws,
-      // but a defensive catch keeps the endpoint 200 even if it does.
-      await notifyVisitor({
-        category,
-        path,
-        referrer: referrer || "direct",
-        country: req.headers.get("cf-ipcountry") || undefined,
-        uaSummary: summarizeUA(userAgent),
-        ip: getClientIp(req),
-      }).catch(() => {});
+      // Visit grouping: one digest after 30 idle minutes (src/lib/visits.ts).
+      await recordPageVisit(visitContext(req), path, referrer, src).catch(() => {});
     }
 
     recordRequest("/api/analytics/page-view", "POST", 200, Date.now() - start);
