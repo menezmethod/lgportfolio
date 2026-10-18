@@ -6,6 +6,7 @@
  */
 import { classifyVisitor, recordRequest } from "@/lib/telemetry";
 import { recordSiteEvent, SITE_EVENTS, type SiteEvent } from "@/lib/chat-store";
+import { isOwnerRequest } from "@/lib/owner";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
   const path = typeof body.path === "string" && body.path.startsWith("/") ? body.path : null;
   const category = classifyVisitor(req.headers.get("user-agent") || "");
 
-  if (CLICK_EVENTS.includes(name) && path && (category === "person" || category === "recruiter")) {
+  if (!isOwnerRequest(req) && CLICK_EVENTS.includes(name) && path && (category === "person" || category === "recruiter")) {
     await recordSiteEvent(name, path).catch(() => {});
   }
   recordRequest("/api/analytics/event", "POST", 204, Date.now() - start);

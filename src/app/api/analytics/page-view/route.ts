@@ -13,12 +13,15 @@
  */
 import {
   classifyVisitor,
+  externalReferrer,
+  siteHost,
   recordVisitor,
   recordRequest,
   summarizeUA,
 } from "@/lib/telemetry";
 import { notifyVisitor } from "@/lib/notify";
 import { recordSiteEvent } from "@/lib/chat-store";
+import { isOwnerRequest } from "@/lib/owner";
 
 export const dynamic = "force-dynamic";
 
@@ -33,13 +36,18 @@ function getClientIp(req: Request): string {
 export async function POST(req: Request) {
   const start = Date.now();
   const userAgent = req.headers.get("user-agent") || "";
-  const referrer = req.headers.get("referer") || "";
+  if (isOwnerRequest(req)) {
+    recordRequest("/api/analytics/page-view", "POST", 204, Date.now() - start);
+    return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
+  }
   try {
     const body = (await req.json().catch(() => ({}))) as {
       path?: string;
       src?: string;
+      ref?: string;
     };
     const path = body.path || "/";
+    const referrer = externalReferrer(body.ref, siteHost(req));
 
     recordVisitor(path, userAgent, referrer);
 
@@ -53,7 +61,7 @@ export async function POST(req: Request) {
       await notifyVisitor({
         category,
         path,
-        referrer: referrer.slice(0, 200),
+        referrer: referrer || "direct",
         country: req.headers.get("cf-ipcountry") || undefined,
         uaSummary: summarizeUA(userAgent),
         ip: getClientIp(req),
