@@ -57,11 +57,11 @@ describe("externalReferrer", () => {
 describe("referrer in the ping", () => {
   it("is 'direct' when the browser sent no outside referrer, even though the Referer header is this site", async () => {
     await pageView({ path: "/" }, { Referer: "https://gimenez.dev/" });
-    expect(pingBody().referrer).toBe("direct");
+    expect(pingBody().referrer_host).toBe("direct");
   });
   it("is the outside origin from document.referrer", async () => {
     await pageView({ path: "/", ref: "https://www.google.com/search?q=luis" });
-    expect(pingBody().referrer).toBe("google.com");
+    expect(pingBody().referrer_host).toBe("google.com");
   });
 });
 
@@ -113,5 +113,21 @@ describe("owner cookie", () => {
   it("no OWNER_KEY set: nobody is the owner", () => {
     vi.stubEnv("OWNER_KEY", "");
     expect(isOwnerRequest(new Request("https://gimenez.dev/", { headers: { cookie: `${OWNER_COOKIE}=${"a".repeat(64)}` } }))).toBe(false);
+  });
+});
+
+describe("visitContext", () => {
+  it("prefers the edge Worker's x-visitor-* headers, then Cloudflare's cf-* headers", async () => {
+    const { visitContext } = await import("@/lib/telemetry");
+    const edge = visitContext(new Request("https://gimenez.dev/", { headers: {
+      "User-Agent": CHROME_UA, "x-visitor-ip": "1.1.1.1", "cf-connecting-ip": "2.2.2.2",
+      "x-visitor-city": "Tampa", "x-visitor-region": "Florida", "x-visitor-country": "US", "x-visitor-asorg": "Comcast Cable",
+    } }));
+    expect(edge).toMatchObject({ ip: "1.1.1.1", city: "Tampa", region: "Florida", country: "US", network: "Comcast Cable", category: "person" });
+    const cf = visitContext(new Request("https://gimenez.dev/", { headers: {
+      "User-Agent": CHROME_UA, "cf-connecting-ip": "2.2.2.2", "cf-ipcountry": "CA", "cf-ipcity": "Toronto",
+    } }));
+    expect(cf).toMatchObject({ ip: "2.2.2.2", country: "CA", city: "Toronto" });
+    expect(cf.network).toBeUndefined();
   });
 });

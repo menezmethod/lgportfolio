@@ -139,18 +139,21 @@ describe("/api/analytics/page-view visitor pings", () => {
     const body = (fetchMock.mock.calls[0][1] as { body: string }).body;
     const payload = JSON.parse(body) as Record<string, string>;
     expect(Object.keys(payload).sort()).toEqual(
-      ["category", "country", "event_type", "intent", "ip", "kind", "path", "referrer", "text", "timestamp", "uaSummary"],
+      ["category", "country", "device", "entry_path", "event_type", "intent", "ip", "kind", "path", "referrer", "referrer_host", "sent_at", "text", "timestamp", "uaSummary"],
     );
     expect(payload).toMatchObject({
       event_type: "visitor-pageview",
       kind: "digest",
       category: "person",
-      path: "/work",
+      entry_path: "/work",
       ip: "9.9.9.9",
       country: "US",
+      referrer_host: "example.org",
+      device: "Chrome on Windows",
+      uaSummary: "Chrome on Windows · US · person",
       referrer: "example.org",
-      uaSummary: "Chrome on Windows",
     });
+    expect(payload.path).toMatch(/^LOW intent, 0s · \/work$/);
   });
 
   it("VISITOR_PING_OMIT_IP=1 drops the ip from the body", async () => {

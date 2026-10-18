@@ -76,8 +76,14 @@ describe("visit digest", () => {
     expect(d.kind).toBe("digest");
     expect(d.intent).toBe("high");
     expect(d.application).toBe("Astra");
-    expect(d.path).toBe("/");
-    expect(d.referrer).toBe("linkedin.com");
+    expect(d.entry_path).toBe("/");
+    expect(d.referrer_host).toBe("linkedin.com");
+    // The line the current Hermes template renders: "Visitor [{path}] via {uaSummary}, ref {referrer}, {timestamp}."
+    expect(`Visitor [${d.path}] via ${d.uaSummary}, ref ${d.referrer}, ${d.timestamp}.`).toBe(
+      "Visitor [HIGH intent, 3m50s · Astra (applied 2026-09-10, Applied) · / 40s → /work/deployment-path 3m10s → /contact 25s]" +
+        " via Safari on iPhone (iOS) · Tampa, Florida, US · Comcast Cable · recruiter," +
+        " ref linkedin.com · src=astra, 2026-10-18T12:00:00.000Z."
+    );
     expect(d.text).toBe(
       [
         "HIGH intent visit, 3m50s, 3 pages — Astra",
@@ -96,6 +102,8 @@ describe("visit digest", () => {
     await recordClick(ctx, "resume_download");
     expect(sent().map((m) => m.kind)).toEqual(["alert"]);
     expect(sent()[0].text).toContain("NOW: resume downloaded — Astra");
+    expect(sent()[0].path).toBe("NOW: resume downloaded · Astra (applied 2026-09-10, Applied) · /contact");
+    expect(sent()[0].referrer).toBe("direct · src=astra · clicks: resume_download");
 
     await vi.advanceTimersByTimeAsync(IDLE_MS);
     expect(sent().map((m) => m.kind)).toEqual(["alert", "digest"]);

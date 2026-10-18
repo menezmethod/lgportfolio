@@ -136,18 +136,42 @@ export function digestText(v: Visit, app: Application | null): string {
   return lines.join("\n").slice(0, 3900);
 }
 
+/**
+ * The Hermes template on the server prints only
+ * "Visitor [{path}] via {uaSummary}, ref {referrer}, {timestamp}". So these four
+ * fields carry the digest itself; the plain values are also sent as entry_path,
+ * device and referrer_host, and the multi-line version as `text`.
+ */
+function templateFields(v: Visit, app: Application | null, headline: string) {
+  const short = app ? `${app.company} (applied ${app.applied_at}, ${app.status})` : v.src ? `src=${v.src}, no matching application` : "";
+  const pages = v.pages.map((p) => `${p.path}${p.ms !== undefined ? ` ${fmtDuration(p.ms)}` : ""}`).join(" → ");
+  const who = [describeDevice(v.ctx.userAgent), locationOf(v.ctx), v.ctx.network, v.ctx.category].filter(Boolean).join(" · ");
+  const extras = [
+    v.referrer ? hostOf(v.referrer) : "direct",
+    v.src ? `src=${v.src}` : "",
+    v.clicks.length ? `clicks: ${v.clicks.join(", ")}` : "",
+    ...v.questions.map((q) => `chat: "${q}"`),
+  ].filter(Boolean).join(" · ");
+  return {
+    path: [headline, short, pages].filter(Boolean).join(" · ").slice(0, 1500),
+    uaSummary: who.slice(0, 300),
+    referrer: extras.slice(0, 1800),
+    timestamp: new Date(v.firstAt).toISOString(),
+  };
+}
+
 function basePayload(v: Visit) {
   return {
     category: v.ctx.category,
-    path: v.pages[0]?.path ?? "/",
-    referrer: v.referrer ? hostOf(v.referrer) : "direct",
-    uaSummary: describeDevice(v.ctx.userAgent),
+    entry_path: v.pages[0]?.path ?? "/",
+    referrer_host: v.referrer ? hostOf(v.referrer) : "direct",
+    device: describeDevice(v.ctx.userAgent),
     country: v.ctx.country,
     region: v.ctx.region,
     city: v.ctx.city,
     network: v.ctx.network,
     src: v.src ?? undefined,
-    timestamp: new Date().toISOString(),
+    sent_at: new Date().toISOString(),
   };
 }
 
@@ -166,6 +190,7 @@ async function flush(key: string): Promise<void> {
       event_type: "visitor-pageview",
       kind: "digest",
       ...basePayload(v),
+      ...templateFields(v, app, `${intentOf(v).toUpperCase()} intent, ${fmtDuration(v.lastAt - v.firstAt)}`),
       intent: intentOf(v),
       application: app?.company,
       text: digestText(v, app),
@@ -212,7 +237,10 @@ async function maybeAlert(v: Visit, reason: string): Promise<void> {
     `From: ${v.referrer ? hostOf(v.referrer) : "direct"} · ${who}`,
     `Pages so far: ${v.pages.map((p) => p.path).join(" → ")}`,
   ].filter(Boolean).join("\n");
-  await sendVisitorWebhook({ event_type: "visitor-pageview", kind: "alert", ...basePayload(v), text }, v.ctx.ip);
+  await sendVisitorWebhook(
+    { event_type: "visitor-pageview", kind: "alert", ...basePayload(v), ...templateFields(v, app, `NOW: ${reason}`), text },
+    v.ctx.ip
+  );
 }
 
 /** A page view. `referrer` (origin) and `src` count only on the first page of a visit. */

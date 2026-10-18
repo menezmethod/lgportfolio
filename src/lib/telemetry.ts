@@ -103,11 +103,13 @@ export function externalReferrer(ref: unknown, selfHost: string): string {
 }
 
 /**
- * Visitor IP: CF-Connecting-IP (set by Cloudflare at the edge; the origin is only
- * reachable through the Cloudflare tunnel), then X-Forwarded-For, then X-Real-IP.
+ * Visitor IP: x-visitor-ip (set by the lgportfolio-edge-geo Worker on analytics and
+ * chat routes), then CF-Connecting-IP (set by Cloudflare at the edge; the origin is
+ * only reachable through the Cloudflare tunnel), then X-Forwarded-For, then X-Real-IP.
  */
 export function clientIp(req: Request): string {
   return (
+    req.headers.get("x-visitor-ip")?.trim() ||
     req.headers.get("cf-connecting-ip")?.trim() ||
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     req.headers.get("x-real-ip")?.trim() ||
@@ -123,9 +125,10 @@ export function visitContext(req: Request) {
     ip: clientIp(req),
     userAgent,
     category: classifyVisitor(userAgent),
-    country: h("cf-ipcountry"),
-    region: h("cf-region"),
-    city: h("cf-ipcity"),
+    // x-visitor-* come from the lgportfolio-edge-geo Worker; cf-* from Cloudflare's managed transforms.
+    country: h("x-visitor-country") || h("cf-ipcountry"),
+    region: h("x-visitor-region") || h("cf-region"),
+    city: h("x-visitor-city") || h("cf-ipcity"),
     network: h("x-visitor-asorg"),
   };
 }
