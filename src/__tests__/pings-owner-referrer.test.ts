@@ -1,8 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { POST } from "@/app/api/analytics/page-view/route";
+import { POST as rawPOST } from "@/app/api/analytics/page-view/route";
 import { GET as ownerGET } from "@/app/api/owner/route";
-import { clearVisitorNotifyCache } from "@/lib/notify";
+import { clearVisits, flushAllVisits } from "@/lib/visits";
+
+const POST = async (req: Request) => {
+  const res = await rawPOST(req);
+  await flushAllVisits();
+  return res;
+};
 import { isOwnerRequest, OWNER_COOKIE } from "@/lib/owner";
 import { classifyVisitor, externalReferrer } from "@/lib/telemetry";
 
@@ -24,7 +30,7 @@ beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => {});
   fetchMock = vi.fn().mockResolvedValue({ ok: true });
   vi.stubGlobal("fetch", fetchMock);
-  clearVisitorNotifyCache();
+  clearVisits();
   vi.stubEnv("VISITOR_WEBHOOK_URL", "https://notify.example.com/webhooks/visitor-pings");
   vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://gimenez.dev");
   vi.stubEnv("OWNER_KEY", "owner-test-key");
@@ -34,7 +40,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
-  clearVisitorNotifyCache();
+  clearVisits();
 });
 
 describe("externalReferrer", () => {
@@ -55,7 +61,7 @@ describe("referrer in the ping", () => {
   });
   it("is the outside origin from document.referrer", async () => {
     await pageView({ path: "/", ref: "https://www.google.com/search?q=luis" });
-    expect(pingBody().referrer).toBe("https://www.google.com");
+    expect(pingBody().referrer).toBe("google.com");
   });
 });
 

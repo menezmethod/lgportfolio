@@ -147,6 +147,15 @@ export async function handleStoreOp(db: D1Database, body: Record<string, unknown
       await db.prepare("INSERT INTO site_events (name, path, src, created_at) VALUES (?, ?, ?, ?)").bind(name, path, src, now).run();
       return { ok: true };
     }
+    case "app_lookup": {
+      const src = typeof body.src === "string" && /^[a-z0-9-]{1,40}$/.test(body.src) ? body.src : null;
+      if (!src) throw bad("valid src required");
+      const row = await db
+        .prepare("SELECT src, company, role, applied_at, status FROM applications WHERE src = ?")
+        .bind(src)
+        .first();
+      return { application: row ?? null };
+    }
     case "board": {
       const days = Math.min(Math.max(int(body.days) ?? 7, 1), RETENTION_DAYS);
       const since = now - days * 86_400_000;

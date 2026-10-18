@@ -25,8 +25,9 @@ function send(url: string, body: Record<string, unknown>) {
 
 /**
  * Client-side analytics: pings /api/analytics/page-view on every page navigation
- * (with an optional ?src= tag from the link), and /api/analytics/event on resume,
- * GitHub, LinkedIn, and email clicks.
+ * (with an optional ?src= tag and, on the first page, document.referrer),
+ * /api/analytics/event on resume, GitHub, LinkedIn, and email clicks, and
+ * /api/analytics/leave with active time on the page when it is hidden or closed.
  */
 export default function PageViewTracker() {
   const pathname = usePathname();
@@ -53,6 +54,28 @@ export default function PageViewTracker() {
     const src = new URLSearchParams(window.location.search).get("src")?.toLowerCase() || undefined;
     send("/api/analytics/page-view", { path: pathname, src, ref });
   }, [pathname]);
+
+  // Active time on the current page, sent with sendBeacon when the page is hidden or closed.
+  const active = useRef({ path: "", ms: 0, since: 0 });
+  useEffect(() => {
+    active.current = { path: pathname, ms: 0, since: document.visibilityState === "visible" ? Date.now() : 0 };
+  }, [pathname]);
+  useEffect(() => {
+    const onVisibility = () => {
+      const a = active.current;
+      if (document.visibilityState === "hidden") {
+        if (a.since) a.ms += Date.now() - a.since;
+        a.since = 0;
+        if (!navigator.webdriver && a.path && !a.path.startsWith("/admin")) {
+          navigator.sendBeacon?.("/api/analytics/leave", JSON.stringify({ path: a.path, ms: a.ms }));
+        }
+      } else if (!a.since) {
+        a.since = Date.now();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {

@@ -102,6 +102,34 @@ export function externalReferrer(ref: unknown, selfHost: string): string {
   }
 }
 
+/**
+ * Visitor IP: CF-Connecting-IP (set by Cloudflare at the edge; the origin is only
+ * reachable through the Cloudflare tunnel), then X-Forwarded-For, then X-Real-IP.
+ */
+export function clientIp(req: Request): string {
+  return (
+    req.headers.get("cf-connecting-ip")?.trim() ||
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip")?.trim() ||
+    ""
+  );
+}
+
+/** Visitor context for visits.ts: IP, user-agent, category, and Cloudflare location headers when present. */
+export function visitContext(req: Request) {
+  const userAgent = req.headers.get("user-agent") || "";
+  const h = (name: string) => req.headers.get(name)?.trim().slice(0, 80) || undefined;
+  return {
+    ip: clientIp(req),
+    userAgent,
+    category: classifyVisitor(userAgent),
+    country: h("cf-ipcountry"),
+    region: h("cf-region"),
+    city: h("cf-ipcity"),
+    network: h("x-visitor-asorg"),
+  };
+}
+
 /** This site's hostname without "www.", from NEXT_PUBLIC_SITE_URL (behind the proxy req.url may not be gimenez.dev). */
 export function siteHost(req: Request): string {
   try {
