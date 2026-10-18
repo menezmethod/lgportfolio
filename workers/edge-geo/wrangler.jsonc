@@ -1,0 +1,10 @@
+{
+  "name": "lgportfolio-edge-geo",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  // Only the routes that feed visitor digests. Everything else never touches this Worker.
+  "routes": [
+    { "pattern": "gimenez.dev/api/analytics/*", "zone_name": "gimenez.dev" },
+    { "pattern": "gimenez.dev/api/chat", "zone_name": "gimenez.dev" }
+  ]
+}
