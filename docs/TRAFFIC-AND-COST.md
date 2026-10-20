@@ -65,7 +65,6 @@ This document describes **rate limits**, **caching**, and **cost controls** so t
 | Endpoint              | TTL   | Purpose |
 |-----------------------|-------|---------|
 | `/api/war-room/data`  | 60 s | Dashboard metrics; client polls every 60s (low-traffic cost). |
-| `/api/rag`            | 60 s | Response cache by normalized query (max 200 entries). Duplicate questions (e.g. “who is luis”) hit cache. |
 | Chat                  | N/A  | In-memory cached replies for common prompts (`getCachedResponse` in `rate-limit.ts`). |
 
 ### What is not cached

@@ -6,9 +6,22 @@ import {
   getDailyBudgetStats,
   incrementDailyCount,
   isSessionLimitReached,
+  rateLimitKey,
 } from "@/lib/rate-limit";
 
 describe("rate-limit", () => {
+  describe("rateLimitKey", () => {
+    it("uses cf-connecting-ip and ignores a client-set X-Forwarded-For", () => {
+      const headers = new Headers({ "cf-connecting-ip": "203.0.113.7", "x-forwarded-for": "1.1.1.1" });
+      expect(rateLimitKey(headers)).toBe("203.0.113.7");
+    });
+
+    it("puts requests without cf-connecting-ip in one shared bucket", () => {
+      expect(rateLimitKey(new Headers({ "x-forwarded-for": "1.1.1.1" }))).toBe("unknown");
+      expect(rateLimitKey(new Headers({ "x-forwarded-for": "2.2.2.2" }))).toBe("unknown");
+    });
+  });
+
   describe("checkRateLimit", () => {
     it("allows first request and decrements remaining", () => {
       const r = checkRateLimit("1.2.3.4");

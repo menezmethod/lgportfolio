@@ -59,6 +59,15 @@ const CACHED_RESPONSES = new Map<string, string>([
   ],
 ]);
 
+/**
+ * Rate-limit key for a request. Cloudflare sets cf-connecting-ip to the real client. The first
+ * X-Forwarded-For entry is whatever the client sent, so keying on it let a script rotate it and
+ * drain the daily budget. Requests without the header (direct to origin, local) share one bucket.
+ */
+export function rateLimitKey(headers: Headers): string {
+  return headers.get("cf-connecting-ip")?.trim() || "unknown";
+}
+
 export function checkRateLimit(ip: string): RateLimitResult {
   if (RATE_LIMITS_DISABLED) {
     return { allowed: true, remaining: 999, resetAt: Date.now() + 60_000 };
@@ -71,6 +80,10 @@ export function checkRateLimit(ip: string): RateLimitResult {
   const existing = ipRateLimits.get(ip);
 
   if (!existing || existing.resetAt < now) {
+    // ponytail: prune on insert past 1000 keys; a timer only matters if this map grows much larger.
+    if (ipRateLimits.size > 1000) {
+      for (const [key, entry] of ipRateLimits) if (entry.resetAt < now) ipRateLimits.delete(key);
+    }
     ipRateLimits.set(ip, {
       tokens: maxRequests - 1,
       resetAt: now + windowMs,

@@ -88,7 +88,7 @@ function makeChatRequest(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-forwarded-for": `test-ip-${Date.now()}-${Math.random()}`,
+      "cf-connecting-ip": `test-ip-${Date.now()}-${Math.random()}`,
       ...headers,
     },
     body: JSON.stringify(body),
@@ -440,5 +440,25 @@ describe("/api/chat — error handling", () => {
     const body = await response.json();
     expect(body.message).not.toContain("secret_database");
     expect(body.message).toContain("unavailable");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RATE LIMIT KEY
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("/api/chat — rate limit key", () => {
+  it("returns 429 when one client rotates X-Forwarded-For", async () => {
+    const client = `cf-client-${Date.now()}-${Math.random()}`;
+    const statuses: number[] = [];
+    for (let i = 0; i < 8; i++) {
+      const response = await POST(
+        makeChatRequest(validBody, { "cf-connecting-ip": client, "x-forwarded-for": `spoof-${i}` })
+      );
+      statuses.push(response.status);
+    }
+    // The default limit is 6 per minute per client, so the 7th and 8th are refused.
+    expect(statuses.slice(0, 6)).not.toContain(429);
+    expect(statuses.slice(6)).toEqual([429, 429]);
   });
 });
