@@ -1,6 +1,6 @@
 import { buildChatProviderChain, streamChatWithFallbacks } from "@/lib/chat-providers";
 import {
-  checkRateLimit,
+  checkRateLimit, rateLimitKey,
   incrementDailyCount,
   isDailyBudgetExhausted,
 } from "@/lib/rate-limit";
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const ip = rateLimitKey(req.headers);
 
     const rateLimitResult = checkRateLimit(ip);
     if (!rateLimitResult.allowed) {
