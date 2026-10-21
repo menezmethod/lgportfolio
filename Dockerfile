@@ -1,12 +1,12 @@
 # Stage 1: Install dependencies (Next.js 16 requires Node 20.9+)
 # Builds the native arch by default. For Cloud Run: docker build --platform=linux/amd64
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci --ignore-scripts && npm cache clean --force
 
 # Stage 2: Build the application
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -17,7 +17,7 @@ ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID}
 RUN npm run build
 
 # Stage 3: Production runner (minimal attack surface)
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
