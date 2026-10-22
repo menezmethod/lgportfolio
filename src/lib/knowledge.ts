@@ -70,7 +70,6 @@ The payments platform is a large team effort. Luis worked within it.
 - Alert quality: replaced time-based muting with volume-aware thresholds for recurring false-positive alerts, cross-checked by a peer so real incidents still page. Each alert ties to a specific CUJ step, a user impact, and a runbook.
 - Incident response: became a person other teams call to pull the right logs and scope impact quickly, including live in front of senior management, while consistently bringing in the formal on-call engineer.
 - Named subject-matter expert for specific applications, and helped onboard newer engineers and contractors.
-- 2x Bravo awards at The Home Depot.
 
 ## Enterprise Payments (Jan 2024 to Mar 2026)
 - Card-authorization broker service: worked request validation, duplicate detection, and format conversion between upstream clients and downstream processors. He was a contributor on the team that built and ran it.

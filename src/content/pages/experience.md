@@ -18,7 +18,6 @@ entries:
       - Shipped a metrics ETL with a clean multi-hour backfill
       - Helped define SLOs, health checks, and Critical User Journeys, with traffic-weighted roll-ups
       - Replaced time-based alert muting with volume-aware thresholds
-      - 2x Bravo awards
   - company: The Home Depot
     role: Software Engineer II
     period: Jan 2024 to Mar 2026

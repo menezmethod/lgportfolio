@@ -38,8 +38,6 @@ I started as a Go backend engineer on Enterprise Payments at **The Home Depot**:
 
 In March 2026 I moved to Home Services as a Site Reliability Engineer. The work includes the telemetry apps, SLO and alerting tooling, and the deployment path for non-developers. I helped define the SLO and Critical User Journey model.
 
-I hold 2x Bravo awards from The Home Depot.
-
 Before Home Depot I freelanced for small businesses (Menez Enterprises, 2018 to 2022) and built web applications at a real-estate company (2015 to 2018).
 
 I'm based in Tampa Bay, FL, and I'm a U.S. citizen. Remote U.S. is preferred. A light hybrid arrangement near Tampa works too.
